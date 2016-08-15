@@ -3,17 +3,12 @@ body {
     background-color: #efefef;
 }
 
-#app .carousel {
-    margin-top: 10px;
-    padding: 10px;
-    box-shadow: 2px 2px 2px 2px #BABABA;
-}
-
 #app .publication {
     background-color: #FFFFFF;
     border-radius: 3px 3px 3px 3px;
     padding: 10px;
     margin-right: 10px;
+    margin-bottom: 25px;
     max-width: 95%;
     overflow: scroll;
     overflow-x: hidden;
@@ -84,21 +79,6 @@ body {
     text-align: justify;
 }
 
-#app .feed-title {
-    background-color: #ff362f;
-    max-width: 120px;
-    color: white;
-    font-weight: bold;
-    font-size: 10px;
-    height: 20px;
-    padding: 3px;
-    text-align: center;
-    margin-bottom: -15px;
-    margin-left: 5px;
-    z-index: 9999;
-    position: relative;
-}
-
 #app .comments ul {
     list-style: none;
     padding: 8px;
@@ -122,6 +102,7 @@ body {
 }
 
 #app .comments .profile-avatar-comment{
+    display: block;
     max-width: 30px;
     max-height: 30px;
     margin-right: auto;

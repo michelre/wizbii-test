@@ -1,5 +1,5 @@
 import 'should';
-import { buildFeedItems, copyPublication } from '../src/helpers/utils';
+import { buildFeedItems, copyPublication } from '../../src/helpers/utils';
 
 describe('Utils', () => {
   it('should construct an object with feed items when calling buildFeedItems', () => {

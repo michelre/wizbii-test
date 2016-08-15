@@ -1,9 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Row, Col } from 'react-bootstrap';
 
-const HeaderProfile = ({ profile }) => {
-  if (!profile) return null;
-  return <div>
+const HeaderProfile = ({ profile }) => <div>
     <Row>
       <Col md={4}>
         <img className="profile-avatar" src={profile.avatar}/>
@@ -13,7 +11,6 @@ const HeaderProfile = ({ profile }) => {
       </Col>
     </Row>
   </div>;
-};
 
 HeaderProfile.propTypes = {
   profile: PropTypes.object.isRequired,

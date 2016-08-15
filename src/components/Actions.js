@@ -4,7 +4,7 @@ import { Row, Col } from 'react-bootstrap';
 import Thanks from './Thanks';
 import Share from './Share';
 
-const Actions = ({ publication, handleThanksClick, handleShareClick }) => (<div className="actions">
+const Actions = ({ publication, handleThanksClick, handleShareClick }) => <div className="actions">
   <Row>
     <Col md={4} mdOffset={2}>
         <Thanks
@@ -19,7 +19,7 @@ const Actions = ({ publication, handleThanksClick, handleShareClick }) => (<div 
           handleShareClick={handleShareClick} />
     </Col>
   </Row>
-</div>);
+</div>;
 
 Actions.propTypes = {
   publication: PropTypes.object.isRequired,

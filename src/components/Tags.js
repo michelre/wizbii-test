@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 import R from 'ramda';
 
 const Tags = ({ tags }) => <div className="tags">
-  {R.reduce((acc, { name }) => `${acc} #${name}`, '', tags)}
+  {R.reduce((acc, { name }) => `${acc} #${name}`, '', tags).trim()}
 </div>;
 
 Tags.propTypes = {

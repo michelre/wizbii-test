@@ -41,14 +41,14 @@ export default class Comments extends React.Component{
       <form>
         {(isAddingComment) ? <i className="adding-comment fa fa-spinner fa-pulse fa-fw"></i> : null}
         <FormControl
-        disabled={isAddingComment}
-        name="comment"
-        className="comment"
-        value={this.state.inputValue}
-        componentClass="textarea"
-        placeholder="Ajouter un commentaire..."
-        onChange={this.handleCommentChange.bind(this)}
-        onKeyPress={this.handleAddComment.bind(this)} />
+          disabled={isAddingComment}
+          name="comment"
+          className="comment"
+          value={this.state.inputValue}
+          componentClass="textarea"
+          placeholder="Ajouter un commentaire..."
+          onChange={this.handleCommentChange.bind(this)}
+          onKeyPress={this.handleAddComment.bind(this)} />
       </form>
     </div>;
   }

@@ -15,12 +15,12 @@ export const authenticate = (username, password) => $.ajax({
 });
 
 export const news = (token) => $.ajax({
-  method: 'POST',
-  url: 'https://api.wizbii.com/v2/dashboard/?direction=newest',
-  headers: {
-    Authorization: `Bearer ${token}`,
-  },
-});
+    method: 'POST',
+    url: 'https://api.wizbii.com/v2/dashboard/?direction=newest',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
 export const addLike = () => new Promise((resolve) =>
     setTimeout(() => resolve(), 1500));

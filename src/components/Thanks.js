@@ -2,7 +2,7 @@ import React, { PropTypes } from 'react';
 
 const Thanks = ({ id, isLoadingThanks, handleThanksClick }) => {
   if (isLoadingThanks) return <i className='fa fa-spinner fa-pulse' aria-hidden="true"></i>;
-  return <div onClick={() => handleThanksClick(id)}>
+  return <div className="thanks" onClick={() => handleThanksClick(id)}>
       <i className="fa fa-plus-circle" aria-hidden="true"></i>&nbsp;<b>Thanks</b>
   </div>;
 };

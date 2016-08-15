@@ -6,6 +6,7 @@ import Tags from './Tags';
 import HeaderProfile from './HeaderProfile';
 import HeaderCompany from './HeaderCompany';
 import Period from './Period';
+import Content from './Content';
 import Actions from './Actions';
 import Metrics from './Metrics';
 import Comments from './Comments';
@@ -22,15 +23,7 @@ const Publication = ({ publication, handleShareClick, handleThanksClick, handleA
       </Col>
     </Row>
     <Tags tags={publication.tags}/>
-    <Row>
-      <Col md={12}>
-        <p className="content">{publication.content}</p>
-      </Col>
-      <Col md={12}>
-        <img src={publication.attachment_picture_source}/>
-      </Col>
-    </Row>
-    <a href={publication.attachment_link} target="_blank">{publication.attachment_link}</a>
+    <Content publication={publication} />
     <hr/>
     <Actions
       publication={publication}
