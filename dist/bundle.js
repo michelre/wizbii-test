@@ -46,8 +46,6 @@
 
 	'use strict';
 
-	__webpack_require__(1);
-
 	var _react = __webpack_require__(298);
 
 	var _react2 = _interopRequireDefault(_react);
@@ -29488,7 +29486,7 @@
 
 	var _moment2 = _interopRequireDefault(_moment);
 
-	var _mockApi = __webpack_require__(601);
+	var _api = __webpack_require__(887);
 
 	var _utils = __webpack_require__(598);
 
@@ -29509,8 +29507,7 @@
 	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	//import { authenticate, news, addLike, addComment, share } from '../helpers/api';
+	//import { authenticate, news, addLike, addComment, share } from '../helpers/mock-api';
 
 
 	var App = function (_React$Component) {
@@ -29519,7 +29516,12 @@
 	  function App(props) {
 	    _classCallCheck(this, App);
 
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(App).call(this, props));
+	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(App).call(this, props));
+
+	    _this.state = {
+	      isLoading: true
+	    };
+	    return _this;
 	  }
 
 	  _createClass(App, [{
@@ -29538,23 +29540,22 @@
 	            switch (_context.prev = _context.next) {
 	              case 0:
 	                _context.next = 2;
-	                return (0, _mockApi.authenticate)(this.props.username, this.props.password);
+	                return (0, _api.authenticate)(this.props.username, this.props.password);
 
 	              case 2:
 	                _ref = _context.sent;
 	                token = _ref['access-token'];
 	                profile = _ref.profile;
 	                _context.next = 7;
-	                return (0, _mockApi.news)(token);
+	                return (0, _api.news)(token);
 
 	              case 7:
 	                _ref2 = _context.sent;
 	                feed_items = _ref2.feed_items;
 
-	                this.setState({ feedItems: (0, _utils.buildFeedItems)(feed_items, baseProperties), profile: profile });
-	                console.log(this.state);
+	                this.setState({ feedItems: (0, _utils.buildFeedItems)(feed_items, baseProperties), profile: profile, isLoading: false });
 
-	              case 11:
+	              case 10:
 	              case 'end':
 	                return _context.stop();
 	            }
@@ -29570,7 +29571,7 @@
 	      var p = _ramda2.default.pathOr([], ['feedItems', id], this.state);
 	      p = _ramda2.default.merge(p, { isLoadingShare: true });
 	      this.setState({ feedItems: _ramda2.default.merge(this.state.feedItems, _defineProperty({}, id, p)) });
-	      (0, _mockApi.share)(id).then(function () {
+	      (0, _api.share)(id).then(function () {
 	        var _R$merge2;
 
 	        p = _ramda2.default.merge(p, { isLoadingShare: false });
@@ -29586,7 +29587,7 @@
 	      var p = _ramda2.default.pathOr([], ['feedItems', id], this.state);
 	      p = _ramda2.default.merge(p, { isLoadingThanks: true });
 	      this.setState({ feedItems: _ramda2.default.merge(this.state.feedItems, _defineProperty({}, id, p)) });
-	      (0, _mockApi.addLike)(id).then(function () {
+	      (0, _api.addLike)(id).then(function () {
 	        p = _ramda2.default.merge(p, { isLoadingThanks: false, likes: p.likes.concat([{ date: (0, _moment2.default)().toISOString() }]) });
 	        _this3.setState({ feedItems: _ramda2.default.merge(_this3.state.feedItems, _defineProperty({}, id, p)) });
 	        console.log(_this3.state);
@@ -29600,12 +29601,12 @@
 	      var p = _ramda2.default.pathOr([], ['feedItems', id], this.state);
 	      p = _ramda2.default.merge(p, { isAddingComment: true });
 	      this.setState({ feedItems: _ramda2.default.merge(this.state.feedItems, _defineProperty({}, id, p)) });
-	      (0, _mockApi.addComment)(id).then(function () {
+	      (0, _api.addComment)(id).then(function () {
 	        p = _ramda2.default.merge(p, {
 	          isAddingComment: false,
 	          comments: p.comments.concat([{
-	            id: _shortid2.default.generate(),
-	            comment: comment,
+	            _id: _shortid2.default.generate(),
+	            content: comment,
 	            date: (0, _moment2.default)().toISOString(),
 	            profile: {
 	              name: _ramda2.default.pathOr('', ['profile', 'name'], _this4.state),
@@ -29619,7 +29620,17 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
-	      if (!this.state) return null;
+	      if (this.state.isLoading) return _react2.default.createElement(
+	        'div',
+	        null,
+	        _react2.default.createElement('i', { className: 'fa fa-spinner fa-pulse', 'aria-hidden': 'true' }),
+	        ' ',
+	        _react2.default.createElement(
+	          'span',
+	          null,
+	          'Loading...'
+	        )
+	      );
 	      return _react2.default.createElement(
 	        'div',
 	        null,
@@ -59122,18 +59133,13 @@
 
 	var copyPublication = exports.copyPublication = function copyPublication(base, profile) {
 	  var id = (0, _shortid.generate)();
-	  return _ramda2.default.merge(base, { _id: id, profile: profile, date_created: (0, _moment2.default)().toISOString() });
+	  return _ramda2.default.merge(base, { _id: id, profile: profile, date_created: (0, _moment2.default)().toISOString(), poster_type: 'PROFILE' });
 	};
 
 /***/ },
 /* 599 */,
 /* 600 */,
-/* 601 */
-/***/ function(module, exports) {
-
-	"use strict";Object.defineProperty(exports,"__esModule",{value:true});/* eslint-disable */var authenticate=exports.authenticate=function authenticate(){return new Promise(function(resolve,reject){resolve({"access-token":"8edjjh0jsggscgoscokk8ok0gc40ss0","profile":{"_id":"mayafleury1389966547","name":"Julia Fleury","slug":"mayafleury1389966547","date_created":"2014-01-17T14:49:07+0100","date_modified":"2016-08-01T13:16:02+0000","language":"fr","locale":"fr_FR","original_locale":"fr_FR","first_name":"Julia","last_name":"Fleury","sex":"FEMME","mobile":"","status":"INACTIF","avatar":"https:\/\/www.wizbii.com\/uploads\/4c\/058\/4c058432e8d1489a489bae1cb43d3a09_profile_large.jpeg","location":{"display_value":"Pau","city_place_id":"cda170079076c903d855980441a71c8f2b75aed6","city":"Pau","department":"Pyrénées-Atlantiques","department_short":"64","state":"Aquitaine","state_short":"Aquitaine","country":"France","country_short":"FR","points":{"center":{"lat":43.2951,"lon":-0.370797}},"geo":{"lat":43.2951,"lon":-0.370797},"extra":{}},"date_birthday":"1990-01-02T00:00:00+0100","filling_ratio":80,"is_no_index":false,"title":"Etudiante en BTS NRC à la recherche d'une alternance dans le milieu bancaire","resume":"Hello ! Je suis une étudiante pétillante, jeune diplômée en BTS NRC avec une première expérience en commerce, vente et relation client, je recherche une alternance dans le cadre d'une licence professionnelle banque et assurance.","skills":[{"_id":"qsdu0ihp7i84c8os8owc844cggo0c4c","origin":"SKILLHARD","skill":{"_id":"word-excel-powerpoint-fr-fr","slug":"word-excel-powerpoint","name":"word, excel, powerpoint","type":"SKILLHARD","date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200","language":"fr","locale":"fr_FR"},"recommends":[],"date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200"},{"_id":"orrvrkenfpwooggkok0kkk444wckk44","origin":"SKILLHARD","skill":{"_id":"banque-et-finance-fr-fr","slug":"banque-et-finance","name":"banque et finance","type":"SKILLHARD","date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200","language":"fr","locale":"fr_FR"},"recommends":[],"date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200"},{"_id":"bhmsrj4hdjc4s8c8ckc8go000w4cc4s","origin":"SKILLHARD","skill":{"_id":"negociation-fr-fr","slug":"negociation","name":"négociation","type":"SKILLHARD","date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200","language":"fr","locale":"fr_FR"},"recommends":[],"date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200"},{"_id":"k0g2ejkpwdsocg4sgsc48sk4ocsg0k4","origin":"SKILLHARD","skill":{"_id":"gestion-de-relation-client-fr-fr","slug":"gestion-de-relation-client","name":"gestion de relation client","type":"SKILLHARD","date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200","language":"fr","locale":"fr_FR"},"recommends":[],"date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200"},{"_id":"jx2c2zu25lcccc4k488kws4c8c00s4g","origin":"SKILLHARD","skill":{"_id":"techniques-de-vente-fr-fr","slug":"techniques-de-vente","name":"techniques de vente","type":"SKILLHARD","date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200","language":"fr","locale":"fr_FR"},"recommends":[],"date_created":"2015-09-21T23:36:53+0200","date_modified":"2015-09-21T23:36:53+0200"}],"skills_soft":[],"tags":[{"origin":"TAG","tag":{"_id":"marketing","slug":"marketing","name":"Marketing"}},{"origin":"TAG","tag":{"_id":"startup","slug":"startup","name":"Startup"}},{"origin":"TAG","tag":{"_id":"commerce","slug":"commerce","name":"Commerce"}}],"educations":[{"_id":"fonfloczbyb","date_debut":"2012-01-01T00:00:00+0100","date_fin":"2014-01-01T00:00:00+0100","in_progress":true,"status":"online","school_slug":"bts-nrc","degree":{"_id":"bac2","slug":"bac2","title":"BTS, DUT, Bac +2","title_short":"","order":3,"date_created":"2014-01-17T14:50:10+0100","date_modified":"2014-04-01T15:30:01+0200","language":"fr"},"specialisation":"Négociation et Relation Client","school":{"_id":"bts-nrc","slug":"bts-nrc","slug_v2":"bts-nrc","used":"261","name":"Bts nrc","date_modified":"2015-12-09T14:32:46+0100","locale":"fr_FR","location":{"display_value":"Mont-de-Marsan","city_place_id":"ChIJ5xlGoxHRVQ0RoDMWSBdlBgQ","city":"Mont-de-Marsan","address":"Mont-de-Marsan, France","department":"Landes","department_short":"Landes","state":"Aquitaine","state_short":"Aquitaine","country":"France","country_short":"FR","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":43.893485,"lon":-0.499782},"extra":{}}}}],"experiences_pro":[{"_id":"gucqgzuceqaor","date_debut":"2013-03-01T00:00:00+0100","date_fin":"2013-08-01T00:00:00+0200","in_progress":false,"experience":{"name":"Account Manager Assistant"},"status":"online","specialite":"COMMERCE_VENTE","company":{"_id":"grand-groupe","slug":"grand-groupe","guid":"1666369","date_created":"2014-01-17T17:52:19+0100","date_modified":"2014-02-17T17:28:43+0100","status":"PRIVE","state":"visible","name":"Grand Groupe","is_client":false,"is_autocomplete":false,"location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[],"home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment"},"tabs":[],"aliases":[]},"company_slug":"grand-groupe","description":"* Prospecter des nouveaux clients\r\n* Fidéliser les clients existants\r\n* Développer et entretenir un portefeuille de clients\r\n* Compléter l'outil de reporting\r\n* Assister le manager dans toutes ses autres tâches"}],"experiences_extra_pro":[{"_id":"artkoftroor","date_debut":"2012-09-01T00:00:00+0200","date_fin":"2013-06-01T00:00:00+0200","in_progress":false,"experience":{"name":"Responsable Communication"},"status":"online","organisation":{"_id":"bde","slug":"bde","name":"BDE"}}],"wishes":[{"_id":"rcyxpnojrlik","description":"Monter ma start-up","when":"AVANT_30_ANS"},{"_id":"kxyrpimkajor","description":"Occuper un poste de conseiller clientèle professionnels","when":"APRES_ETUDES"}],"links":[{"type":"BLOG","url":"juliafleury.com"},{"type":"TWITTER","url":"juliafleury"}],"languages":[],"last_view":{"news":"2016-04-14T14:22:09+02:00","visits":"2016-07-22T19:36:14+00:00"},"counters":{"like":0,"news":0,"suggest_job":16,"visit":0,"notification":0},"filling_ratio_empty_info":{"mobile":1,"skills_soft":1,"languages":1},"wizard_project_step":0,"discovery":{"leave":false,"end":false,"modal":true,"publication":true,"connection":true,"thanx":true,"publication-wizard":true},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1364,"results":[]}},"level1":{"type":"level1","result_set":{"rows":10,"offset":0,"hits":29,"results":[]}},"level2":{"type":"level2","result_set":{"rows":10,"offset":0,"hits":1077,"results":[]}},"school":{"type":"school","result_set":{"rows":10,"offset":0,"hits":258,"results":[]}}}},"high_res_avatar":"https:\/\/www.wizbii.com\/uploads\/4c\/058\/4c058432e8d1489a489bae1cb43d3a09_profile_large@2x.jpeg","specialities":[],"is_proxy":false,"job_interest":true,"data_bag":[],"remaining_onboarding_steps":["gmail-wildguess-wpte","prospect-invite"],"registration_sources":["website"]}});});};var news=exports.news=function news(token){return new Promise(function(resolve,reject){resolve({"feed_items":{"feed_items":[{"id":"sponsored-publication","type":"sponsored-publication","date":"2016-08-12T05:56:44+0000","date_cached":"2016-08-12T05:56:44+0000","ad":{"_id":"250","campaign_id":"88","start_date":"2016-08-08T07:00:00+0100","end_date":"2016-08-22T07:00:00+0100","status":"enabled","spot_id":"sponsored-publication","parameters":{"cta_url":"http://www.riffx.fr","sub_title":"Musiciens, chanteurs, tentez de devenir DISQUE D’OR sur RIFFX.fr","content":"Appel à talents : musiciens, chanteurs, RDV sur RIFFX.fr, la plateforme musicale du Crédit Mutuel ! Déposez votre maquette et tentez votre chance de vous retrouver à l’affiche de la 3ème compil RIFFX éditée à plus de 50 000  exemplaires, à côté d’artistes prestigieux !","info_title":"Musiciens, chanteurs, tentez de devenir DISQUE D’OR sur RIFFX.fr","info_subtitle":"Déposez vite vos maquettes/vidéos et mobilisez votre communauté à voter pour vous !","twitter_text":"","tags":["Musique","Concours","Talents","EP","Artiste"],"company_id":"credit-mutuel","campaign":{"_id":"88","name":"Riffx Concours","start_date":"2016-08-08","end_date":"2016-08-22","company_id":"credit-mutuel","ads":[]},"company":{"_id":"credit-mutuel","slug":"credit-mutuel","guid":"390238","date_created":"2012-11-20T12:51:45+0100","date_modified":"2016-02-24T15:10:34+0000","status":"PUBLIC","state":"visible","name":"Crédit Mutuel","tag_line":"Une banque qui appartient à ses clients sociétaires, ça change tout !","is_client":true,"is_autocomplete":true,"location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"creditmutuel"},{"type":"TWITTER","url":"credit_mut"},{"type":"YOUTUBE","url":"https://www.youtube.com/user/CreditMutuelVideo"}],"logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large.png","banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large.png","banner_link":"http://www.creditmutuel.fr","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p>Fort de plus de 100.000 collaborateurs – 78.000 salariés et 24.000 administrateurs – le groupe Crédit Mutuel met son expérience de tous les métiers de la finance à disposition de plus de 30 millions de clients. Son premier objectif est la qualité de la relation et du service à ses sociétaires et clients, clé du développement. Sa stratégie est celle d'un développement maîtrisé fondé sur la banque de proximité, la bancassurance et l'innovation technologique.</p><p><br></p><p><img src=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium@2x 2x\"></p><br>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Le Crédit Mutuel Recrute ! </strong></p><p class=\"\">Consulte les annonces<strong><a href=\"https://www.creditmutuel.fr/cmcee/fr/banques/groupe/recrutement/index.html\" target=\"_blank\"> ici </a></strong>!</p>","nb_jobs":0},"tabs":[{"slug":"jeunesquiosent","title":"JeunesQuiOsent","inner_title":"Concours JeunesQuiOsent","description":"<center><div class=\"h3\"><strong>Participez au concours <a href=\"http://medias.creditmutuel.fr/cmx/minisite/jqo/\" target=\"_blank\">JeunesQuiOsent</a> !</strong></div></center><iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/JVyuu1XHDMY?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\">\n</iframe>"}],"aliases":["credit-mutuel-de-bretagne","credit-mutuel-arkea","crdit-mutuel"],"twitter_username":"credit_mut","website":"http://www.creditmutuel.fr","followed":true,"external_feeds":[{"type":"facebook","url":"creditmutuel"}],"high_res_logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large@2x.png"},"id":"250","bg_url":"https://www.wizbii.com/bundles/wizbiipubui/images/credit-mutuel/sponsored-publication_bg.png"},"criteria":[{"type":"languages","values":["fr"]},{"type":"countries","values":["FR"]}],"template":"WizbiiPubUIBundle:Spots:sponsored-publication.html.twig"},"company":{"_id":"credit-mutuel","slug":"credit-mutuel","guid":"390238","date_created":"2012-11-20T12:51:45+0100","date_modified":"2016-02-24T15:10:34+0000","status":"PUBLIC","state":"visible","name":"Crédit Mutuel","tag_line":"Une banque qui appartient à ses clients sociétaires, ça change tout !","is_client":true,"is_autocomplete":true,"location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"creditmutuel"},{"type":"TWITTER","url":"credit_mut"},{"type":"YOUTUBE","url":"https://www.youtube.com/user/CreditMutuelVideo"}],"logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large.png","banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large.png","banner_link":"http://www.creditmutuel.fr","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p>Fort de plus de 100.000 collaborateurs – 78.000 salariés et 24.000 administrateurs – le groupe Crédit Mutuel met son expérience de tous les métiers de la finance à disposition de plus de 30 millions de clients. Son premier objectif est la qualité de la relation et du service à ses sociétaires et clients, clé du développement. Sa stratégie est celle d'un développement maîtrisé fondé sur la banque de proximité, la bancassurance et l'innovation technologique.</p><p><br></p><p><img src=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium@2x 2x\"></p><br>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Le Crédit Mutuel Recrute ! </strong></p><p class=\"\">Consulte les annonces<strong><a href=\"https://www.creditmutuel.fr/cmcee/fr/banques/groupe/recrutement/index.html\" target=\"_blank\"> ici </a></strong>!</p>","nb_jobs":0},"tabs":[{"slug":"jeunesquiosent","title":"JeunesQuiOsent","inner_title":"Concours JeunesQuiOsent","description":"<center><div class=\"h3\"><strong>Participez au concours <a href=\"http://medias.creditmutuel.fr/cmx/minisite/jqo/\" target=\"_blank\">JeunesQuiOsent</a> !</strong></div></center><iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/JVyuu1XHDMY?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\">\n</iframe>"}],"aliases":["credit-mutuel-de-bretagne","credit-mutuel-arkea","crdit-mutuel"],"twitter_username":"credit_mut","website":"http://www.creditmutuel.fr","followed":true,"external_feeds":[{"type":"facebook","url":"creditmutuel"}],"high_res_logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large@2x.png"}},{"id":"32aiivcr0gcg444gsows0gskcwg4ckg","type":"publication","reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"jeromemartin1322060918","name":"Jerome Martin","slug":"jeromemartin1322060918","language":"fr","locale":"fr_FR","first_name":"Jerome","last_name":"Martin","avatar":"8061670d335a9d19ec2ec83251e544fc.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Entrepreneur muli-compétences","counters":{"like":241},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":32677,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"date":"2016-08-11T17:58:19+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"32aiivcr0gcg444gsows0gskcwg4ckg","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T17:58:19+0000","date_modified":"2016-08-11T17:58:19+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"mouhamadou-moustapha-lo","poster":{"slug":"mouhamadou-moustapha-lo","type":"PROFILE","displayName":"Mouhamadou Moustapha LO"},"profile":{"_id":"mouhamadou-moustapha-lo","name":"Mouhamadou Moustapha LO","slug":"mouhamadou-moustapha-lo","language":"fr","locale":"fr_FR","first_name":"Mouhamadou Moustapha","last_name":"LO","avatar":"https://www.wizbii.com/uploads/07/e82/07e8256532e2cf80e3ba4fd1add8d80e_profile_large.png","location":{"display_value":"Le Havre","city":"Le Havre","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1053,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/07/e82/07e8256532e2cf80e3ba4fd1add8d80e_profile_large@2x.png","is_proxy":true,"data_bag":[]},"content":"Bonjour,\nJe suis un étudiant en matser 1 informatique au havre et je suis à la recherche d'un contrat en alternance pour la rentrée de septembre.\nSi vous avez des pistes, je suis preneur.\nMerci d'avance!!!!","tags":[{"_id":"alternance","slug":"alternance","name":"Alternance","type":"TAG","date_created":"2016-08-11T17:58:19+0000","date_modified":"2016-08-11T17:58:19+0000"},{"_id":"informatique-developpement","slug":"informatique-developpement","name":"informatique (développement)","type":"TAG","date_created":"2016-08-11T17:58:19+0000","date_modified":"2016-08-11T17:58:19+0000"},{"_id":"normandie","slug":"normandie","name":"Normandie","type":"TAG","date_created":"2016-08-11T17:58:19+0000","date_modified":"2016-08-11T17:58:19+0000"}],"comments":[],"likes":[],"reports":[],"delta":43106137,"shares":[],"mentions":[],"data_bag":[]}},{"id":"g0cg763pzf48swggsw8kgswcs88kggo","type":"publication","date":"2016-08-11T15:15:28+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"g0cg763pzf48swggsw8kgswcs88kggo","external_id":"1919f5ff84f5951580762df7bf1e664d","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T15:15:28+0000","date_modified":"2016-08-11T18:15:11+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"wizbii","poster":{"slug":"wizbii","type":"COMPANY","displayName":"Wizbii"},"company":{"_id":"wizbii","slug":"wizbii","date_created":"2015-05-06T08:17:36+0200","date_modified":"2016-08-01T12:47:24+0000","status":"PUBLIC","state":"visible","name":"Wizbii","is_client":true,"creation_year":"2010","employees_number":"37","is_autocomplete":true,"industry":"internet","location":{"display_value":"Grenoble","city_place_id":"ChIJb76J1ov0ikcRmFOZbs0QjGE","city":"Grenoble","department":"Isère","department_short":"38","state":"Rhône-Alpes","state_short":"RA","country":"France","country_short":"FR","geo":{"lat":45.188529,"lon":5.724524},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"TWITTER","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"INSTAGRAM","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"BLOG","url":"http://laruche.wizbii.com","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"}],"logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large.png","banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large.png","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes-nous ?</strong></p>\n<p>Wizbii est le 1er r&eacute;seau social professionnel pour les 18-30 ans.</p>\n<p class=\"h3\"><strong>Notre mission :</strong></p>\n<p class=\"\">D&eacute;velopper l'emploi et l'entrepreneuriat autour du monde. En 2010, Wizbii voit le jour pour que les jeunes puissent se rencontrer, donner vie &agrave; des projets ensemble ou trouver un emploi.</p>\n<p><strong>La Wiz'team</strong> c'est notre &eacute;quipe. Elle compte aujourd'hui 35 personnes pr&eacute;sentes sur deux bureaux &agrave; Grenoble et Paris.</p>\n<p>En quelques chiffres, Wizbii c'est 600 000 membres avec une croissance de 1000 nouveaux membres/jour, 1500 projets de start-up n&eacute;s sur le r&eacute;seau, et 5000 entreprises qui recrutent leurs talents. Nous avons r&eacute;ussi &agrave; l'&eacute;t&eacute; 2014 une lev&eacute;e de fonds de 1,6 million d'euros, pour renforcer nos &eacute;quipes technique et commerciale.</p>\n<p>Aujourd'hui, Wizbii est le m&eacute;dia social professionnel qui conna&icirc;t la plus forte croissance de nouveaux membres en France sur le segment des 18-30 ans.</p>\n<p>Notre communaut&eacute; s'agrandit au m&ecirc;me titre que nos ambitions. Les opportunit&eacute;s que nous proposons offrent mobilit&eacute; professionnelle et &agrave; l'international.</p>\n<p>Nous avons des projets excitants &agrave; confier &agrave; nos futurs talents. Vous partagez notre envie ? Et si c'&eacute;tait vous ?</p>\n<p>Entreprises, pour recruter de jeunes talents :<a href=\"http://www.wizbii.com/entreprises\"> http://www.wizbii.com/entreprises</a></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Wizbii recherche ses futurs talents !</strong></p>\n<p class=\"h3\"><img src=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\" /></p>\n<p>D&eacute;veloppeurs, Marketeux, Commerciaux...</p>\n<p>L'univers du Web vous passionne et l'ambiance Start-Up vous s&eacute;duit?</p>\n<p>Avec une moyenne d'&acirc;ge de 27 ans, notre &eacute;quipe est compos&eacute;e de 35 personnes, toutes pr&eacute;sentes sur Wizbii. Nous favorisons la prise d'initiative, l'engagement et la cr&eacute;ativit&eacute;. Bas&eacute;s &agrave; Grenoble, la Wiz'team travaille en open space pour mieux avancer ensemble. Si vous &ecirc;tes passionn&eacute; et voulez avoir des responsabilit&eacute;s, Wizbii est l'entreprise qu'il vous faut !</p>\n<p>Wizbii recrute en ce moment en CDI et stages. Nous privil&eacute;gions les stages de fin d'&eacute;tudes avec r&eacute;elle possibilit&eacute; d'embauche en CDI. Nous n'aimons pas perdre les talents que nous identifions !</p>\n<p>A tr&egrave;s vite ;)</p>","nb_jobs":5},"tabs":[],"aliases":["wizbiisas","wizbii-sas","wizbii2"],"should_redirect":false,"twitter_username":"wizbii_fr","website":"https://www.wizbii.com","followers":[],"followed":true,"external_feeds":[{"type":"facebook","url":"http://www.facebook.com/wizbii"}],"high_res_logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large@2x.png"},"content":"Cette vidéo à été élue par Wizbii le meilleur Pire CV Vidéo 2016 https://wiz.bi/pirecvgagnants A voir absolument !","tags":[],"attachment_link":"https://www.facebook.com/wizbii/videos/10154410392169512/","attachment_title":"Cette vidéo à été élue par Wizbii le meilleur Pire CV Vidéo 2016 https://wiz.bi/pirecvgagnants A voir absolument !","attachment_picture":"https://www.wizbii.com/uploads/10/18b/1018b277afb0d6f90a55267da5ad823f_publication_large.jpeg","attachment_picture_width":720,"attachment_picture_height":405,"comments":[],"likes":[],"reports":[],"delta":52877137,"shares":[],"mentions":[],"data_bag":[]}},{"id":"iaf0dp574wg8g44k8kswgso08c8w0ck","type":"publication","reasons":[{"reason_steps":[{"type":"tag","tag":{"_id":"marketing","slug":"marketing","name":"Marketing","date_created":"2016-02-10T10:03:15+0000","date_modified":"2016-02-10T10:03:15+0000"}}]}],"date":"2016-08-11T14:52:42+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"iaf0dp574wg8g44k8kswgso08c8w0ck","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T14:52:42+0000","date_modified":"2016-08-11T14:52:42+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"morgane-faragoni","poster":{"slug":"morgane-faragoni","type":"PROFILE","displayName":"Morgane Faragoni"},"profile":{"_id":"morgane-faragoni","name":"Morgane Faragoni","slug":"morgane-faragoni","language":"fr","locale":"fr_FR","first_name":"Morgane","last_name":"Faragoni","avatar":"https://www.wizbii.com/uploads/14/7c7/147c77621dd9e4f912b3b27eec242c32_profile_large.jpeg","location":{"display_value":"Toulon","city":"Toulon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":11,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/14/7c7/147c77621dd9e4f912b3b27eec242c32_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Bonjour, \n\ntitulaire d'un bts muc ET d'une licence responsable marketing opérationnel en alternance, je recherche activement un emploi en alternance pour un master (bac+4 ET 5) . \n\nPassionnée dans le domaine du marketing, commerce, communication, je suis sérieuse dynamique et impliquée. \n\nJe reste disponible à toute proposition ET pour de plus amples renseignements concernant mon profil. \n\nMerci","tags":[{"_id":"marketing","slug":"marketing","name":"Marketing","type":"TAG","date_created":"2016-08-11T14:52:42+0000","date_modified":"2016-08-11T14:52:42+0000"},{"_id":"communication","slug":"communication","name":"Communication","type":"TAG","date_created":"2016-08-11T14:52:42+0000","date_modified":"2016-08-11T14:52:42+0000"},{"_id":"commerce-vente","slug":"commerce-vente","name":"commerce / vente","type":"TAG","date_created":"2016-08-11T14:52:42+0000","date_modified":"2016-08-11T14:52:42+0000"},{"_id":"evenementiel","slug":"evenementiel","name":"événementiel","type":"TAG","date_created":"2016-08-11T14:52:42+0000","date_modified":"2016-08-11T14:52:42+0000"}],"comments":[],"likes":[],"reports":[],"delta":54243141,"shares":[],"mentions":[],"data_bag":[]}},{"id":"l4zlw0vqyc0ckgogggk8w4ko08ockc8","type":"publication","reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"jeromemartin1322060918","name":"Jerome Martin","slug":"jeromemartin1322060918","language":"fr","locale":"fr_FR","first_name":"Jerome","last_name":"Martin","avatar":"8061670d335a9d19ec2ec83251e544fc.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Entrepreneur muli-compétences","counters":{"like":241},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":32677,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"date":"2016-08-11T14:42:51+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"l4zlw0vqyc0ckgogggk8w4ko08ockc8","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T14:42:51+0000","date_modified":"2016-08-11T14:42:52+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"laureatndouna1426526482","poster":{"slug":"laureatndouna1426526482","type":"PROFILE","displayName":"Laureat Ndouna"},"profile":{"_id":"laureatndouna1426526482","name":"Laureat Ndouna","slug":"laureatndouna1426526482","language":"fr","locale":"fr_FR","first_name":"Laureat","last_name":"Ndouna","avatar":"https://www.wizbii.com/uploads/83/017/83017ecee21753b1c4fc23771ccdb20c_profile_large.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Fondatrice de la start up Staff Emploi","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":107},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3777,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/83/017/83017ecee21753b1c4fc23771ccdb20c_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Réparer ses erreurs en relations humaines --> https://staffemploi.wordpress.com/2016/08/05/reparer-ses-erreurs-en-relations-humaines/","tags":[{"_id":"reparer-ses-erreurs","slug":"reparer-ses-erreurs","name":"réparer ses erreurs","type":"TAG","date_created":"2016-08-11T14:42:51+0000","date_modified":"2016-08-11T14:42:51+0000"},{"_id":"article","slug":"article","name":"article","type":"TAG","date_created":"2016-08-11T14:42:51+0000","date_modified":"2016-08-11T14:42:51+0000"}],"attachment_link":"https://staffemploi.wordpress.com/2016/08/05/reparer-ses-erreurs-en-relations-humaines/","attachment_title":"Réparer ses erreurs en relations humaines","attachment_picture":"https://www.wizbii.com/uploads/e1/a4f/e1a4fe4884aecec0a59368d411a46973_publication_large.jpeg","attachment_picture_width":849,"attachment_picture_height":566,"attachment_content":"Chers lecteurs Bonjour ! :-) Ce vendredi, je propose que tous nous fassions la rétrospective de nos erreurs et que nous réfléchissions sur l’attitude à adopter après l’erreur dans nos relations ave…","comments":[],"likes":[],"reports":[],"delta":54834141,"shares":[],"mentions":[],"data_bag":[]}},{"id":"1bme05i9897o8kksksck8oswoskwc8g","type":"publication","date":"2016-08-11T14:18:44+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"1bme05i9897o8kksksck8oswoskwc8g","external_id":"13b59c4ebb9018fc4c9cd030a2d91f91","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T14:18:44+0000","date_modified":"2016-08-11T17:15:03+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"bpa","poster":{"slug":"bpa","type":"COMPANY","displayName":"Banque Populaire des Alpes","guid":"390290"},"company":{"_id":"bpa","slug":"bpa","guid":"390290","date_created":"2012-11-20T12:51:46+0100","date_modified":"2016-02-09T13:55:50+0000","date_client":"2014-08-01T09:00:00+0200","status":"PUBLIC","state":"visible","name":"Banque Populaire des Alpes","tag_line":"Vous avez du talent... nous vous offrons l'expérience !","is_client":true,"is_autocomplete":true,"industry":"banques","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"https://www.facebook.com/BanquePopulaireAlpes?fref=ts"}],"logo":"https://www.wizbii.com/uploads/4e/8e3/4e8e3d29d094193651c15dabb4658b7f_company_large.jpeg","banner":"https://www.wizbii.com/uploads/41/817/418171b1e8645be2e58842ad83119398_company_banner_large.png","banner_link":"https://emea3.recruitmentplatform.com/syndicated/lay/jsoutputinitrapido.cfm?component=lay9999_lst400a&amp;LOV1=All&amp;LOV8=All&amp;LOV11=All&amp;keywords=&amp;jobnum=&amp;srcsubmit=Rechercher&amp;statlog=1&amp;ID=QFBFK026203F3VBQB7V8N8M79&amp;mask=sbauque&amp;LG=FR&amp;SUBDEPT1=19","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes nous ?</strong></p><p>La Banque Populaire des Alpes est une banque coopérative et un assureur qui contribue au développement économique de son territoire. Elle fait partie du Groupe BPCE, 2ème groupe bancaire français.</p><p>Elle compte plus de 390 000 clients, près de 1 700 collaborateurs et 172 agences implantées sur 8 départements : Ain, Alpes-de-Haute-Provence, Hautes-Alpes, Ardèche, Drôme, Isère, Savoie et Haute-Savoie.</p><p>S'engager au service des projets personnels et professionnels de ses clients et sociétaires, leur donner \"envie d'agir\", et les accompagner dans le durée, tel est l'esprit Banque Populaire des Alpes.</p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p><a href=\"http://talentsalpesbanquepopulaire.fr/accueil.html#.VE90OJPF_vY\"><img src=\"/api/image/v1/9edd9bd37d930b0521a7e68fbfca6920.jpeg?size=company_description_banner_medium\" srcset=\"/api/image/v1/9edd9bd37d930b0521a7e68fbfca6920.jpeg?size=company_description_banner_medium@2x 2x\"></a></p><h3>Nous Recrutons !</h3><p>Riche de nos 1650 collaborateurs, nous recrutons en moyenne 250 personnes par an (CDI, alternance et CDD). Nous sommes une banque jeune où un tiers de nos collaborateurs a moins de 35 ans.</p><p>Appartenant au Groupe BPCE, 2ème groupe bancaire français (117 000 collaborateurs), nous vous offrons la possibilité d'une carrière nationale voire internationale dans le cadre d'une mobilité géographique choisie et accompagnée.</p><p>Intégrer la Banque Populaire des Alpes, c'est faire partie d'un groupe qui donnera un sens à votre parcours professionnel et les moyens de vos ambitions.</p><h3> Retrouvez-nous sur les forums !</h3><p>Nous sommes également très présents dans les différents forums de recrutement, alors venez nous rencontrer : Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi. Pour cela soyez attentif et consultez notre onglet \"Actualités\" !</p><p><strong>Révélez vos talents, prenez le cap BPA ! <br><a href=\"https://emea3.recruitmentplatform.com/syndicated/lay/jsoutputinitrapido.cfm?component=lay9999_lst400a&amp;LOV1=All&amp;LOV8=All&amp;LOV11=All&amp;keywords=&amp;jobnum=&amp;srcsubmit=Rechercher&amp;statlog=1&amp;ID=QFBFK026203F3VBQB7V8N8M79&amp;mask=sbauque&amp;LG=FR&amp;SUBDEPT1=19\">Voir toutes nos offres de stage, alternance et 1er emploi.</a></strong></p>"},"tabs":[{"slug":"actualits","title":"Actualités","inner_title":"Actualités","description":"<p><strong>Venez nous rencontrer au forum 18</strong><strong>ème</strong><strong> forum EXECO!</strong></p><p>Ce Forum est dédié au recrutement de travailleurs en situation de handicap. L'événement se tiendra le <strong>31 mars 2015</strong> au Word Trade Center de Grenoble.<br> Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi.<br> <br> <strong>Pour préparer notre rencontre, consultez nos offres !</strong></p><h3>                           <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/03/Execo-entrepriseshandicap.jpg\" style=\"height: 79px; width: 192px;\"></h3><h3></h3><h3>Venez nous rencontrer au forum Pôle Emploi !</h3><p>Ce Forum est dédié au métiers de la Banque et de l'assurance et aura lieu le 19 mars prochain au Stade des Alpes.<br> Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi.<br> <br> <strong>Pour préparer notre rencontre, consultez nos offres !</strong></p><h3></h3><h3><strong>                               <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/03/image001.jpg\" style=\"height: 194px; width: 233px;\"></strong></h3><p><strong><br></strong></p><h3></h3><h3><strong>Devenez alternant à la Banque Populaire des Alpes!</strong></h3><p>Toujours dans notre objectif de mettre en avant les opportunités d'emploi à destination des personnes en situation de handicap, nous vous proposons aujourd'hui de partir à la rencontre d'une entreprise, la Banque Populaire des Alpes et d'un métier, conseiller(e) de clientèle. Vous êtes prêt? C'est parti!</p><p><br></p><h3><strong>La Banque Populaire des Alpes (BPA) c'est:</strong></h3><ul>\n<li>Une banque coopérative comptant 1650 collaborateurs répartis dans 178 agences</li>\n<li>8 départements: l'Ardèche, la Savoie, la Haute-Savoie, l'Ain, les Alpes de Haute-Provence, la Drome, l'Isère et les Hautes-Alpes</li>\n<li>Plus de 250 collaborateurs rejoignant chaque année l'entreprise en CDI, CDD, alternance ou stage</li>\n</ul><p>Souvenez-vous, en décembre nous vous faisions découvrir le <a href=\"http://www.talenteo.fr/handicap-emploi-parcours-tremplin-922/\">parcours tremplin</a>. Une initiative permettant à des personnes en situation de handicap – étudiantes ou en reconversion professionnelle – de <strong>découvrir les métiers de la banque</strong> par <a href=\"http://www.talenteo.fr/lalternance-une-voie-vers-lemploi/\">l'alternance</a>. Savez-vous qu'il ne s'agit pas de votre unique possibilité de rejoindre la BPA en alternance?</p><p><br></p><h3><strong>L'alternance à la BPA, l'opportunité d'une carrière dans les métiers bancaires<br><br></strong></h3><p>La Banque Populaire des Alpes a noué <strong>de solides partenariats avec les écoles et universités de la région.</strong> Ce sont environ 40 étudiants qui rejoignent en alternance chaque année l'entreprise pour être formés aux métiers de la banque, de la finance et de l'assurance.</p><p>Que vous soyez <strong>en formation continue ou en reconversion professionnelle</strong>, vous pouvez entreprendre une alternance à la BPA. Vous obtiendrez des diplômes de niveau Bac+3 à Bac+5 délivrés par des écoles de commerce ou des formations universitaires – tels les masters Finances et Banque.</p><p>« Dès son arrivée, l'alternant bénéficie d'une intégration et d'un accompagnement personnalisé renforcé. <strong>Des points réguliers sont faits avec le Directeur d'agence</strong> – qui est également son tuteur – et le référent RH. Cette année <strong>nous accompagnons 4 étudiants en situation de handicap</strong>. En septembre 2014 nous avons recruté 8 étudiants à l'issue de leur alternance dont 3 en CDI. » Nous indique <strong>Laurine Hermitte</strong>, Chargée de Recrutement et Carrières à la Banque Populaire des Alpes.</p><p><strong>Vous n'aimez-pas la routine?</strong> Vous êtes au bon endroit. Vous serez directement <strong>mis en situation</strong> pour appréhender votre futur métier. L'entreprise couvrant 8 départements, vous pourrez parcourir plusieurs d'entre eux. Tout cela permet d'<strong>acquérir des expériences professionnelles solides comme évolutives</strong>. D'ailleurs, si vous débuterez en tant que conseiller(e) de clientèle – Particuliers, Privée, Professionnels, Patrimoniale ou encore Entreprises – <strong>vous obtiendrez rapidement de nouvelles responsabilités</strong>.</p><p>« J'ai effectué mon alternance de septembre 2013 à septembre 2014 pour ma dernière année de Master. Si j'ai commencé par découvrir l'entreprise pendant 2 mois, on m'a rapidement confié des missions de conseiller clientèle Professionnels, le poste que je visais. A la fin de mon contrat de professionnalisation, <strong>on m'a rapidement proposé un CDI à la seule condition que je sois mobile</strong>. Une mobilité qui est tout de même relative puisque je ne suis qu'à une centaine de kilomètres de mon lieu d'alternance. Je garde une très bonne image de cette expérience avec <strong>un véritable suivi</strong> tant de la part de la direction de l'agence que du service RH au siège. » Nous confie <strong>Fréderic Arnaud</strong>, actuellement conseiller clientèle Professionnels à l'agence de Chamonix Mt Blanc.</p><p>« Lorsque nous accueillons un alternant, <strong>nous souhaitons le mettre très rapidement en situation</strong>. Il suit une formation interne commune aux conseillers de clientèle et est associé à deux autres conseillers en poste pour former un trinôme. Le travail d'équipe se mène en étroite collaboration.</p><p>Pour nous, <strong>il est important de tout montrer aux personnes rejoignant l'entreprise</strong>, car nous souhaitons l'<strong>embauche à l'issue de ces parcours</strong>. Au final, en plus d'être formatrice, l'alternance est un test pour la Banque Populaire des Alpes mais surtout pour la personne qui en bénéficie. » Nous déclare<strong> Max Roux Fougère</strong>, directeur d'agence à Grenoble.</p><p><br></p><h3><strong>Et le handicap dans tout cela?</strong></h3><p>Le handicap occupe <strong>une place centrale dans les recrutements effectués par la BPA</strong>. Un engagement qui se traduit par un accord handicap signé pour la période 2014-2016, mais surtout par la mise en place d'un <strong>référent handicap</strong>.</p><p>Ce dernier est <strong>l'interlocuteur privilégié des personnes en situation de handicap</strong>. Son objectif? Un accompagnement des collaborateurs dans leur intégration et leur projet professionnel. Mais aussi la mise en place de partenariats avec le secteur adapté.</p><p>« Nos engagements se situent dans l'affirmation d'un choix: celui de <strong>valoriser les compétences quelle que soit la situation individuelle de chacun</strong>. » Nous précise <strong>Laurine Hermitte</strong>. Une philosophie largement partagée par l'équipe de Talentéo.</p><p>Vous hésitez encore à vous rendre sur <a href=\"http://lereseautalenteo.fr/entreprise/819/banque-populaire-des-alpes\">le réseau Talentéo</a> pour rejoindre la BPA? Nicolas Nikas, Attaché Commercial en situation de handicap, témoigne de son parcours:</p><p>« J'effectue actuellement une licence Banque et Assurances dans l'objectif d'une reconversion professionnelle. <strong>Mon handicap n'a jamais posé problème</strong> puisque j'ai tout de suite été très bien intégré. Les ressources humaines et le directeur de mon agence ont sensibilisé les collaborateurs de l'équipe qui ont fait preuve d'une très bonne ouverture d'esprit.</p><p>Je suis<a href=\"http://www.talenteo.fr/travailler-avec-collegue-malentendant/\"> malentendant</a>, ce qui m'oblige à <strong>apprendre les processus différemment</strong> mais aussi à faire répéter de nombreuses fois mes interlocuteurs. <strong>Mes collègues ont été très réactifs une fois que je leur ai expliqué mon handicap</strong>. De l'autre côté, la BPA a aménagé mon poste à l'aide d'<a href=\"http://www.talenteo.fr/5-innovations-technologiques-handicap/\">une oreillette</a> qui amplifie les sons ambiants – étant au guichet d'accueil, cela me permet de bien entendre les clients – ainsi que d'un bipeur qui me prévient lorsqu'une personne entre dans l'agence. Si les conditions sont réunies, je souhaiterais rester à la Banque Populaire des Alpes à la fin de mon alternance. »</p><h3><strong>                                         </strong><strong>                                         </strong><strong>                                         </strong></h3><h3></h3><h3><strong>Forum à GEM </strong></h3><p>Venez nous rencontrer au forum de Grenoble Ecole de Management à Grenoble le <strong>29 janvier</strong> prochain. Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi. Pour préparer notre rencontre, consultez nos offres !</p><p>                                                        <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/LogoGEMnoir1-e1422347876550.jpg\" style=\"height: 257px; width: 180px;\"></p><p><br></p><h3>SEPH 2014 : Les actions innovantes de la banque Populaire des Alpes !</h3><p>La 3ème semaine de novembre a eu lieu la Semaine pour l'Emploi des Personnes Handicapées (SEPH). A cette occasion, la Banque Populaire des Alpes proposait de nombreuses animations à destination de ses collaborateurs! Retour sur cette semaine riche en surprises!</p><p><strong>Un support de présentation très original :</strong></p><p><img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/Dés-BPA-.png\" style=\"height: 276px; width: 438px;\"></p><p>Présenter de manière dynamique son 3ème accord sur l'emploi des personnes en situation du handicap, tel a été le souhait de la Banque Populaire des Alpes! Et le défi est réussi. Chaque collaborateur a reçu une plaquette détaillant cet accord accompagnée d'un dé rond. L'objectif? Montrer que la différence n'exclue pas les compétences. Si les dés distribués n'ont pas la forme habituelle, ceux-ci remplissent leur fonction aussi bien que s'ils étaient carrés. Une analogie qui dépoussière l'image du handicap!</p><h3></h3><p><strong>Un challenge entre les différents collaborateurs :</strong></p><p>Quoi de mieux pour sensibiliser au handicap qu'un challenge entre les différentes agences de BPA? C'est sur cette réflexion que la mission handicap de l'entreprise a construit un quizz autour de la question. Des chiffres au handicap d'Elvis Presley, la Banque teste ses collaborateurs. En jeu, une aide à l'AFP (Association des Paralysés de France) de la région qui a obtenu le meilleur score. Elles sont 5 à s'être affrontées durant cette semaine. La région gagnante est la région Rhône-Alpes Sud, bravo à eux!</p><p><strong>L'utilisation d'une série à valeur ajoutée :</strong></p><p>Cette semaine a aussi été l'occasion pour les collaborateurs de (re)découvrir « J'en crois pas mes yeux », diffusée sur l'intranet de l'entreprise. Créée par Jérôme Adam, cette série sensibilise au handicap au sein du milieu professionnel avec beaucoup d'humour. Souvenez-vous, nous vous en avons parlé hier à l'occasion de la sortie de leur nouvelle série. Découvrez en exclusivité les épisodes sélectionnés par la Banque Populaire des Alpes pour ses collaborateurs!</p><p><iframe src=\"https://www.dailymotion.com/embed/video/x177hp9\" width=\"528\" height=\"297\" frameborder=\"0\"></iframe></p><p><iframe src=\"https://www.dailymotion.com/embed/video/x177h52\" width=\"528\" height=\"297\" frameborder=\"0\"></iframe></p><p><br></p><p><strong>Un rendez-vous gastronomique :</strong></p><p><strong><img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/Pré-clou-BPA-e1422349309219.jpg\" style=\"height: 578px; width: 398px;\"></strong></p><p>Enfin, dernière action, mais non des moindres: les membres du comité de direction de la BPA ont déjeuné au restaurant le Pré-clou. Au menu? Un excellent repas dans cet ESAT (Etablissement et Service d'Aide par le Travail) situé à Echirolles. Mais surtout une rencontre avec deux personnes de l'APF pour une visite des coulisses du restaurant.</p><p>Pour plus d'infos retrouver l'article sur <a href=\"http://www.talenteo.fr/handicap-actions-originales-banque-populaire-alpes-342/\">Talentéo.fr </a>!</p>"},{"slug":"cocktail-entrepreneurial","title":"Cocktail-Entrepreneurial","inner_title":"Cocktail-Entrepreneurial","description":"<p>\n\t<img src=\"https://assets.wizbii.com/api/image/v1/c5393a986e20ab46f6339201499ae7a6.png?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c5393a986e20ab46f6339201499ae7a6.png?size=company_description_banner_medium@2x 2x\">\n</p><p class=\"h3\">\n\t<strong>Vous avez un projet qui vous tient à cœur ? Vous avez besoin d'un accompagnement financier pour le réaliser ? </strong>\n</p><p>\n\tAlors venez à la rencontre de la Banque Populaire des Alpes, qui sélectionnera lors d'un cocktail des projets innovants et favorisants le développement du territoire pour leur proposer un accompagnement financier !\n</p><div class=\"h3\"><strong>Les inscriptions sont terminées : Merci à tous les participants! </strong><br></div><p>Nous vous tiendrons au courant de nos prochains événements. Merci et à très bientôt !</p><p>\n\t<br>\n</p><p>\n\t<br>\n</p>"}],"aliases":["banque-populaire-des-alpes","bpa","banques-populaires-des-alpes"],"url_custom":"bpa","twitter_username":"banquepopalpes","website":"http://talentsalpesbanquepopulaire.fr","followed":true,"external_feeds":[{"type":"facebook","url":"https://www.facebook.com/BanquePopulaireAlpes"}],"high_res_logo":"https://www.wizbii.com/uploads/4e/8e3/4e8e3d29d094193651c15dabb4658b7f_company_large@2x.jpeg","high_res_banner":"https://www.wizbii.com/uploads/41/817/418171b1e8645be2e58842ad83119398_company_banner_large@2x.png"},"content":"JEU CONCOURS\nTENTE DE GAGNER TON PERMIS DE CONDUIRE\nAVEC LA BANQUE POPULAIRE DES ALPES\nToutes les informations utiles ici : http://www.alpes.banquepopulaire.fr/portailinternet/Editorial/Informations/Pages/jeu-concours-permis.aspx","tags":[],"attachment_title":"JEU CONCOURS\nTENTE DE GAGNER TON PERMIS DE CONDUIRE\nAVEC LA BANQUE POPULAIRE DES ALPES\nToutes les informations utiles ici : http://www.alpes.banquepopulaire.fr/portailinternet/Editorial/Informations/Pages/jeu-concours-permis.aspx","attachment_picture":"https://www.wizbii.com/uploads/83/109/831093137dfd49cd653f2bfa8a41bf91_publication_large.jpeg","attachment_picture_source":"https://images.wizbii.com/api/image/v1/831093137dfd49cd653f2bfa8a41bf91.jpeg","attachment_picture_width":600,"attachment_picture_height":339,"comments":[],"likes":[],"reports":[],"delta":56281141,"shares":[],"mentions":[],"data_bag":[]}},{"id":"h2ycewwbsb4844cgswcco4c84k8sssg","type":"publication","date":"2016-08-11T13:00:00+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"h2ycewwbsb4844cgswcco4c84k8sssg","external_id":"9a090f596f20dcef9f62edfef5176021","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T13:00:00+0000","date_modified":"2016-08-11T15:15:12+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"credit-agricole-languedoc","poster":{"slug":"credit-agricole-languedoc","type":"COMPANY","displayName":"Crédit Agricole Languedoc","guid":"1526074"},"company":{"_id":"credit-agricole-languedoc","slug":"credit-agricole-languedoc","guid":"1526074","date_created":"2013-11-25T10:24:28+0100","date_modified":"2016-06-23T14:20:56+0000","date_client":"2016-06-27T09:00:00+0200","status":"PUBLIC","state":"visible","name":"Crédit Agricole Languedoc","is_client":true,"employees_number":"2800","is_autocomplete":false,"industry":"banques","location":{"city":"","extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"creditagricoledulanguedoc"},{"type":"TWITTER","url":"calanguedoc"}],"logo":"https://www.wizbii.com/uploads/96/b0e/96b0ee849afb7d21d34e721e462eb50b_company_large.png","banner":"https://www.wizbii.com/uploads/ac/4a8/ac4a8fdf75366cc964154a72c96d16be_company_banner_large.png","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<h1 class=\"p1\"><span class=\"s1\"><strong>Bienvenue sur notre page Wizbii !</strong></span></h1>\n<p class=\"p2\"><span class=\"s1\">Le Cr&eacute;dit Agricole du Languedoc, au service de plus d'1 Million de clients, est la banque de proximit&eacute; leader sur les d&eacute;partements de l'Aude, du Gard, de l'H&eacute;rault et de la Loz&egrave;re.</span></p>\n<p class=\"p2\"><span class=\"s1\">Entreprise engag&eacute;e et mutualiste, nous nous attachons &agrave; concr&eacute;tiser nos valeurs de proximit&eacute;, de solidarit&eacute; et de responsabilit&eacute;.</span></p>\n<p class=\"p2\"><span class=\"s1\">Le Cr&eacute;dit Agricole du Languedoc est avec ses 2 800 salari&eacute;s, le 1er employeur priv&eacute; sur son territoire. Avec plus de 270 embauches en CDI r&eacute;alis&eacute;es sur les 2 derni&egrave;res ann&eacute;es (133 recrutements en CDI faits en 2014, 141 en 2015 et 150 pr&eacute;vus pour 2016), il fait &eacute;galement partie des entreprises r&eacute;gionales les plus dynamiques.</span></p>\n<p class=\"p2\"><span class=\"s1\">Quelques chiffres : plus de 210 points de vente, 3 banques priv&eacute;es, une agence mobile qui circule en Loz&egrave;re.</span></p>\n<p class=\"p3\"><span class=\"s1\">Plus de 1.500 administrateurs, &eacute;lus au sein d'une centaine de Caisses locales, s'impliquent au quotidien sur le terrain. Leur engagement se traduit au travers d'actions locales qu'ils initient pour mettre en valeur territoire et patrimoine &eacute;conomique/culturel.</span></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"p1\"><span class=\"s1\">Choisir le Cr&eacute;dit Agricole du Languedoc, c&rsquo;est rejoindre le 1</span><span class=\"s2\"><sup>er</sup></span><span class=\"s1\"> employeur priv&eacute; r&eacute;gional et les 150 collaborateurs qui int&egrave;grent chaque ann&eacute;e la Caisse r&eacute;gionale en CDI !</span></p>\n<p class=\"p3\"><span class=\"s1\">Fort de vos diverses exp&eacute;riences et comp&eacute;tences, vous contribuerez activement au d&eacute;veloppement de votre territoire en accompagnant les clients dans leurs projets.</span></p>\n<p class=\"p3\"><span class=\"s1\">Int&eacute;gr&eacute;(e) parmi les 2 700 collaborateurs de la Caisse r&eacute;gionale, vous d&eacute;velopperez au quotidien des expertises dans la banque de d&eacute;tail, l&rsquo;assurance, l&rsquo;immobilier, la banque priv&eacute;e ainsi que sur l&rsquo;ensemble des fonctions supports (Finance, Audit-Contr&ocirc;le, Informatique-Pilotage, Juridique, Marketing., RH..).</span></p>\n<p class=\"p3\"><span class=\"s1\">Attach&eacute;(e) &agrave; votre &eacute;volution professionnelle, votre parcours se construira autour d&rsquo;une large diversit&eacute; de m&eacute;tiers tout en b&eacute;n&eacute;ficiant de programmes de formation &agrave; chaque &eacute;tape de votre carri&egrave;re (formations sur les m&eacute;tiers de conseil clients, d&rsquo;experts et de managers en agence ou sur les fonctions supports....).</span></p>\n<p class=\"p3\"><span class=\"s1\">Vous cultiverez ainsi au quotidien le go&ucirc;t du challenge, l&rsquo;excellence, l&rsquo;innovation et le sens du service clients !</span></p>\n<p class=\"p3\"><span class=\"s1\">Motiv&eacute;(e) et convaincu(e) pour vivre une exp&eacute;rience professionnelle diff&eacute;renciante et dans un environnement de travail stimulant ? Alors, Tout commence ici et d&eacute;posez votre candidature sur&nbsp;<a href=\"http://recrutement.ca-languedoc.fr/\"><span class=\"s3\">http://recrutement.ca-languedoc.fr</span></a></span></p>","nb_jobs":35},"tabs":[{"slug":"50-pour-ton-diplome","title":"50€ pour ton diplôme !","inner_title":"50€ pour ton diplôme !","description":"<p><img src=\"https://images.wizbii.com/api/image/v1/767e456f631f406e4f2e39c63ee27808.png\" alt=\"\" /></p>\n<h3 class=\"p1\" style=\"text-align: center;\">Le Cr&eacute;dit Agricole Languedoc te f&eacute;licite pour ta r&eacute;ussite et t'offre 50&euro; de bons d'achat pour l'obtention de ton dipl&ocirc;me !</h3>\n<p class=\"p1\" style=\"text-align: center;\"><a class=\"btn btn-secondary\" href=\"https://www.ca-languedoc.fr/2016-offre-diplomes.html\" target=\"_blank\">En savoir plus</a></p>\n<p class=\"p1\" style=\"text-align: left;\">&nbsp;<em>____________________</em></p>\n<p class=\"p1\"><em>Offre r&eacute;serv&eacute;e aux 16-30 ans ayant obtenu un dipl&ocirc;me &eacute;ligible (voir liste ci-apr&egrave;s) entre le 1er juin 2016 et le 31 octobre 2016, et d&eacute;tenteurs d&rsquo;un compte bancaire accompagn&eacute; d&rsquo;une Mastercard/Visa ou d&rsquo;un Compte &agrave; composer &agrave; la Caisse R&eacute;gionale du Cr&eacute;dit Agricole Languedoc. La demande devra &ecirc;tre faite en agence entre le 1er juin 2016 et le 31 octobre 2016. Offre valable une seule fois par personne. Dipl&ocirc;mes &eacute;ligibles &agrave; l&rsquo;offre : BEP, CAP, BAC, BTS, DUT, Licence, Master, Dipl&ocirc;me d&rsquo;ing&eacute;nieur et Grandes &eacute;coles. Bon d&rsquo;achat sous forme de codes de 10 &agrave; 50&euro; selon les sites e-commerce partenaires. Un code attribuable par enseigne dans la limite des stocks disponibles. Cagnotte de bons valable 6 mois &agrave; compter de sa date d&rsquo;attribution. Chaque bon command&eacute; sur le site d&eacute;di&eacute; est valable 1 mois. Caisse R&eacute;gionale du Cr&eacute;dit Agricole Languedoc. Soci&eacute;t&eacute; coop&eacute;rative &agrave; capitale variable agr&eacute;&eacute;e en tant qu&rsquo;&eacute;tablissement de cr&eacute;dit. Si&egrave;ge social : avenue de Montpelli&eacute;ret, Maurin 34977 Lattes cedex. 492 826 417 RCS RCS Montpellier</em></p>"}],"aliases":["crdit-agricole-du-languedoc"],"twitter_username":"calanguedoc","website":"http://recrutement.ca-languedoc.fr","followed":true,"external_feeds":[{"type":"facebook","url":"https://www.facebook.com/creditagricoledulanguedoc"},{"type":"twitter","url":"calanguedoc"}],"high_res_logo":"https://www.wizbii.com/uploads/96/b0e/96b0ee849afb7d21d34e721e462eb50b_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/ac/4a8/ac4a8fdf75366cc964154a72c96d16be_company_banner_large@2x.png"},"content":"#JEU #FOOT : Tentez de gagner des places pour le match Montpellier HSC – Rennes le Samedi 27 Août 2016 au Stade de la Mosson.\n\n🏁 Pour participer il vous suffit de commenter la publication et d'identifier la personne avec qui vous souhaiteriez vous rendre à ce match. \n\n➡ Tirage au sort des gagnants le Jeudi 18 Août 2016 à 10h00.\n\n🍀 Double tes chances de gagner en partageant la publication !\n\n👍 Aimez notre page pour ne pas rater le nom des gagnants et nos futurs jeux.\n\n📖 Règlement du jeu : bit.ly/2bho5hS","tags":[{"_id":"jeu","slug":"jeu","name":"JEU","type":"TAG","date_created":"2016-08-11T15:15:12+0200","date_modified":"2016-08-11T15:15:12+0200"},{"_id":"foot","slug":"foot","name":"FOOT","type":"TAG","date_created":"2016-08-11T15:15:12+0200","date_modified":"2016-08-11T15:15:12+0200"}],"attachment_title":"#JEU #FOOT : Tentez de gagner des places pour le match Montpellier HSC – Rennes le Samedi 27 Août 2016 au Stade de la Mosson.\n\n🏁 Pour participer il vous suffit de commenter la publication et d'identifier la personne avec qui vous souhaiteriez vous rendre à ce match. \n\n➡ Tirage au sort des gagnants le Jeudi 18 Août 2016 à 10h00.\n\n🍀 Double tes chances de gagner en partageant la publication !\n\n👍 Aimez notre page pour ne pas rater le nom des gagnants et nos futurs jeux.\n\n📖 Règlement du jeu : bit.ly/2bho5hS","attachment_picture":"https://www.wizbii.com/uploads/a4/9fa/a49fa7491f826642660e94c1f8f9b799_publication_large.png","attachment_picture_source":"https://images.wizbii.com/api/image/v1/a49fa7491f826642660e94c1f8f9b799.png","attachment_picture_width":720,"attachment_picture_height":480,"comments":[],"likes":[],"reports":[],"delta":61005145,"shares":[],"mentions":[],"data_bag":[]}},{"id":"5stjlikwg0000c0k8c80g8cg8gkk0kw","type":"publication","date":"2016-08-11T12:57:42+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"5stjlikwg0000c0k8c80g8cg8gkk0kw","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T12:57:42+0000","date_modified":"2016-08-11T16:07:15+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"charlenepalluis1366977266","poster":{"slug":"charlenepalluis1366977266","type":"PROFILE","displayName":"Charlène Palluis"},"profile":{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","connection_type":"level1","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"https://www.wizbii.com/uploads/0c/2df/0c2dfb93655001e52004f8fe3bf8eb55_profile_large.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":736},"connection_source_from_profile":"wizbii","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/0c/2df/0c2dfb93655001e52004f8fe3bf8eb55_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Dans chaque équipe de projet :","tags":[{"_id":"gestion-de-projet","slug":"gestion-de-projet","name":"Gestion De Projet","type":"TAG","date_created":"2016-08-11T12:57:42+0000","date_modified":"2016-08-11T12:57:42+0000"},{"_id":"entrepreneuriat","slug":"entrepreneuriat","name":"entrepreneuriat","type":"TAG","date_created":"2016-08-11T12:57:42+0000","date_modified":"2016-08-11T12:57:42+0000"},{"_id":"entreprise","slug":"entreprise","name":"entreprise","type":"TAG","date_created":"2016-08-11T12:57:42+0000","date_modified":"2016-08-11T12:57:42+0000"},{"_id":"business","slug":"business","name":"business","type":"TAG","date_created":"2016-08-11T12:57:42+0000","date_modified":"2016-08-11T12:57:42+0000"}],"attachment_picture":"https://www.wizbii.com/uploads/3a/ce0/3ace078e1fda8b67f9242881e7918f4a_publication_large.png","attachment_picture_source":"https://images.wizbii.com/api/image/v1/a2d604abb2330360201152a40fb7dd34.png","attachment_picture_width":531,"attachment_picture_height":387,"comments":[],"likes":[{"liker_type":"profile","liker_id":"laure-blgn","date_created":"2016-08-11T15:46:39+0000","profile":{"_id":"laure-blgn","name":"Laure Bolognini","slug":"laure-blgn","language":"fr","locale":"fr_FR","first_name":"Laure","last_name":"Bolognini","avatar":"https://www.wizbii.com/uploads/56/a40/56a40ea90884d95c89585c0e51799f57_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée De Projet Événementiel Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3325,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/56/a40/56a40ea90884d95c89585c0e51799f57_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"liker_type":"profile","liker_id":"charlotte-ardito","date_created":"2016-08-11T15:56:19+0000","profile":{"_id":"charlotte-ardito","name":"Charlotte Ardito","slug":"charlotte-ardito","language":"it","locale":"it_IT","first_name":"Charlotte","last_name":"Ardito","avatar":"https://www.wizbii.com/uploads/82/e4c/82e4c5279d0e32eb0414ea3cc2c0f467_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsabile comunicazione Italia - Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":568},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5292,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/82/e4c/82e4c5279d0e32eb0414ea3cc2c0f467_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"liker_type":"profile","liker_id":"ravix-marylou","date_created":"2016-08-11T16:07:15+0000","profile":{"_id":"ravix-marylou","name":"Marylou Ravix","slug":"ravix-marylou","language":"fr","locale":"fr_FR","first_name":"Marylou","last_name":"Ravix","avatar":"https://www.wizbii.com/uploads/93/bd4/93bd432d061a0c1a9316833ca8daa71f_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiante à SKEMA BS","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2094,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/93/bd4/93bd432d061a0c1a9316833ca8daa71f_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}}],"reports":[],"delta":61143149,"shares":[],"mentions":[],"data_bag":[]}},{"id":"7cyk28tbxgo4c4ocwskcos4o4gok0s8","type":"publication","reasons":[{"reason_steps":[{"type":"tag","tag":{"_id":"marketing","slug":"marketing","name":"Marketing","date_created":"2016-02-10T10:03:15+0000","date_modified":"2016-02-10T10:03:15+0000"}}]},{"reason_steps":[{"type":"tag","tag":{"_id":"commerce","slug":"commerce","name":"commerce","date_created":"2016-02-08T00:05:27+0000","date_modified":"2016-02-08T00:05:27+0000"}}]}],"date":"2016-08-11T12:56:13+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"7cyk28tbxgo4c4ocwskcos4o4gok0s8","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"dimitribicherel1413803339","poster":{"slug":"dimitribicherel1413803339","type":"PROFILE","displayName":"Dimitri Bicherel"},"profile":{"_id":"dimitribicherel1413803339","name":"Dimitri Bicherel","slug":"dimitribicherel1413803339","language":"fr","locale":"fr_FR","first_name":"Dimitri","last_name":"Bicherel","avatar":"https://www.wizbii.com/uploads/e9/598/e9598adad7e474f9c39874083badbe57_profile_large.jpeg","location":{"display_value":"Toulouse","city":"Toulouse","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Manager en apprentissage à Castorama","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":227,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/e9/598/e9598adad7e474f9c39874083badbe57_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Bonjour chers utilisateurs de Wizbii, \n\n\nActuellement en licence commerce distribution en apprentissage à l'IAE PARIS 1 Pantheon - Sorbonne, je suis à la recherche d'un contrat de professionnalisation de 24 mois dans le but de réaliser un master marketing à l'IAE de Toulouse,\n\nN'hésitez pas à me contacter pour partager ensemble sur un projet ou une opportunité professionnelle, je suis ouvert à toutes propositions avec un challenge intéressant. \n\nMerci.","tags":[{"_id":"marketing","slug":"marketing","name":"Marketing","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"marketing-digital","slug":"marketing-digital","name":"Marketing Digital","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"opportunite","slug":"opportunite","name":"opportunité","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"paris","slug":"paris","name":"Paris","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"toulouse","slug":"toulouse","name":"toulouse","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"communication","slug":"communication","name":"Communication","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"commerce","slug":"commerce","name":"commerce","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"},{"_id":"alternance","slug":"alternance","name":"Alternance","type":"TAG","date_created":"2016-08-11T12:56:13+0000","date_modified":"2016-08-11T12:56:13+0000"}],"comments":[],"likes":[],"reports":[],"delta":61232149,"shares":[],"mentions":[],"data_bag":[]}},{"id":"j0gjllhvsrw4o88o8goc0g08wosow4g","type":"publication","date":"2016-08-11T14:05:51+0200","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"j0gjllhvsrw4o88o8goc0g08wosow4g","type":"PROFILE_NETWORK_UPDATED","visibility":"public","status":"visible","date_created":"2016-08-11T14:05:51+0200","date_modified":"2016-08-11T23:23:54+0200","poster_type":"PROFILE","poster_slug":"jeromemartin1322060918","poster":{"slug":"jeromemartin1322060918","type":"PROFILE","displayName":"Jerome Martin"},"profile":{"_id":"jeromemartin1322060918","name":"Jerome Martin","connection_type":"level1","slug":"jeromemartin1322060918","language":"fr","locale":"fr_FR","first_name":"Jerome","last_name":"Martin","avatar":"https://www.wizbii.com/uploads/80/616/8061670d335a9d19ec2ec83251e544fc_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Entrepreneur muli-compétences","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":241},"connection_source_from_profile":"wizbii","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":32677,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/80/616/8061670d335a9d19ec2ec83251e544fc_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"","tags":[],"comments":[],"likes":[],"reports":[],"delta":64254149,"shares":[],"mentions":[],"data_bag":{"profiles_ids":["alexis-anticevic","maelombougno1423829628","eugeniebigot1322399865"]}}},{"id":"dufcj9m5to0ssk804kgc448s4ksw0g0","type":"publication","date":"2016-08-11T14:05:13+0200","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"dufcj9m5to0ssk804kgc448s4ksw0g0","type":"PROFILE_NETWORK_UPDATED","visibility":"public","status":"visible","date_created":"2016-08-11T14:05:13+0200","date_modified":"2016-08-11T22:52:26+0200","poster_type":"PROFILE","poster_slug":"cpeze1","poster":{"slug":"cpeze1","type":"PROFILE","displayName":"Christophe Pezé"},"profile":{"_id":"cpeze1","name":"Christophe Pezé","connection_type":"level1","slug":"cpeze1","language":"fr","locale":"fr_FR","first_name":"Christophe","last_name":"Pezé","avatar":"https://www.wizbii.com/uploads/81/38c/8138cc19f3d6afd9ed6d5e9fb1b21bf4_profile_large.jpeg","location":{"display_value":"Arras","city":"Arras","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"bloggueur  professionnel  réferenceur","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":1},"connection_source_from_profile":"wizbii","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":14170,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/81/38c/8138cc19f3d6afd9ed6d5e9fb1b21bf4_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"","tags":[],"comments":[],"likes":[],"reports":[],"delta":64292150,"shares":[],"mentions":[],"data_bag":{"profiles_ids":["alexis-anticevic"]}}},{"id":"63ar9aw0up44ok8o0scgkos0okcgg88","type":"publication","date":"2016-08-11T11:59:28+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"63ar9aw0up44ok8o0scgkos0okcgg88","external_id":"52293e37f3a75b15732e4137bfe60d68","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T11:59:28+0000","date_modified":"2016-08-11T14:15:03+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"bpa","poster":{"slug":"bpa","type":"COMPANY","displayName":"Banque Populaire des Alpes","guid":"390290"},"company":{"_id":"bpa","slug":"bpa","guid":"390290","date_created":"2012-11-20T12:51:46+0100","date_modified":"2016-02-09T13:55:50+0000","date_client":"2014-08-01T09:00:00+0200","status":"PUBLIC","state":"visible","name":"Banque Populaire des Alpes","tag_line":"Vous avez du talent... nous vous offrons l'expérience !","is_client":true,"is_autocomplete":true,"industry":"banques","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"https://www.facebook.com/BanquePopulaireAlpes?fref=ts"}],"logo":"https://www.wizbii.com/uploads/4e/8e3/4e8e3d29d094193651c15dabb4658b7f_company_large.jpeg","banner":"https://www.wizbii.com/uploads/41/817/418171b1e8645be2e58842ad83119398_company_banner_large.png","banner_link":"https://emea3.recruitmentplatform.com/syndicated/lay/jsoutputinitrapido.cfm?component=lay9999_lst400a&amp;LOV1=All&amp;LOV8=All&amp;LOV11=All&amp;keywords=&amp;jobnum=&amp;srcsubmit=Rechercher&amp;statlog=1&amp;ID=QFBFK026203F3VBQB7V8N8M79&amp;mask=sbauque&amp;LG=FR&amp;SUBDEPT1=19","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes nous ?</strong></p><p>La Banque Populaire des Alpes est une banque coopérative et un assureur qui contribue au développement économique de son territoire. Elle fait partie du Groupe BPCE, 2ème groupe bancaire français.</p><p>Elle compte plus de 390 000 clients, près de 1 700 collaborateurs et 172 agences implantées sur 8 départements : Ain, Alpes-de-Haute-Provence, Hautes-Alpes, Ardèche, Drôme, Isère, Savoie et Haute-Savoie.</p><p>S'engager au service des projets personnels et professionnels de ses clients et sociétaires, leur donner \"envie d'agir\", et les accompagner dans le durée, tel est l'esprit Banque Populaire des Alpes.</p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p><a href=\"http://talentsalpesbanquepopulaire.fr/accueil.html#.VE90OJPF_vY\"><img src=\"/api/image/v1/9edd9bd37d930b0521a7e68fbfca6920.jpeg?size=company_description_banner_medium\" srcset=\"/api/image/v1/9edd9bd37d930b0521a7e68fbfca6920.jpeg?size=company_description_banner_medium@2x 2x\"></a></p><h3>Nous Recrutons !</h3><p>Riche de nos 1650 collaborateurs, nous recrutons en moyenne 250 personnes par an (CDI, alternance et CDD). Nous sommes une banque jeune où un tiers de nos collaborateurs a moins de 35 ans.</p><p>Appartenant au Groupe BPCE, 2ème groupe bancaire français (117 000 collaborateurs), nous vous offrons la possibilité d'une carrière nationale voire internationale dans le cadre d'une mobilité géographique choisie et accompagnée.</p><p>Intégrer la Banque Populaire des Alpes, c'est faire partie d'un groupe qui donnera un sens à votre parcours professionnel et les moyens de vos ambitions.</p><h3> Retrouvez-nous sur les forums !</h3><p>Nous sommes également très présents dans les différents forums de recrutement, alors venez nous rencontrer : Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi. Pour cela soyez attentif et consultez notre onglet \"Actualités\" !</p><p><strong>Révélez vos talents, prenez le cap BPA ! <br><a href=\"https://emea3.recruitmentplatform.com/syndicated/lay/jsoutputinitrapido.cfm?component=lay9999_lst400a&amp;LOV1=All&amp;LOV8=All&amp;LOV11=All&amp;keywords=&amp;jobnum=&amp;srcsubmit=Rechercher&amp;statlog=1&amp;ID=QFBFK026203F3VBQB7V8N8M79&amp;mask=sbauque&amp;LG=FR&amp;SUBDEPT1=19\">Voir toutes nos offres de stage, alternance et 1er emploi.</a></strong></p>"},"tabs":[{"slug":"actualits","title":"Actualités","inner_title":"Actualités","description":"<p><strong>Venez nous rencontrer au forum 18</strong><strong>ème</strong><strong> forum EXECO!</strong></p><p>Ce Forum est dédié au recrutement de travailleurs en situation de handicap. L'événement se tiendra le <strong>31 mars 2015</strong> au Word Trade Center de Grenoble.<br> Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi.<br> <br> <strong>Pour préparer notre rencontre, consultez nos offres !</strong></p><h3>                           <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/03/Execo-entrepriseshandicap.jpg\" style=\"height: 79px; width: 192px;\"></h3><h3></h3><h3>Venez nous rencontrer au forum Pôle Emploi !</h3><p>Ce Forum est dédié au métiers de la Banque et de l'assurance et aura lieu le 19 mars prochain au Stade des Alpes.<br> Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi.<br> <br> <strong>Pour préparer notre rencontre, consultez nos offres !</strong></p><h3></h3><h3><strong>                               <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/03/image001.jpg\" style=\"height: 194px; width: 233px;\"></strong></h3><p><strong><br></strong></p><h3></h3><h3><strong>Devenez alternant à la Banque Populaire des Alpes!</strong></h3><p>Toujours dans notre objectif de mettre en avant les opportunités d'emploi à destination des personnes en situation de handicap, nous vous proposons aujourd'hui de partir à la rencontre d'une entreprise, la Banque Populaire des Alpes et d'un métier, conseiller(e) de clientèle. Vous êtes prêt? C'est parti!</p><p><br></p><h3><strong>La Banque Populaire des Alpes (BPA) c'est:</strong></h3><ul>\n<li>Une banque coopérative comptant 1650 collaborateurs répartis dans 178 agences</li>\n<li>8 départements: l'Ardèche, la Savoie, la Haute-Savoie, l'Ain, les Alpes de Haute-Provence, la Drome, l'Isère et les Hautes-Alpes</li>\n<li>Plus de 250 collaborateurs rejoignant chaque année l'entreprise en CDI, CDD, alternance ou stage</li>\n</ul><p>Souvenez-vous, en décembre nous vous faisions découvrir le <a href=\"http://www.talenteo.fr/handicap-emploi-parcours-tremplin-922/\">parcours tremplin</a>. Une initiative permettant à des personnes en situation de handicap – étudiantes ou en reconversion professionnelle – de <strong>découvrir les métiers de la banque</strong> par <a href=\"http://www.talenteo.fr/lalternance-une-voie-vers-lemploi/\">l'alternance</a>. Savez-vous qu'il ne s'agit pas de votre unique possibilité de rejoindre la BPA en alternance?</p><p><br></p><h3><strong>L'alternance à la BPA, l'opportunité d'une carrière dans les métiers bancaires<br><br></strong></h3><p>La Banque Populaire des Alpes a noué <strong>de solides partenariats avec les écoles et universités de la région.</strong> Ce sont environ 40 étudiants qui rejoignent en alternance chaque année l'entreprise pour être formés aux métiers de la banque, de la finance et de l'assurance.</p><p>Que vous soyez <strong>en formation continue ou en reconversion professionnelle</strong>, vous pouvez entreprendre une alternance à la BPA. Vous obtiendrez des diplômes de niveau Bac+3 à Bac+5 délivrés par des écoles de commerce ou des formations universitaires – tels les masters Finances et Banque.</p><p>« Dès son arrivée, l'alternant bénéficie d'une intégration et d'un accompagnement personnalisé renforcé. <strong>Des points réguliers sont faits avec le Directeur d'agence</strong> – qui est également son tuteur – et le référent RH. Cette année <strong>nous accompagnons 4 étudiants en situation de handicap</strong>. En septembre 2014 nous avons recruté 8 étudiants à l'issue de leur alternance dont 3 en CDI. » Nous indique <strong>Laurine Hermitte</strong>, Chargée de Recrutement et Carrières à la Banque Populaire des Alpes.</p><p><strong>Vous n'aimez-pas la routine?</strong> Vous êtes au bon endroit. Vous serez directement <strong>mis en situation</strong> pour appréhender votre futur métier. L'entreprise couvrant 8 départements, vous pourrez parcourir plusieurs d'entre eux. Tout cela permet d'<strong>acquérir des expériences professionnelles solides comme évolutives</strong>. D'ailleurs, si vous débuterez en tant que conseiller(e) de clientèle – Particuliers, Privée, Professionnels, Patrimoniale ou encore Entreprises – <strong>vous obtiendrez rapidement de nouvelles responsabilités</strong>.</p><p>« J'ai effectué mon alternance de septembre 2013 à septembre 2014 pour ma dernière année de Master. Si j'ai commencé par découvrir l'entreprise pendant 2 mois, on m'a rapidement confié des missions de conseiller clientèle Professionnels, le poste que je visais. A la fin de mon contrat de professionnalisation, <strong>on m'a rapidement proposé un CDI à la seule condition que je sois mobile</strong>. Une mobilité qui est tout de même relative puisque je ne suis qu'à une centaine de kilomètres de mon lieu d'alternance. Je garde une très bonne image de cette expérience avec <strong>un véritable suivi</strong> tant de la part de la direction de l'agence que du service RH au siège. » Nous confie <strong>Fréderic Arnaud</strong>, actuellement conseiller clientèle Professionnels à l'agence de Chamonix Mt Blanc.</p><p>« Lorsque nous accueillons un alternant, <strong>nous souhaitons le mettre très rapidement en situation</strong>. Il suit une formation interne commune aux conseillers de clientèle et est associé à deux autres conseillers en poste pour former un trinôme. Le travail d'équipe se mène en étroite collaboration.</p><p>Pour nous, <strong>il est important de tout montrer aux personnes rejoignant l'entreprise</strong>, car nous souhaitons l'<strong>embauche à l'issue de ces parcours</strong>. Au final, en plus d'être formatrice, l'alternance est un test pour la Banque Populaire des Alpes mais surtout pour la personne qui en bénéficie. » Nous déclare<strong> Max Roux Fougère</strong>, directeur d'agence à Grenoble.</p><p><br></p><h3><strong>Et le handicap dans tout cela?</strong></h3><p>Le handicap occupe <strong>une place centrale dans les recrutements effectués par la BPA</strong>. Un engagement qui se traduit par un accord handicap signé pour la période 2014-2016, mais surtout par la mise en place d'un <strong>référent handicap</strong>.</p><p>Ce dernier est <strong>l'interlocuteur privilégié des personnes en situation de handicap</strong>. Son objectif? Un accompagnement des collaborateurs dans leur intégration et leur projet professionnel. Mais aussi la mise en place de partenariats avec le secteur adapté.</p><p>« Nos engagements se situent dans l'affirmation d'un choix: celui de <strong>valoriser les compétences quelle que soit la situation individuelle de chacun</strong>. » Nous précise <strong>Laurine Hermitte</strong>. Une philosophie largement partagée par l'équipe de Talentéo.</p><p>Vous hésitez encore à vous rendre sur <a href=\"http://lereseautalenteo.fr/entreprise/819/banque-populaire-des-alpes\">le réseau Talentéo</a> pour rejoindre la BPA? Nicolas Nikas, Attaché Commercial en situation de handicap, témoigne de son parcours:</p><p>« J'effectue actuellement une licence Banque et Assurances dans l'objectif d'une reconversion professionnelle. <strong>Mon handicap n'a jamais posé problème</strong> puisque j'ai tout de suite été très bien intégré. Les ressources humaines et le directeur de mon agence ont sensibilisé les collaborateurs de l'équipe qui ont fait preuve d'une très bonne ouverture d'esprit.</p><p>Je suis<a href=\"http://www.talenteo.fr/travailler-avec-collegue-malentendant/\"> malentendant</a>, ce qui m'oblige à <strong>apprendre les processus différemment</strong> mais aussi à faire répéter de nombreuses fois mes interlocuteurs. <strong>Mes collègues ont été très réactifs une fois que je leur ai expliqué mon handicap</strong>. De l'autre côté, la BPA a aménagé mon poste à l'aide d'<a href=\"http://www.talenteo.fr/5-innovations-technologiques-handicap/\">une oreillette</a> qui amplifie les sons ambiants – étant au guichet d'accueil, cela me permet de bien entendre les clients – ainsi que d'un bipeur qui me prévient lorsqu'une personne entre dans l'agence. Si les conditions sont réunies, je souhaiterais rester à la Banque Populaire des Alpes à la fin de mon alternance. »</p><h3><strong>                                         </strong><strong>                                         </strong><strong>                                         </strong></h3><h3></h3><h3><strong>Forum à GEM </strong></h3><p>Venez nous rencontrer au forum de Grenoble Ecole de Management à Grenoble le <strong>29 janvier</strong> prochain. Nous vous ferons découvrir nos activités, nos métiers et seront disponibles pour des entretiens dans le cadre d'un stage, d'une alternance ou d'un emploi. Pour préparer notre rencontre, consultez nos offres !</p><p>                                                        <img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/LogoGEMnoir1-e1422347876550.jpg\" style=\"height: 257px; width: 180px;\"></p><p><br></p><h3>SEPH 2014 : Les actions innovantes de la banque Populaire des Alpes !</h3><p>La 3ème semaine de novembre a eu lieu la Semaine pour l'Emploi des Personnes Handicapées (SEPH). A cette occasion, la Banque Populaire des Alpes proposait de nombreuses animations à destination de ses collaborateurs! Retour sur cette semaine riche en surprises!</p><p><strong>Un support de présentation très original :</strong></p><p><img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/Dés-BPA-.png\" style=\"height: 276px; width: 438px;\"></p><p>Présenter de manière dynamique son 3ème accord sur l'emploi des personnes en situation du handicap, tel a été le souhait de la Banque Populaire des Alpes! Et le défi est réussi. Chaque collaborateur a reçu une plaquette détaillant cet accord accompagnée d'un dé rond. L'objectif? Montrer que la différence n'exclue pas les compétences. Si les dés distribués n'ont pas la forme habituelle, ceux-ci remplissent leur fonction aussi bien que s'ils étaient carrés. Une analogie qui dépoussière l'image du handicap!</p><h3></h3><p><strong>Un challenge entre les différents collaborateurs :</strong></p><p>Quoi de mieux pour sensibiliser au handicap qu'un challenge entre les différentes agences de BPA? C'est sur cette réflexion que la mission handicap de l'entreprise a construit un quizz autour de la question. Des chiffres au handicap d'Elvis Presley, la Banque teste ses collaborateurs. En jeu, une aide à l'AFP (Association des Paralysés de France) de la région qui a obtenu le meilleur score. Elles sont 5 à s'être affrontées durant cette semaine. La région gagnante est la région Rhône-Alpes Sud, bravo à eux!</p><p><strong>L'utilisation d'une série à valeur ajoutée :</strong></p><p>Cette semaine a aussi été l'occasion pour les collaborateurs de (re)découvrir « J'en crois pas mes yeux », diffusée sur l'intranet de l'entreprise. Créée par Jérôme Adam, cette série sensibilise au handicap au sein du milieu professionnel avec beaucoup d'humour. Souvenez-vous, nous vous en avons parlé hier à l'occasion de la sortie de leur nouvelle série. Découvrez en exclusivité les épisodes sélectionnés par la Banque Populaire des Alpes pour ses collaborateurs!</p><p><iframe src=\"https://www.dailymotion.com/embed/video/x177hp9\" width=\"528\" height=\"297\" frameborder=\"0\"></iframe></p><p><iframe src=\"https://www.dailymotion.com/embed/video/x177h52\" width=\"528\" height=\"297\" frameborder=\"0\"></iframe></p><p><br></p><p><strong>Un rendez-vous gastronomique :</strong></p><p><strong><img src=\"https://laruche.wizbii.com/wp-content/uploads/2015/01/Pré-clou-BPA-e1422349309219.jpg\" style=\"height: 578px; width: 398px;\"></strong></p><p>Enfin, dernière action, mais non des moindres: les membres du comité de direction de la BPA ont déjeuné au restaurant le Pré-clou. Au menu? Un excellent repas dans cet ESAT (Etablissement et Service d'Aide par le Travail) situé à Echirolles. Mais surtout une rencontre avec deux personnes de l'APF pour une visite des coulisses du restaurant.</p><p>Pour plus d'infos retrouver l'article sur <a href=\"http://www.talenteo.fr/handicap-actions-originales-banque-populaire-alpes-342/\">Talentéo.fr </a>!</p>"},{"slug":"cocktail-entrepreneurial","title":"Cocktail-Entrepreneurial","inner_title":"Cocktail-Entrepreneurial","description":"<p>\n\t<img src=\"https://assets.wizbii.com/api/image/v1/c5393a986e20ab46f6339201499ae7a6.png?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c5393a986e20ab46f6339201499ae7a6.png?size=company_description_banner_medium@2x 2x\">\n</p><p class=\"h3\">\n\t<strong>Vous avez un projet qui vous tient à cœur ? Vous avez besoin d'un accompagnement financier pour le réaliser ? </strong>\n</p><p>\n\tAlors venez à la rencontre de la Banque Populaire des Alpes, qui sélectionnera lors d'un cocktail des projets innovants et favorisants le développement du territoire pour leur proposer un accompagnement financier !\n</p><div class=\"h3\"><strong>Les inscriptions sont terminées : Merci à tous les participants! </strong><br></div><p>Nous vous tiendrons au courant de nos prochains événements. Merci et à très bientôt !</p><p>\n\t<br>\n</p><p>\n\t<br>\n</p>"}],"aliases":["banque-populaire-des-alpes","bpa","banques-populaires-des-alpes"],"url_custom":"bpa","twitter_username":"banquepopalpes","website":"http://talentsalpesbanquepopulaire.fr","followed":true,"external_feeds":[{"type":"facebook","url":"https://www.facebook.com/BanquePopulaireAlpes"}],"high_res_logo":"https://www.wizbii.com/uploads/4e/8e3/4e8e3d29d094193651c15dabb4658b7f_company_large@2x.jpeg","high_res_banner":"https://www.wizbii.com/uploads/41/817/418171b1e8645be2e58842ad83119398_company_banner_large@2x.png"},"content":"","tags":[],"attachment_link":"http://www.voile.banquepopulaire.fr/news/jonathan-lobert-remonte-a-la-5eme-place-au-general/","attachment_picture":"https://www.wizbii.com/uploads/2e/05f/2e05fc5d352529bd783b1d7557d6cf11_publication_large.jpeg","attachment_picture_width":1200,"attachment_picture_height":778,"attachment_content":"[#Rio2016 - Jour 3]\nJonathan Lobert effectue une belle remontée au classement provisoire alors que les 470H montent provisoirement sur la 3ème marche du podium... Retrouvez le résumé de la 3ème journée de régates #PassionVoile #EspritBleu","comments":[],"likes":[],"reports":[],"delta":64637150,"shares":[],"mentions":[],"data_bag":[]}},{"id":"hg9qxe6f95kcos8cg0owsw4kcccwso0","type":"publication","date":"2016-08-11T10:35:20+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"hg9qxe6f95kcos8cg0owsw4kcccwso0","external_id":"c711217d8dd9e0750b48758f2723b9f9","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T10:35:20+0000","date_modified":"2016-08-11T13:15:13+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"credit-agricole-sud-rhone-alpes","poster":{"slug":"credit-agricole-sud-rhone-alpes","type":"COMPANY","displayName":"Crédit Agricole Sud Rhône Alpes","guid":"1518614"},"company":{"_id":"credit-agricole-sud-rhone-alpes","slug":"credit-agricole-sud-rhone-alpes","guid":"1518614","date_created":"2013-11-25T10:10:54+0100","date_modified":"2015-12-18T15:00:30+0000","date_client":"2015-05-01T09:00:00+0200","status":"PUBLIC","state":"visible","name":"Crédit Agricole Sud Rhône Alpes","tag_line":"L'emploi et les bons plans jeunes de l'Ardèche, la Drôme et l'Isère !","is_client":true,"is_autocomplete":true,"industry":"banques","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"121054714611843"},{"type":"TWITTER","url":"CASudRhoneAlpes"},{"type":"AUTRE","title":"Espace Carrière","url":"https://ca-sudrhonealpes-recrute.talent-soft.com/accueil.aspx"},{"type":"AUTRE","title":"Espace Jeunes","url":"http://www.ca-sudrhonealpes.fr/particuliers/espace-jeunes.html"}],"logo":"https://www.wizbii.com/uploads/1f/b08/1fb088da385a1cf188ceb210543dc3ba_company_large.png","banner":"https://www.wizbii.com/uploads/77/826/7782601bf3bb801308dabee596a6ea49_company_banner_large.png","banner_link":"http://www.ca-sudrhonealpes.fr/espace-jeunes.html","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><a href=\"http://www.ca-sudrhonealpes.fr/espace-jeunes.html\" target=\"_blank\"><img src=\"https://assets.wizbii.com/api/image/v1/3a0aef4fdc4cd26617e37bca66358cbf.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/3a0aef4fdc4cd26617e37bca66358cbf.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\"></a></p><p class=\"h3\"><strong>A propos du Crédit Agricole Sud Rhône Alpes :</strong></p><p>La Caisse régionale Crédit Agricole Sud Rhône Alpes est leader de la banque de proximité en Ardèche, Drôme, Isère et sur le Sud-Est lyonnais avec en moyenne 25 % de parts de marché. Première banque sur son territoire, elle affichait en 2014 un produit net bancaire consolidé de 427,9 M€ pour un résultat net consolidé de 125,1M€, avec un encours de crédits de 12,3 Md€ et un encours de collecte de 17,6 Md€.</p><p>Banque commerciale à statut coopératif, elle accompagne ses clients en permettant ainsi le développement économique de son territoire. Fort de ses fondements coopératifs et mutualistes, de ses 1.995 salariés et de ses 990 administrateurs, le Crédit Agricole Sud Rhône Alpes est au service de 726.000 clients, particuliers, professionnels, entreprises, agriculteurs, dont 290.000 sociétaires. L'entreprise exerce une double activité d'assureur et de banque de plein exercice ; à ce titre, elle dispose d'une offre complète de produits et services. Entreprise contemporaine, le Crédit Agricole Sud Rhône Alpes poursuit en 2015 son rôle de 1<sup>er</sup> financeur de son territoire et sa politique d'investissements pour développer sa banque multicanale et son réseau de 202 agences et points de vente de proximité.</p><p><a href=\"http://www.ca-sudrhonealpes.fr/\">www.ca-sudrhonealpes.fr</a><u></u></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p><a href=\"http://www.ca-sudrhonealpes.fr/espace-jeunes.html\" target=\"_blank\"><img src=\"https://assets.wizbii.com/api/image/v1/63a73a8b8f89a7fa9e7991057161215b.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/63a73a8b8f89a7fa9e7991057161215b.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\"></a></p><p class=\"h3\"><strong>Le secteur bancaire vous intéresse ?</strong></p><p><strong>Rejoignez le Crédit Agricole Sud Rhône Alpes !</strong></p><p>Employeur de référence sur sa région, nous recrutons chaque année des personnes en CDI, CDD, stages et alternances sur des profils Bac+3 et Bac+5.</p><p>Postulez dès maintenant sur <a href=\"http://www.ca-sudrhonealpes.fr/\">www.ca-sudrhonealpes.fr</a> rubrique \"Nous recrutons\" et créez vos alertes !</p><p>Si votre CV est retenu, vous serez convoqué à un entretien avec l'un de nos chargés de recrutement.</p>","nb_jobs":17},"tabs":[{"slug":"bonsplans","title":"Bons Plans","inner_title":"Les bons plans","description":"<p class=\"h3\">\n\t<b><img src=\"https://assets.wizbii.com/api/image/v1/3b9dd604983385498a39202a17e147ce.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/3b9dd604983385498a39202a17e147ce.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\"></b>\n</p><p class=\"h3\">\n\t<b>Besoin d'aide pour réduire vos dépenses de santé ? </b><b>Découvrez l'Aide à la Complémentaire Santé !</b>\n</p><p>\n\tL'Aide à la Complémentaire Santé est un dispositif d'assurance proposé par l'assurance maladie, permettant de couvrir une partie voire la totalité de votre adhésion annuelle à une complémentaire santé.\n</p><p>\n\tCette aide, versée par l'Etat, est attribuée en fonction des revenus. Son montant évolue en fonction de l'âge du bénéficiaire (exemple pour les 16-49 ans : 200 €).\n</p><p>\n\t<strong>Concrètement, comment se traduit l'Aide à la Complémentaire Santé ?</strong>\n</p><p>\n\t&gt; Vous recevez l'aide sous la forme d'un chèque que vous remettez à l'assurance de votre choix qui déduira automatiquement ce montant de votre cotisation.\n</p><p>\n\t&gt; Vous bénéficiez ainsi de tarifs sans dépassement d'honoraires quel que soit le médecin choisi. L'assurance Maladie vous adresse votre attestation de tiers payant social. Cette dernière est valable 18 mois, elle vous permet aussi de ne pas faire l'avance de frais sur la partie prise en charge par l'Assurance Maladie.\n</p><p>\n\t&gt; Vous pouvez également bénéficier de tarifs réduits sur votre facturation de gaz ou d'électricité sans démarche supplémentaire.\n</p><p>\n\t<b>Comment bénéficier de l'ACS ?</b>\n</p><p>\n\t<b></b>1. Je complète le formulaire de demande téléchargé sur <a href=\"http://www.ameli.fr\">www.ameli.fr</a> ou obtenu auprès de ma caisse d'assurance maladie, d'un centre communal d'action sociale, d'une association agréée ou d'un hôpital.\n</p><p>\n\t<span></span>2. Je remets le formulaire à ma caisse d'assurance maladie avec les justificatifs demandés\n</p><p>\n\t<span></span>3. A réception de ma demande complète, mon dossier est étudié et ma caisse d'assurance maladie m'informera de sa décision le plus tôt possible.\n</p><p>\n\tCette année, le ministère de la Santé a étudié un ensemble d'offres « Santé Solidaire » en vue de sélectionner les contrats proposant les meilleurs rapports qualité/prix.\n</p><p>\n\tSeulement 10 offres ont été retenues, \n\t<b>dont l'offre de PACIFICA, élue première du classement</b> !\n</p><p>\n\tDepuis le 1\n\t<sup>er</sup> juillet 2015, vous pouvez découvrir la gamme Santé Solidaire de PACIFICA.\n</p><p>\n\t<b>Pour vous protéger, nous avons tout prévu, alors renseignez-vous dès à présent auprès d'un spécialiste Crédit Agricole Sud Rhône Alpes.</b>\n</p><center><strong><a href=\"https://www.ca-sudrhonealpes.fr/Formulaires/Vitrine/p-93552.jsp?objet=Assurance%20Sant%8E%20Solidaire%20du%20Cr%8Edit%20Agricole\">Demande de rendez-vous</a></strong><p>\n\t<a href=\"http://www.ca-sudrhonealpes.fr/particuliers/assurance-des-personnes/assurance-sante-solidaire.html\"><strong>Découvrez l'Assurance Santé Solidaire du Crédit Agricole Sud Rhône Alpes</strong></a></p></center><p>\n\t<small><br>\n\t</small>\n</p><p>\n\t<small data-redactor-tag=\"small\">Le contrat d'assurance Garantie des Accidents de la Vie est assuré par PACIFICA, filiale d'assurance dommages de Crédit Agricole Assurances. PACIFICA, S.A. au capital entièrement libéré de 252 432 825 €, entreprise régie par le code des assurances - Siège social : 8/10, Boulevard de Vaugirard 75724 Paris Cedex 15 - 352 358 865 RCS Paris. Evénements garantis et conditions indiqués au contrat.\n\t<br>\n\tCe contrat est distribué par votre Caisse Régionale de Crédit Agricole, immatriculée auprès de l'ORIAS en qualité de courtier. Caisse Régionale de Crédit Agricole Mutuel Sud Rhône Alpes, société coopérative à capital variable, agréée en tant qu'établissement de crédit, numéro d'identification des entreprises - 402 121 958 RCS Grenoble, code APE 6419 Z. Siège social situé 15/17 rue Paul Claudel - BP 67 - 38041 Grenoble cedex 9. Société de courtage d'assurances immatriculée au Registre des Intermédiaires en Assurance sous le n° 07 023 476. Ce contrat est distribué par votre Caisse régionale de Crédit Agricole, immatriculée auprès de l'ORIAS en qualité de courtier. Caisse régionale de Crédit Agricole Mutuel Sud Rhône Alpes, société coopérative à capital variable, agréée en tant qu'établissement de crédit – Siège social situé 15/17 rue Paul Claudel - BP 67 - 38041 Grenoble cedex 9 - 402 121 958 RCS Grenoble - Société de courtage d'assurance immatriculée au Registre des Intermédiaires en Assurance sous le n° 07 023 476. .\n\t</small>\n</p>"},{"slug":"muzikcasting","title":"​MUZIK'CASTING","inner_title":"MUZIK'CASTING 2015, vivez une expérience incroyable !","description":"<center><b><p class=\"h3\"><strong><br>Retour en image sur le concert Muzik'Casting 2015</strong></p></b></center><iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/cQBiShqFnl0?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\">\n</iframe>"},{"slug":"live-in-gre","title":"Live In Gre","inner_title":"Live In Gre","description":"<p>\n\t<img src=\"https://assets.wizbii.com/api/image/v1/dd04efaedd1b8670062fa9ab04d45f61.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/dd04efaedd1b8670062fa9ab04d45f61.jpeg?size=company_description_banner_medium@2x 2x\">\n</p><p>\t\t<strong>Live in Gre<a></a><a></a><a></a> : un grand merci pour votre participation !<br></strong></p><p><strong>\t\t</strong>Nous avons été heureux de partager avec vous une expérience innovante et surprenante au Store à l'occasion de la 3ème édition de Live in Gre<a></a><a></a><a></a>.<br></p><p>\t\tNous avons encore de nombreux projets et animations à vous proposer, alors restons en contact !<br></p><p>\t\t<br></p><iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/jRpMQw1kfaQ?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\"></iframe>"},{"slug":"1-jouet-1-sourire","title":"1 Jouet 1 Sourire","inner_title":"Opération : 1 jouet 1 sourire","description":"<iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/iMatEd8yW9Y?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\">\n</iframe><p class=\"h3\">\n\t<b>Opération 1 jouet, 1 sourire : la grande collecte de jouets, c'est reparti !</b>\n</p><p>\n\tPour la 3<sup>e</sup> année consécutive, venez participer à la grande collecte de jouets organisée dans nos agences Crédit Agricole Sud Rhône Alpes, en association avec le Secours Populaire Français. En Isère, Ardèche, dans la Drôme ou encore dans nos agences du Rhône, des hottes sont à votre disposition du<b> 14 au 28 novembre </b>pour récolter vos cadeaux. Les heureux bénéficiaires de ces dons ? Les enfants des familles aidées par le Secours Populaire, qui n'ont pas toujours la chance de recevoir des jouets à Noël.\n</p><p>\n\tChaque année, le Secours Populaire Français organise en décembre ses célèbres « Pères Noël verts » : des fêtes pour petits et grands, qui rassemblent autour d'un sapin les bénévoles de l'association et des personnes isolées ou démunies. De quoi leur procurer un peu de gaieté et de bonne humeur et des cadeaux pour tous les enfants présents.\n</p><p>\n\t<b>Et si cette année le Père Noël c'était vous ?</b>\n</p><p>\n\t<b>Faites un geste qui compte ! </b>En déposant un cadeau en agence, vous contribuerez à redonner le sourire à un enfant en cette période de fêtes.<b></b>\n</p><p>\n\t<b>Attention : cadeaux NEUFS ou EN TRES BON ETAT uniquement ! </b>Tout jouet abîmé, incomplet ou sale ne peut bien sûr pas être offert ! Merci de votre compréhension.\n</p><p>\n\t<img src=\"https://assets.wizbii.com/api/image/v1/d9a4cad77166975f0b4318d6f84d83fa.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/d9a4cad77166975f0b4318d6f84d83fa.jpeg?size=company_description_banner_medium@2x 2x\">\n</p>"}],"aliases":["crdit-agricole-sud-rhne-alpes-fun-page"],"twitter_username":"casudrhonealpes","followed":true,"external_feeds":[{"type":"facebook","url":"https://www.facebook.com/pages/Cr%C3%A9dit-Agricole-Sud-Rh%C3%B4ne-Alpes-Fun-Page/121054714611843"}],"high_res_logo":"https://www.wizbii.com/uploads/1f/b08/1fb088da385a1cf188ceb210543dc3ba_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/77/826/7782601bf3bb801308dabee596a6ea49_company_banner_large@2x.png"},"content":"[Festival des Humoristes]\nLes jeux sont faits ! Découvrez-vite si vous êtes l'heureux gagnant qui assistera au spectacle de Bruno Salomone le 23/08 à Tournon ➡ http://ow.ly/Nbkc3038q49","tags":[],"attachment_link":"http://ow.ly/Nbkc3038q49","attachment_title":"[Festival des Humoristes]\nLes jeux sont faits ! Découvrez-vite si vous êtes l'heureux gagnant qui assistera au spectacle de Bruno Salomone le 23/08 à Tournon ➡ http://ow.ly/Nbkc3038q49","attachment_picture":"https://www.wizbii.com/uploads/67/51e/6751ea37f8f8da55e6968e33ea57a272_publication_large.png","attachment_picture_width":317,"attachment_picture_height":158,"attachment_content":"Gagnants - Jeu FB","comments":[],"likes":[],"reports":[],"delta":69685150,"shares":[],"mentions":[],"data_bag":[]}},{"id":"bswdhup0088ow04ws8o0cs4wcg48gsc","type":"publication","date":"2016-08-11T09:24:15+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"bswdhup0088ow04ws8o0cs4wcg48gsc","external_id":"1688f6955edc01592ef440033655639f","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T09:24:15+0000","date_modified":"2016-08-11T12:15:09+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"wizbii","poster":{"slug":"wizbii","type":"COMPANY","displayName":"Wizbii"},"company":{"_id":"wizbii","slug":"wizbii","date_created":"2015-05-06T08:17:36+0200","date_modified":"2016-08-01T12:47:24+0000","status":"PUBLIC","state":"visible","name":"Wizbii","is_client":true,"creation_year":"2010","employees_number":"37","is_autocomplete":true,"industry":"internet","location":{"display_value":"Grenoble","city_place_id":"ChIJb76J1ov0ikcRmFOZbs0QjGE","city":"Grenoble","department":"Isère","department_short":"38","state":"Rhône-Alpes","state_short":"RA","country":"France","country_short":"FR","geo":{"lat":45.188529,"lon":5.724524},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"TWITTER","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"INSTAGRAM","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"BLOG","url":"http://laruche.wizbii.com","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"}],"logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large.png","banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large.png","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes-nous ?</strong></p>\n<p>Wizbii est le 1er r&eacute;seau social professionnel pour les 18-30 ans.</p>\n<p class=\"h3\"><strong>Notre mission :</strong></p>\n<p class=\"\">D&eacute;velopper l'emploi et l'entrepreneuriat autour du monde. En 2010, Wizbii voit le jour pour que les jeunes puissent se rencontrer, donner vie &agrave; des projets ensemble ou trouver un emploi.</p>\n<p><strong>La Wiz'team</strong> c'est notre &eacute;quipe. Elle compte aujourd'hui 35 personnes pr&eacute;sentes sur deux bureaux &agrave; Grenoble et Paris.</p>\n<p>En quelques chiffres, Wizbii c'est 600 000 membres avec une croissance de 1000 nouveaux membres/jour, 1500 projets de start-up n&eacute;s sur le r&eacute;seau, et 5000 entreprises qui recrutent leurs talents. Nous avons r&eacute;ussi &agrave; l'&eacute;t&eacute; 2014 une lev&eacute;e de fonds de 1,6 million d'euros, pour renforcer nos &eacute;quipes technique et commerciale.</p>\n<p>Aujourd'hui, Wizbii est le m&eacute;dia social professionnel qui conna&icirc;t la plus forte croissance de nouveaux membres en France sur le segment des 18-30 ans.</p>\n<p>Notre communaut&eacute; s'agrandit au m&ecirc;me titre que nos ambitions. Les opportunit&eacute;s que nous proposons offrent mobilit&eacute; professionnelle et &agrave; l'international.</p>\n<p>Nous avons des projets excitants &agrave; confier &agrave; nos futurs talents. Vous partagez notre envie ? Et si c'&eacute;tait vous ?</p>\n<p>Entreprises, pour recruter de jeunes talents :<a href=\"http://www.wizbii.com/entreprises\"> http://www.wizbii.com/entreprises</a></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Wizbii recherche ses futurs talents !</strong></p>\n<p class=\"h3\"><img src=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\" /></p>\n<p>D&eacute;veloppeurs, Marketeux, Commerciaux...</p>\n<p>L'univers du Web vous passionne et l'ambiance Start-Up vous s&eacute;duit?</p>\n<p>Avec une moyenne d'&acirc;ge de 27 ans, notre &eacute;quipe est compos&eacute;e de 35 personnes, toutes pr&eacute;sentes sur Wizbii. Nous favorisons la prise d'initiative, l'engagement et la cr&eacute;ativit&eacute;. Bas&eacute;s &agrave; Grenoble, la Wiz'team travaille en open space pour mieux avancer ensemble. Si vous &ecirc;tes passionn&eacute; et voulez avoir des responsabilit&eacute;s, Wizbii est l'entreprise qu'il vous faut !</p>\n<p>Wizbii recrute en ce moment en CDI et stages. Nous privil&eacute;gions les stages de fin d'&eacute;tudes avec r&eacute;elle possibilit&eacute; d'embauche en CDI. Nous n'aimons pas perdre les talents que nous identifions !</p>\n<p>A tr&egrave;s vite ;)</p>","nb_jobs":5},"tabs":[],"aliases":["wizbiisas","wizbii-sas","wizbii2"],"should_redirect":false,"twitter_username":"wizbii_fr","website":"https://www.wizbii.com","followers":[],"followed":true,"external_feeds":[{"type":"facebook","url":"http://www.facebook.com/wizbii"}],"high_res_logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large@2x.png"},"content":"CDI / STAGES : Wizbii RECRUTE ! Notre ruche s'agrandit de 12 abeilles, on attend vos mots doux !","tags":[],"attachment_link":"http://laruche.wizbii.com/wizbii-recrute-talent-cdi-stages/","attachment_title":"CDI / STAGES : Wizbii RECRUTE ! Notre ruche s'agrandit de 12 abeilles, on attend vos mots doux !","attachment_picture":"https://www.wizbii.com/uploads/ee/e46/eee46839e23634046139e0a2b654ac22_publication_large.jpeg","attachment_picture_width":620,"attachment_picture_height":390,"attachment_content":"Communication, marketing digital, business development, développement web... l'équipe Wizbii s'agrandit et recrute ses talents de demain ! On vous attend !","comments":[],"likes":[],"reports":[],"delta":73950157,"shares":[],"mentions":[],"data_bag":[]}},{"id":"g7tlxn4dc5s8csk8k8c44kcwgkkw004","type":"publication","reasons":[{"reason_steps":[{"type":"tag","tag":{"_id":"marketing","slug":"marketing","name":"Marketing","date_created":"2016-02-10T10:03:15+0000","date_modified":"2016-02-10T10:03:15+0000"}}]}],"date":"2016-08-11T08:47:40+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"g7tlxn4dc5s8csk8k8c44kcwgkkw004","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T08:47:40+0000","date_modified":"2016-08-11T08:47:40+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"kenza-bel","poster":{"slug":"kenza-bel","type":"PROFILE","displayName":"Kenza Bel"},"profile":{"_id":"kenza-bel","name":"Kenza Bel","slug":"kenza-bel","language":"fr","locale":"fr_FR","first_name":"Kenza","last_name":"Bel","avatar":"https://www.wizbii.com/uploads/85/0cd/850cde0c17551521d711f4bf47e3662b_profile_large.jpeg","location":{"display_value":"Le Mans","city":"Le Mans","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":365,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/85/0cd/850cde0c17551521d711f4bf47e3662b_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Bien le bonjour à tous !\n\nÀ la rentrée prochaine, j'intègrerai Sup' de Com à Nantes pour un Bachelor Reponsable de Communication en alternance. Je suis donc à la recherche d'une alternance sur Le Mans ou sur Nantes dans les domaines suivants :\n- Communication\n- Publicité\n- Marketing\n- Digital\n\nSi vous avez des pistes, je suis preneuse !\n\nMerci d'avaaance ! :)","tags":[{"_id":"communication","slug":"communication","name":"Communication","type":"TAG","date_created":"2016-08-11T08:47:40+0000","date_modified":"2016-08-11T08:47:40+0000"},{"_id":"communication-publicite","slug":"communication-publicite","name":"communication / publicité","type":"TAG","date_created":"2016-08-11T08:47:40+0000","date_modified":"2016-08-11T08:47:40+0000"},{"_id":"marketing","slug":"marketing","name":"Marketing","type":"TAG","date_created":"2016-08-11T08:47:40+0000","date_modified":"2016-08-11T08:47:40+0000"},{"_id":"alternance","slug":"alternance","name":"Alternance","type":"TAG","date_created":"2016-08-11T08:47:40+0000","date_modified":"2016-08-11T08:47:40+0000"}],"comments":[],"likes":[],"reports":[],"delta":76145157,"shares":[],"mentions":[],"data_bag":[]}},{"id":"rcf7fhaxdysccko8o448c8sc0g4kwk4","type":"publication","date":"2016-08-11T08:07:40+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"rcf7fhaxdysccko8o448c8sc0g4kwk4","external_id":"8edd08767d70ed37de099ac5d89f6922","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T08:07:40+0000","date_modified":"2016-08-11T10:15:07+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"wizbii","poster":{"slug":"wizbii","type":"COMPANY","displayName":"Wizbii"},"company":{"_id":"wizbii","slug":"wizbii","date_created":"2015-05-06T08:17:36+0200","date_modified":"2016-08-01T12:47:24+0000","status":"PUBLIC","state":"visible","name":"Wizbii","is_client":true,"creation_year":"2010","employees_number":"37","is_autocomplete":true,"industry":"internet","location":{"display_value":"Grenoble","city_place_id":"ChIJb76J1ov0ikcRmFOZbs0QjGE","city":"Grenoble","department":"Isère","department_short":"38","state":"Rhône-Alpes","state_short":"RA","country":"France","country_short":"FR","geo":{"lat":45.188529,"lon":5.724524},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"TWITTER","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"INSTAGRAM","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"BLOG","url":"http://laruche.wizbii.com","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"}],"logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large.png","banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large.png","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes-nous ?</strong></p>\n<p>Wizbii est le 1er r&eacute;seau social professionnel pour les 18-30 ans.</p>\n<p class=\"h3\"><strong>Notre mission :</strong></p>\n<p class=\"\">D&eacute;velopper l'emploi et l'entrepreneuriat autour du monde. En 2010, Wizbii voit le jour pour que les jeunes puissent se rencontrer, donner vie &agrave; des projets ensemble ou trouver un emploi.</p>\n<p><strong>La Wiz'team</strong> c'est notre &eacute;quipe. Elle compte aujourd'hui 35 personnes pr&eacute;sentes sur deux bureaux &agrave; Grenoble et Paris.</p>\n<p>En quelques chiffres, Wizbii c'est 600 000 membres avec une croissance de 1000 nouveaux membres/jour, 1500 projets de start-up n&eacute;s sur le r&eacute;seau, et 5000 entreprises qui recrutent leurs talents. Nous avons r&eacute;ussi &agrave; l'&eacute;t&eacute; 2014 une lev&eacute;e de fonds de 1,6 million d'euros, pour renforcer nos &eacute;quipes technique et commerciale.</p>\n<p>Aujourd'hui, Wizbii est le m&eacute;dia social professionnel qui conna&icirc;t la plus forte croissance de nouveaux membres en France sur le segment des 18-30 ans.</p>\n<p>Notre communaut&eacute; s'agrandit au m&ecirc;me titre que nos ambitions. Les opportunit&eacute;s que nous proposons offrent mobilit&eacute; professionnelle et &agrave; l'international.</p>\n<p>Nous avons des projets excitants &agrave; confier &agrave; nos futurs talents. Vous partagez notre envie ? Et si c'&eacute;tait vous ?</p>\n<p>Entreprises, pour recruter de jeunes talents :<a href=\"http://www.wizbii.com/entreprises\"> http://www.wizbii.com/entreprises</a></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Wizbii recherche ses futurs talents !</strong></p>\n<p class=\"h3\"><img src=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\" /></p>\n<p>D&eacute;veloppeurs, Marketeux, Commerciaux...</p>\n<p>L'univers du Web vous passionne et l'ambiance Start-Up vous s&eacute;duit?</p>\n<p>Avec une moyenne d'&acirc;ge de 27 ans, notre &eacute;quipe est compos&eacute;e de 35 personnes, toutes pr&eacute;sentes sur Wizbii. Nous favorisons la prise d'initiative, l'engagement et la cr&eacute;ativit&eacute;. Bas&eacute;s &agrave; Grenoble, la Wiz'team travaille en open space pour mieux avancer ensemble. Si vous &ecirc;tes passionn&eacute; et voulez avoir des responsabilit&eacute;s, Wizbii est l'entreprise qu'il vous faut !</p>\n<p>Wizbii recrute en ce moment en CDI et stages. Nous privil&eacute;gions les stages de fin d'&eacute;tudes avec r&eacute;elle possibilit&eacute; d'embauche en CDI. Nous n'aimons pas perdre les talents que nous identifions !</p>\n<p>A tr&egrave;s vite ;)</p>","nb_jobs":5},"tabs":[],"aliases":["wizbiisas","wizbii-sas","wizbii2"],"should_redirect":false,"twitter_username":"wizbii_fr","website":"https://www.wizbii.com","followers":[],"followed":true,"external_feeds":[{"type":"facebook","url":"http://www.facebook.com/wizbii"}],"high_res_logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large@2x.png"},"content":"Humour de graphiste...😂 (via Il était une pub)","tags":[],"attachment_title":"Humour de graphiste...😂 (via Il était une pub)","attachment_picture":"https://www.wizbii.com/uploads/e8/f26/e8f262529c05527af3b58f2cffea08af_publication_large.jpeg","attachment_picture_source":"https://images.wizbii.com/api/image/v1/e8f262529c05527af3b58f2cffea08af.jpeg","attachment_picture_width":550,"attachment_picture_height":440,"comments":[],"likes":[],"reports":[],"delta":78545157,"shares":[],"mentions":[],"data_bag":[]}},{"id":"3zjq0yibm6o0wgkwsskoww8cw4go4gw","type":"publication","date":"2016-08-11T07:41:26+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"3zjq0yibm6o0wgkwsskoww8cw4go4gw","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T09:28:46+0000","language":"en","locale":"en_GB","poster_type":"PROFILE","poster_slug":"cherie-gamble-1","poster":{"slug":"cherie-gamble-1","type":"PROFILE","displayName":"Cherie Gamble"},"profile":{"_id":"cherie-gamble-1","name":"Cherie Gamble","connection_type":"level1","slug":"cherie-gamble-1","language":"en","locale":"en_GB","first_name":"Cherie","last_name":"Gamble","avatar":"https://www.wizbii.com/uploads/58/5f4/585f446479585a5f61921855d557e5cf_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"UK Communications Officer at Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":551},"connection_source_from_profile":"wizbii","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4022,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/58/5f4/585f446479585a5f61921855d557e5cf_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Benefits of working abroad and tips for finding a job!","tags":[{"_id":"workabroad","slug":"workabroad","name":"workabroad","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"internship","slug":"internship","name":"internship","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"job","slug":"job","name":"job","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"travel","slug":"travel","name":"travel","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"languages","slug":"languages","name":"languages","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"language","slug":"language","name":"language","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"experience","slug":"experience","name":"experience","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"tips","slug":"tips","name":"tips","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"students","slug":"students","name":"students","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"},{"_id":"graduates","slug":"graduates","name":"graduates","type":"TAG","date_created":"2016-08-11T07:41:26+0000","date_modified":"2016-08-11T07:41:26+0000"}],"attachment_link":"http://bit.ly/2aO1jNM","attachment_title":"Benefits of working abroad and tips for finding a job!","attachment_picture":"https://www.wizbii.com/uploads/16/059/160592584478d7426047d7d085211659_publication_large.jpeg","attachment_picture_width":618,"attachment_picture_height":350,"attachment_content":"Discover a few of the main benefits working abroad can have for students and graduates, along with helpful tips for finding a job abroad!","comments":[],"likes":[{"liker_type":"profile","liker_id":"ravix-marylou","date_created":"2016-08-11T09:28:46+0000","profile":{"_id":"ravix-marylou","name":"Marylou Ravix","slug":"ravix-marylou","language":"fr","locale":"fr_FR","first_name":"Marylou","last_name":"Ravix","avatar":"https://www.wizbii.com/uploads/93/bd4/93bd432d061a0c1a9316833ca8daa71f_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiante à SKEMA BS","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2094,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/93/bd4/93bd432d061a0c1a9316833ca8daa71f_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}}],"reports":[],"delta":80119157,"shares":[],"mentions":[],"data_bag":[]}},{"id":"86x4svq11sg8g8c4o0ck8ok0ok4gkgs","type":"publication","date":"2016-08-11T07:28:59+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"86x4svq11sg8g8c4o0ck8ok0ok4gkgs","external_id":"4986d89907628b94e15539c827f1d28a","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T07:28:59+0000","date_modified":"2016-08-11T10:15:08+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"wizbii","poster":{"slug":"wizbii","type":"COMPANY","displayName":"Wizbii"},"company":{"_id":"wizbii","slug":"wizbii","date_created":"2015-05-06T08:17:36+0200","date_modified":"2016-08-01T12:47:24+0000","status":"PUBLIC","state":"visible","name":"Wizbii","is_client":true,"creation_year":"2010","employees_number":"37","is_autocomplete":true,"industry":"internet","location":{"display_value":"Grenoble","city_place_id":"ChIJb76J1ov0ikcRmFOZbs0QjGE","city":"Grenoble","department":"Isère","department_short":"38","state":"Rhône-Alpes","state_short":"RA","country":"France","country_short":"FR","geo":{"lat":45.188529,"lon":5.724524},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"TWITTER","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"INSTAGRAM","url":"wizbii","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"},{"type":"BLOG","url":"http://laruche.wizbii.com","date_created":"2016-01-11T15:15:40+0000","date_modified":"2016-01-11T15:15:40+0000"}],"logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large.png","banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large.png","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p class=\"h3\"><strong>Qui sommes-nous ?</strong></p>\n<p>Wizbii est le 1er r&eacute;seau social professionnel pour les 18-30 ans.</p>\n<p class=\"h3\"><strong>Notre mission :</strong></p>\n<p class=\"\">D&eacute;velopper l'emploi et l'entrepreneuriat autour du monde. En 2010, Wizbii voit le jour pour que les jeunes puissent se rencontrer, donner vie &agrave; des projets ensemble ou trouver un emploi.</p>\n<p><strong>La Wiz'team</strong> c'est notre &eacute;quipe. Elle compte aujourd'hui 35 personnes pr&eacute;sentes sur deux bureaux &agrave; Grenoble et Paris.</p>\n<p>En quelques chiffres, Wizbii c'est 600 000 membres avec une croissance de 1000 nouveaux membres/jour, 1500 projets de start-up n&eacute;s sur le r&eacute;seau, et 5000 entreprises qui recrutent leurs talents. Nous avons r&eacute;ussi &agrave; l'&eacute;t&eacute; 2014 une lev&eacute;e de fonds de 1,6 million d'euros, pour renforcer nos &eacute;quipes technique et commerciale.</p>\n<p>Aujourd'hui, Wizbii est le m&eacute;dia social professionnel qui conna&icirc;t la plus forte croissance de nouveaux membres en France sur le segment des 18-30 ans.</p>\n<p>Notre communaut&eacute; s'agrandit au m&ecirc;me titre que nos ambitions. Les opportunit&eacute;s que nous proposons offrent mobilit&eacute; professionnelle et &agrave; l'international.</p>\n<p>Nous avons des projets excitants &agrave; confier &agrave; nos futurs talents. Vous partagez notre envie ? Et si c'&eacute;tait vous ?</p>\n<p>Entreprises, pour recruter de jeunes talents :<a href=\"http://www.wizbii.com/entreprises\"> http://www.wizbii.com/entreprises</a></p>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Wizbii recherche ses futurs talents !</strong></p>\n<p class=\"h3\"><img src=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/c2abedca308cd18363bb553425b2e848.jpeg?size=company_description_banner_medium@2x 2x\" alt=\"\" /></p>\n<p>D&eacute;veloppeurs, Marketeux, Commerciaux...</p>\n<p>L'univers du Web vous passionne et l'ambiance Start-Up vous s&eacute;duit?</p>\n<p>Avec une moyenne d'&acirc;ge de 27 ans, notre &eacute;quipe est compos&eacute;e de 35 personnes, toutes pr&eacute;sentes sur Wizbii. Nous favorisons la prise d'initiative, l'engagement et la cr&eacute;ativit&eacute;. Bas&eacute;s &agrave; Grenoble, la Wiz'team travaille en open space pour mieux avancer ensemble. Si vous &ecirc;tes passionn&eacute; et voulez avoir des responsabilit&eacute;s, Wizbii est l'entreprise qu'il vous faut !</p>\n<p>Wizbii recrute en ce moment en CDI et stages. Nous privil&eacute;gions les stages de fin d'&eacute;tudes avec r&eacute;elle possibilit&eacute; d'embauche en CDI. Nous n'aimons pas perdre les talents que nous identifions !</p>\n<p>A tr&egrave;s vite ;)</p>","nb_jobs":5},"tabs":[],"aliases":["wizbiisas","wizbii-sas","wizbii2"],"should_redirect":false,"twitter_username":"wizbii_fr","website":"https://www.wizbii.com","followers":[],"followed":true,"external_feeds":[{"type":"facebook","url":"http://www.facebook.com/wizbii"}],"high_res_logo":"https://www.wizbii.com/uploads/0a/004/0a00452b33fcaac22c60b7b6cd5fb9f4_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/f4/d35/f4d35aa1fa44638ea81557b139619a04_company_banner_large@2x.png"},"content":"Eve ottino : \" on ne sait jamais si on va réussir ou non, c'est un coup de poker !\". Eve Ottino","tags":[],"attachment_link":"http://laruche.wizbii.com/eve-ottino-metier-musique/","attachment_title":"Eve ottino : \" on ne sait jamais si on va réussir ou non, c'est un coup de poker !\". Eve Ottino","attachment_picture":"https://www.wizbii.com/uploads/40/c48/40c4804d8cadfeeb80c279adac2f4e11_publication_large.jpeg","attachment_picture_width":620,"attachment_picture_height":390,"attachment_content":"La musique est un métier de passion, et ça, Eve, 21 ans, l'a bien compris. Jeune chanteuse avec un avenir prometteur, elle nous raconte son parcours.","comments":[],"likes":[],"reports":[],"delta":80866158,"shares":[],"mentions":[],"data_bag":[]}},{"id":"emje09uomg8o88s040cow0o4ws44ss4","type":"publication","date":"2016-08-11T07:07:01+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"emje09uomg8o88s040cow0o4ws44ss4","external_id":"f8f53e24dd3a12f1249fdbf426fbd314","type":"FACEBOOK","visibility":"public","status":"visible","date_created":"2016-08-11T07:07:01+0000","date_modified":"2016-08-11T09:15:07+0200","language":"fr","locale":"fr_FR","poster_type":"COMPANY","poster_slug":"credit-mutuel","poster":{"slug":"credit-mutuel","type":"COMPANY","displayName":"Crédit Mutuel","guid":"390238"},"company":{"_id":"credit-mutuel","slug":"credit-mutuel","guid":"390238","date_created":"2012-11-20T12:51:45+0100","date_modified":"2016-02-24T15:10:34+0000","status":"PUBLIC","state":"visible","name":"Crédit Mutuel","tag_line":"Une banque qui appartient à ses clients sociétaires, ça change tout !","is_client":true,"is_autocomplete":true,"location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"language":"fr","locale":"fr_FR","links":[{"type":"FACEBOOK","url":"creditmutuel"},{"type":"TWITTER","url":"credit_mut"},{"type":"YOUTUBE","url":"https://www.youtube.com/user/CreditMutuelVideo"}],"logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large.png","banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large.png","banner_link":"http://www.creditmutuel.fr","home_tab":{"id":"home","slug":"wizbii-company-messages-message-tab-home","title":"wizbii.company.messages.message.tab.home","description":"<p>Fort de plus de 100.000 collaborateurs – 78.000 salariés et 24.000 administrateurs – le groupe Crédit Mutuel met son expérience de tous les métiers de la finance à disposition de plus de 30 millions de clients. Son premier objectif est la qualité de la relation et du service à ses sociétaires et clients, clé du développement. Sa stratégie est celle d'un développement maîtrisé fondé sur la banque de proximité, la bancassurance et l'innovation technologique.</p><p><br></p><p><img src=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium\" srcset=\"https://assets.wizbii.com/api/image/v1/99e86db632cc2f205885452f5d306585.png?size=company_description_banner_medium@2x 2x\"></p><br>"},"recruitment_tab":{"id":"recruitment","slug":"wizbii-company-messages-message-tab-recruitment","title":"wizbii.company.messages.message.tab.recruitment","description":"<p class=\"h3\"><strong>Le Crédit Mutuel Recrute ! </strong></p><p class=\"\">Consulte les annonces<strong><a href=\"https://www.creditmutuel.fr/cmcee/fr/banques/groupe/recrutement/index.html\" target=\"_blank\"> ici </a></strong>!</p>","nb_jobs":0},"tabs":[{"slug":"jeunesquiosent","title":"JeunesQuiOsent","inner_title":"Concours JeunesQuiOsent","description":"<center><div class=\"h3\"><strong>Participez au concours <a href=\"http://medias.creditmutuel.fr/cmx/minisite/jqo/\" target=\"_blank\">JeunesQuiOsent</a> !</strong></div></center><iframe style=\"width: 560px; height: 315px;\" src=\"//www.youtube.com/embed/JVyuu1XHDMY?controls=0&amp;showinfo=0\" frameborder=\"0\" allowfullscreen=\"\">\n</iframe>"}],"aliases":["credit-mutuel-de-bretagne","credit-mutuel-arkea","crdit-mutuel"],"twitter_username":"credit_mut","website":"http://www.creditmutuel.fr","followed":true,"external_feeds":[{"type":"facebook","url":"creditmutuel"}],"high_res_logo":"https://www.wizbii.com/uploads/b4/b68/b4b68bc3634b29db4c05517bf2755b3b_company_large@2x.png","high_res_banner":"https://www.wizbii.com/uploads/5b/cfd/5bcfd7fbe49941fa92fff97aa377402c_company_banner_large@2x.png"},"content":"[BON PLAN] A l'heure où le covoiturage se généralise pour optimiser son budget voiture et limiter la pollution, veillez à prendre en considération tous les risques en matière d'assurance auto avant de vous engager sur les routes. Tout savoir : http://bit.ly/29TOlln","tags":[],"attachment_title":"[BON PLAN] A l'heure où le covoiturage se généralise pour optimiser son budget voiture et limiter la pollution, veillez à prendre en considération tous les risques en matière d'assurance auto avant de vous engager sur les routes. Tout savoir : http://bit.ly/29TOlln","attachment_picture":"https://www.wizbii.com/uploads/5b/874/5b874a56e2c9cdb1f77e720460a667af_publication_large.jpeg","attachment_picture_source":"https://images.wizbii.com/api/image/v1/5b874a56e2c9cdb1f77e720460a667af.jpeg","attachment_picture_width":591,"attachment_picture_height":591,"comments":[],"likes":[],"reports":[],"delta":82184158,"shares":[],"mentions":[],"data_bag":[]}},{"id":"j0t5s7wpatc0ss88ok0kkos4cowgg44","type":"publication","reasons":[{"reason_steps":[{"type":"tag","tag":{"_id":"marketing","slug":"marketing","name":"Marketing","date_created":"2016-02-10T10:03:15+0000","date_modified":"2016-02-10T10:03:15+0000"}}]}],"date":"2016-08-11T06:51:41+0000","date_cached":"2016-08-12T05:56:44+0000","publication":{"_id":"j0t5s7wpatc0ss88ok0kkos4cowgg44","type":"SHARE","visibility":"public","status":"visible","date_created":"2016-08-11T06:51:41+0000","date_modified":"2016-08-11T06:51:41+0000","language":"fr","locale":"fr_FR","poster_type":"PROFILE","poster_slug":"sabrina-lahfa","poster":{"slug":"sabrina-lahfa","type":"PROFILE","displayName":"Sabrina Lahfa"},"profile":{"_id":"sabrina-lahfa","name":"Sabrina Lahfa","slug":"sabrina-lahfa","language":"fr","locale":"fr_FR","first_name":"Sabrina","last_name":"Lahfa","avatar":"https://www.wizbii.com/uploads/1f/326/1f326a7db6d7adba02687048fb8f183a_profile_large.jpeg","location":{"display_value":"Versailles","city":"Versailles","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"connection_source_from_profile":"none","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":34,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/1f/326/1f326a7db6d7adba02687048fb8f183a_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]},"content":"Bonjour tout le monde !\n\nDiplômé d'un BTS Commerce International, je recherche actuellement une alternance en Marketing. Le rythme sera le suivant: 3 jours en entreprise et deux jours en cours.\n\nM'hésitez pas à me contacter si vous avez des pistes !\n\nMerci !","tags":[{"_id":"marketing","slug":"marketing","name":"Marketing","type":"TAG","date_created":"2016-08-11T06:51:41+0000","date_modified":"2016-08-11T06:51:41+0000"},{"_id":"communication-publicite","slug":"communication-publicite","name":"communication / publicité","type":"TAG","date_created":"2016-08-11T06:51:41+0000","date_modified":"2016-08-11T06:51:41+0000"},{"_id":"ouautre","slug":"ouautre","name":"ouautre","type":"TAG","date_created":"2016-08-11T06:51:41+0000","date_modified":"2016-08-11T06:51:41+0000"},{"_id":"paris","slug":"paris","name":"paris","type":"TAG","date_created":"2016-08-11T06:51:41+0000","date_modified":"2016-08-11T06:51:41+0000"}],"comments":[],"likes":[],"reports":[],"delta":83104166,"shares":[],"mentions":[],"data_bag":[]}},{"id":"facebook-connect","type":"facebook-connect","date":"2016-08-12T05:56:44+0000"},{"id":"suggested-profile","type":"suggested-profile","date":"2016-08-12T05:56:44+0000","suggested_profiles":{"suggestions":[{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"sophielebel1326836246","name":"Sophie Lebel","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"messaoudaamrani1351635235","name":"Messaouda Amrani","slug":"messaoudaamrani1351635235","language":"fr","locale":"fr_FR","first_name":"Messaouda","last_name":"Amrani","avatar":"59bd2e52ef3cae7638eb016a9df16cc7.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de Communication à IUT2 Grenoble","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1884,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"vincentbabin1392906148","name":"Vincent Babin","slug":"vincentbabin1392906148","language":"fr","locale":"fr_FR","first_name":"Vincent","last_name":"Babin","avatar":"e6e62f0799c826e3f858fad3c0bca539.jpeg","location":{"display_value":"Lille","city":"Lille","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofondateur de Smart Pap","counters":{"like":3},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3555,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"sophielebel1326836246","language":"fr","locale":"fr_FR","first_name":"Sophie","last_name":"Lebel","avatar":"https://www.wizbii.com/uploads/cc/1e7/cc1e71b51b0cc7bb8a0325bb3d1b4f79_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice communication Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":728},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"messaoudaamrani1351635235","name":"Messaouda Amrani","slug":"messaoudaamrani1351635235","language":"fr","locale":"fr_FR","first_name":"Messaouda","last_name":"Amrani","avatar":"59bd2e52ef3cae7638eb016a9df16cc7.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de Communication à IUT2 Grenoble","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1884,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"vincentbabin1392906148","name":"Vincent Babin","slug":"vincentbabin1392906148","language":"fr","locale":"fr_FR","first_name":"Vincent","last_name":"Babin","avatar":"e6e62f0799c826e3f858fad3c0bca539.jpeg","location":{"display_value":"Lille","city":"Lille","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofondateur de Smart Pap","counters":{"like":3},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3555,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":8796,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/cc/1e7/cc1e71b51b0cc7bb8a0325bb3d1b4f79_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"benjaminducousso1292409728","name":"Benjamin Ducousso","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jean-philippe-90226","name":"Jean Philippe","slug":"jean-philippe-90226","language":"fr","locale":"fr_FR","first_name":"Jean","last_name":"Philippe","avatar":"8e84eedf68f9dd700150deeabf2edfeb.jpeg","location":{"display_value":"Pau","city":"Pau","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directeur général Pyrénées Gascogne","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1960,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"benjaminducousso1292409728","language":"fr","locale":"fr_FR","first_name":"Benjamin","last_name":"Ducousso","avatar":"https://www.wizbii.com/uploads/0d/a44/0da44ae8a3286f6c2df27037d6989cf9_profile_large.png","location":{"display_value":"Pau","city":"Pau","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofounder & CEO at Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":177},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jean-philippe-90226","name":"Jean Philippe","slug":"jean-philippe-90226","language":"fr","locale":"fr_FR","first_name":"Jean","last_name":"Philippe","avatar":"8e84eedf68f9dd700150deeabf2edfeb.jpeg","location":{"display_value":"Pau","city":"Pau","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directeur général Pyrénées Gascogne","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1960,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":8509,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/0d/a44/0da44ae8a3286f6c2df27037d6989cf9_profile_large@2x.png","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"romaingentil1292409811","name":"Romain Gentil","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"romaingentil1292409811","language":"fr","locale":"fr_FR","first_name":"Romain","last_name":"Gentil","avatar":"https://www.wizbii.com/uploads/5f/bf9/5fbf9c924346e2645c781471ead935fb_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Co-fondateur @ Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":48},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4958,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/5f/bf9/5fbf9c924346e2645c781471ead935fb_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"nicolaslaurier1314308133","name":"Nicolas Laurier","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"nicolaslaurier1314308133","language":"fr","locale":"fr_FR","first_name":"Nicolas","last_name":"Laurier","avatar":"https://www.wizbii.com/uploads/62/3bd/623bd107bfd40ca7e62086c1244fb077_profile_large.png","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"DAF-RH Start-Ups","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":38},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5056,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/62/3bd/623bd107bfd40ca7e62086c1244fb077_profile_large@2x.png","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"sommatino","name":"Anthony Parisi","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"sommatino","language":"fr","locale":"fr_FR","first_name":"Anthony","last_name":"Parisi","avatar":"https://www.wizbii.com/uploads/97/81c/9781cfb21ff7f50edd0c0a57791ec3a4_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":84},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5829,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/97/81c/9781cfb21ff7f50edd0c0a57791ec3a4_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"borismounet1332806855","name":"Boris Mounet","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pcuenot","name":"Patrick CUENOT","slug":"pcuenot","language":"fr","locale":"fr_FR","first_name":"Patrick","last_name":"CUENOT","avatar":"2beaec89d018a3590721de15db1f1328.jpeg","location":{"display_value":"Fontenay-sous-Bois","city":"Fontenay-sous-Bois","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant/formateur \"outils et méthodologies de veille stratégique\"","counters":{"like":1},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":575,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"khalilderdak1392381468","name":"Khalil Derdak","slug":"khalilderdak1392381468","language":"en","locale":"en_GB","first_name":"Khalil","last_name":"Derdak","avatar":"5258c80bb3fec50f1a33d1631acc10db.jpeg","location":{"display_value":"Rabat","city":"Rabat","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Ingénieur d'études et développement.","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":641,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"borismounet1332806855","language":"fr","locale":"fr_FR","first_name":"Boris","last_name":"Mounet","avatar":"https://www.wizbii.com/uploads/e7/28e/e728e08836fdd185a1b78784d5d5d1b3_profile_large.jpeg","location":{"display_value":"Toulouse","city":"Toulouse","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Co-fondateur et Ceo @ Meet my designer","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":6},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pcuenot","name":"Patrick CUENOT","slug":"pcuenot","language":"fr","locale":"fr_FR","first_name":"Patrick","last_name":"CUENOT","avatar":"2beaec89d018a3590721de15db1f1328.jpeg","location":{"display_value":"Fontenay-sous-Bois","city":"Fontenay-sous-Bois","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant/formateur \"outils et méthodologies de veille stratégique\"","counters":{"like":1},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":575,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"khalilderdak1392381468","name":"Khalil Derdak","slug":"khalilderdak1392381468","language":"en","locale":"en_GB","first_name":"Khalil","last_name":"Derdak","avatar":"5258c80bb3fec50f1a33d1631acc10db.jpeg","location":{"display_value":"Rabat","city":"Rabat","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Ingénieur d'études et développement.","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":641,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"juliepoupat1389191464","name":"Julie Poupat","slug":"juliepoupat1389191464","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Poupat","avatar":"8cbc309f7d5f68bceb5cb689d244641f.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chef de projet Web en agence ( @thebureau ), Wannabe entrepreneur!","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2621,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4506,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/e7/28e/e728e08836fdd185a1b78784d5d5d1b3_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"mazeute","name":"Auréline Bert","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"mazeute","language":"fr","locale":"fr_FR","first_name":"Auréline","last_name":"Bert","avatar":"https://www.wizbii.com/uploads/30/c3b/30c3b48c7f954712e7cfc5e3cdea9631_profile_large.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de marketing @Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":31},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4555,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/30/c3b/30c3b48c7f954712e7cfc5e3cdea9631_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"emelinelambreth1387836822","name":"Emeline Lambreth","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"messaoudaamrani1351635235","name":"Messaouda Amrani","slug":"messaoudaamrani1351635235","language":"fr","locale":"fr_FR","first_name":"Messaouda","last_name":"Amrani","avatar":"59bd2e52ef3cae7638eb016a9df16cc7.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de Communication à IUT2 Grenoble","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1884,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"emelinelambreth1387836822","language":"fr","locale":"fr_FR","first_name":"Emeline","last_name":"Lambreth","avatar":"https://www.wizbii.com/uploads/15/884/15884c01598b03cb7ba053310126ed65_profile_large.jpeg","location":{"display_value":"Gières","city":"Gières","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de projets chez Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":11},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"messaoudaamrani1351635235","name":"Messaouda Amrani","slug":"messaoudaamrani1351635235","language":"fr","locale":"fr_FR","first_name":"Messaouda","last_name":"Amrani","avatar":"59bd2e52ef3cae7638eb016a9df16cc7.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de Communication à IUT2 Grenoble","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1884,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3931,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/15/884/15884c01598b03cb7ba053310126ed65_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"anthonymoyart1398160658","name":"Anthony Moyart","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"anthonymoyart1398160658","language":"fr","locale":"fr_FR","first_name":"Anthony","last_name":"Moyart","avatar":"https://www.wizbii.com/uploads/69/f91/69f91135128007032f02c2941c941501_profile_large.png","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Dev @ Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":1},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2362,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/69/f91/69f91135128007032f02c2941c941501_profile_large@2x.png","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"gabinaureche1406831665","name":"Gabin Aureche","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"gabinaureche1406831665","language":"fr","locale":"fr_FR","first_name":"Gabin","last_name":"Aureche","avatar":"https://www.wizbii.com/uploads/be/af5/beaf58125062b9b78f8a8d4ab45e762f_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"UX Front-End Developer","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":84},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4304,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/be/af5/beaf58125062b9b78f8a8d4ab45e762f_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"clment-plantier-1","name":"Clément Plantier","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"clment-plantier-1","language":"fr","locale":"fr_FR","first_name":"Clément","last_name":"Plantier","avatar":"https://www.wizbii.com/uploads/42/22e/4222eba8112f8e33b6fe31a8bd24053b_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Développeur app mobile chez Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":55},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2559,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/42/22e/4222eba8112f8e33b6fe31a8bd24053b_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"vincentbabin1392906148","name":"Vincent Babin","slug":"vincentbabin1392906148","language":"fr","locale":"fr_FR","first_name":"Vincent","last_name":"Babin","avatar":"e6e62f0799c826e3f858fad3c0bca539.jpeg","location":{"display_value":"Lille","city":"Lille","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofondateur de Smart Pap","counters":{"like":3},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3555,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"victorletreguilly1378803129","name":"Victor Letréguilly","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"vincentbabin1392906148","name":"Vincent Babin","slug":"vincentbabin1392906148","language":"fr","locale":"fr_FR","first_name":"Vincent","last_name":"Babin","avatar":"e6e62f0799c826e3f858fad3c0bca539.jpeg","location":{"display_value":"Lille","city":"Lille","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofondateur de Smart Pap","counters":{"like":3},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3555,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"victorletreguilly1378803129","language":"fr","locale":"fr_FR","first_name":"Victor","last_name":"Letréguilly","avatar":"https://www.wizbii.com/uploads/d9/4ea/d94ea034dd7647cec0dd0886333400bf_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"En phase de création d'entreprise","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":4},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"pierreammeloot1387899212","name":"Pierre Ammeloot","slug":"pierreammeloot1387899212","language":"fr","locale":"fr_FR","first_name":"Pierre","last_name":"Ammeloot","avatar":"e02e33c7239fa4a77ec543402b40d601.jpeg","location":{"display_value":"Annecy","city":"Annecy","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Consultant SEO et formateur","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":2166,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"vincentbabin1392906148","name":"Vincent Babin","slug":"vincentbabin1392906148","language":"fr","locale":"fr_FR","first_name":"Vincent","last_name":"Babin","avatar":"e6e62f0799c826e3f858fad3c0bca539.jpeg","location":{"display_value":"Lille","city":"Lille","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Cofondateur de Smart Pap","counters":{"like":3},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3555,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3468,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/d9/4ea/d94ea034dd7647cec0dd0886333400bf_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"remyvehier1366275495","name":"Rémy Vehier","slug":"remyvehier1366275495","language":"fr","locale":"fr_FR","first_name":"Rémy","last_name":"Vehier","avatar":"482a90ccc387458c13952525ba53b3a3.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Design Director & Mobile product owner @ Wizbii","counters":{"like":91},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":7050,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"laure-blgn","name":"Laure Bolognini","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"laure-blgn","language":"fr","locale":"fr_FR","first_name":"Laure","last_name":"Bolognini","avatar":"https://www.wizbii.com/uploads/56/a40/56a40ea90884d95c89585c0e51799f57_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée De Projet Événementiel Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3325,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/56/a40/56a40ea90884d95c89585c0e51799f57_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"olivier-heckmann","name":"Olivier Heckmann","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"olivier-heckmann","language":"fr","locale":"fr_FR","first_name":"Olivier","last_name":"Heckmann","avatar":"https://www.wizbii.com/uploads/f3/57b/f357b6f505e99ade94429fbee72f6a95_profile_large.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Serial Entrepreneur","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":0},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"sophiazannini1343756315","name":"Sophia Zannini","slug":"sophiazannini1343756315","language":"fr","locale":"fr_FR","first_name":"Sophia","last_name":"Zannini","avatar":"f0cc41192e9f74a05a8d19ee29115c24.jpeg","location":{"points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Chargée de recrutement - Conseillère RH","counters":{"like":2},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3451,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"fannyvallier1379941638","name":"Fanny Vallier","slug":"fannyvallier1379941638","language":"fr","locale":"fr_FR","first_name":"Fanny","last_name":"Vallier","avatar":"1f93cc53258a08eaa8e2366db134504a.jpeg","location":{"display_value":"Vif","city":"Vif","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Account Assistant chez Wizbii- Étudiante en Master 1 marketing à l'INSEEC","counters":{"like":0},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3300,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":1695,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/f3/57b/f357b6f505e99ade94429fbee72f6a95_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"maevatouron1393860856","name":"Maeva Touron","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"maevatouron1393860856","language":"fr","locale":"fr_FR","first_name":"Maeva","last_name":"Touron","avatar":"https://www.wizbii.com/uploads/47/d01/47d0125aa7c68ddde10550a021da88fe_profile_large.jpeg","location":{"display_value":"Montpellier","city":"Montpellier","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Assistante en gestion et ressources humaines chez Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":9},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3683,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/47/d01/47d0125aa7c68ddde10550a021da88fe_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"ip"}]},{"reason_steps":[{"type":"profile_level2","profile":{"_id":"cpeze1","name":"Christophe Pezé","slug":"cpeze1","language":"fr","locale":"fr_FR","first_name":"Christophe","last_name":"Pezé","avatar":"8138cc19f3d6afd9ed6d5e9fb1b21bf4.jpeg","location":{"display_value":"Arras","city":"Arras","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"bloggueur  professionnel  réferenceur","counters":{"like":1},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":14170,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"juliesaby1428922862","name":"Julie Saby","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"juliesaby1428922862","language":"fr","locale":"fr_FR","first_name":"Julie","last_name":"Saby","avatar":"https://www.wizbii.com/uploads/b8/bc3/b8bc398bda6cea6c1c726594be0da303_profile_large.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Développeuse mobile - En poste chez Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":15},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3361,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/b8/bc3/b8bc398bda6cea6c1c726594be0da303_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"melissaarenas1429659429","name":"Mélissa Arenas","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"melissaarenas1429659429","language":"fr","locale":"fr_FR","first_name":"Mélissa","last_name":"Arenas","avatar":"https://www.wizbii.com/uploads/ff/ea8/ffea84643a1fa86bc165df7ddad92e18_profile_large.jpeg","location":{"display_value":"Montpellier","city":"Montpellier","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Master Grande Ecole spécialisé Marketing","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":31},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4922,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/ff/ea8/ffea84643a1fa86bc165df7ddad92e18_profile_large@2x.jpeg","is_proxy":true,"data_bag":[]}},{"reasons":[{"reason_steps":[{"type":"profile_level2","profile":{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}}]}],"profile":{"_id":"amandine-henrard","name":"Amandine Henrard","connection_type":"level2","common_friends":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"slug":"amandine-henrard","language":"fr","locale":"fr_FR","first_name":"Amandine","last_name":"Henrard","avatar":"https://www.wizbii.com/uploads/5f/723/5f72379612c3b5a156bc9d6684f5d58f_profile_large.png","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"UK Community Manager at Wizbii","educations":[],"experiences_pro":[],"experiences_extra_pro":[],"counters":{"like":29},"path_from_profile":[{"_id":"habibkarmous1355219664","name":"Habib Karmous","slug":"habibkarmous1355219664","language":"fr","locale":"fr_FR","first_name":"Habib","last_name":"Karmous","avatar":"04d68a65f11bb2fc931a111ac336a3ad.jpeg","location":{"display_value":"Grenoble","city":"Grenoble","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Responsable marché des banques","counters":{"like":36},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6777,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"charlenepalluis1366977266","name":"Charlène Palluis","slug":"charlenepalluis1366977266","language":"fr","locale":"fr_FR","first_name":"Charlène","last_name":"Palluis","avatar":"0c2dfb93655001e52004f8fe3bf8eb55.jpeg","location":{"display_value":"Lyon","city":"Lyon","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Designer chez Wizbii","counters":{"like":736},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3524,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"aurianemarsan1389193697","name":"Auriane Marsan","slug":"aurianemarsan1389193697","language":"fr","locale":"fr_FR","first_name":"Auriane","last_name":"Marsan","avatar":"fc70344c28bf380ef639f23e79fbad4a.jpeg","location":{"display_value":"Strasbourg","city":"Strasbourg","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"B2B marketing project manager","counters":{"like":6},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":6491,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"jeannelaureau1346151420","name":"Jeanne Laureau","slug":"jeannelaureau1346151420","language":"fr","locale":"fr_FR","first_name":"Jeanne","last_name":"Laureau","avatar":"af96a1f485d7b06ebe41c79577560468.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Directrice Traffic Management chez Wizbii","counters":{"like":48},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":5386,"results":[]}}}},"is_proxy":true,"data_bag":[]},{"_id":"valentinbernard1395236572","name":"Valentin Bernard","slug":"valentinbernard1395236572","language":"fr","locale":"fr_FR","first_name":"Valentin","last_name":"Bernard","avatar":"a74936ee0c458b63d6a2f63e305105e2.jpeg","location":{"display_value":"Paris","city":"Paris","points":{"center":{"lat":0,"lon":0}},"geo":{"lat":0,"lon":0},"extra":{}},"title":"Etudiant en Master à l'ESC Pau","counters":{"like":206},"networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":4381,"results":[]}}}},"is_proxy":true,"data_bag":[]}],"connection_source_from_profile":"network","networks":{"networks":{"full":{"type":"full","result_set":{"rows":10,"offset":0,"hits":3610,"results":[]}}}},"high_res_avatar":"https://www.wizbii.com/uploads/5f/723/5f72379612c3b5a156bc9d6684f5d58f_profile_large@2x.png","is_proxy":true,"data_bag":[]}}],"total":18}},{"id":"search-engine","type":"search-engine","date":"2016-08-12T05:56:45+0000","nb_job":200000},{"id":"suggested-job","type":"suggested-job","date":"2016-08-12T05:56:45+0000","count_suggested_jobs":9},{"id":"gmail-connect","type":"gmail-connect","date":"2016-08-12T05:56:45+0000","already_linked":true},{"id":"suggested-tag","type":"suggested-tag","date":"2016-08-12T05:56:45+0000","tags":[{"slug":"communication","name":"Communication"},{"slug":"alternance","name":"Alternance"},{"slug":"stage","name":"stage"},{"slug":"vente","name":"vente"},{"slug":"design","name":"Design"},{"slug":"management","name":"management"},{"slug":"emploi","name":"emploi"},{"slug":"community-management","name":"Community Management"},{"slug":"web","name":"web"},{"slug":"ressources-humaines","name":"Ressources Humaines"}]},{"id":"relation-new","type":"relation-new","date":"2016-08-12T05:56:45+0000","count_relation_new":0,"count_total_relations":1359}]},"display_recipe":{"feed_item_proxies":[{"id":"32aiivcr0gcg444gsows0gskcwg4ckg","type":"publication","date":"2016-08-11T17:58:19+0000","date_cached":"2016-08-12T05:56:44+0000","position":0},{"id":"g0cg763pzf48swggsw8kgswcs88kggo","type":"publication","date":"2016-08-11T15:15:28+0000","date_cached":"2016-08-12T05:56:44+0000","position":1},{"id":"suggested-job","type":"suggested-job","date":"2016-08-12T05:56:45+0000","position":2},{"id":"sponsored-publication","type":"sponsored-publication","date":"2016-08-12T05:56:44+0000","date_cached":"2016-08-12T05:56:44+0000","position":3},{"id":"iaf0dp574wg8g44k8kswgso08c8w0ck","type":"publication","date":"2016-08-11T14:52:42+0000","date_cached":"2016-08-12T05:56:44+0000","position":4},{"id":"suggested-tag","type":"suggested-tag","date":"2016-08-12T05:56:45+0000","position":5},{"id":"l4zlw0vqyc0ckgogggk8w4ko08ockc8","type":"publication","date":"2016-08-11T14:42:51+0000","date_cached":"2016-08-12T05:56:44+0000","position":6},{"id":"1bme05i9897o8kksksck8oswoskwc8g","type":"publication","date":"2016-08-11T14:18:44+0000","date_cached":"2016-08-12T05:56:44+0000","position":7},{"id":"suggested-profile","type":"suggested-profile","date":"2016-08-12T05:56:44+0000","position":8},{"id":"h2ycewwbsb4844cgswcco4c84k8sssg","type":"publication","date":"2016-08-11T13:00:00+0000","date_cached":"2016-08-12T05:56:44+0000","position":9},{"id":"5stjlikwg0000c0k8c80g8cg8gkk0kw","type":"publication","date":"2016-08-11T12:57:42+0000","date_cached":"2016-08-12T05:56:44+0000","position":10},{"id":"gmail-connect","type":"gmail-connect","date":"2016-08-12T05:56:45+0000","position":11},{"id":"7cyk28tbxgo4c4ocwskcos4o4gok0s8","type":"publication","date":"2016-08-11T12:56:13+0000","date_cached":"2016-08-12T05:56:44+0000","position":12},{"id":"j0gjllhvsrw4o88o8goc0g08wosow4g","type":"publication","date":"2016-08-11T14:05:51+0200","date_cached":"2016-08-12T05:56:44+0000","position":13},{"id":"facebook-connect","type":"facebook-connect","date":"2016-08-12T05:56:44+0000","position":14},{"id":"dufcj9m5to0ssk804kgc448s4ksw0g0","type":"publication","date":"2016-08-11T14:05:13+0200","date_cached":"2016-08-12T05:56:44+0000","position":15},{"id":"63ar9aw0up44ok8o0scgkos0okcgg88","type":"publication","date":"2016-08-11T11:59:28+0000","date_cached":"2016-08-12T05:56:44+0000","position":16},{"id":"search-engine","type":"search-engine","date":"2016-08-12T05:56:45+0000","position":17},{"id":"hg9qxe6f95kcos8cg0owsw4kcccwso0","type":"publication","date":"2016-08-11T10:35:20+0000","date_cached":"2016-08-12T05:56:44+0000","position":18},{"id":"bswdhup0088ow04ws8o0cs4wcg48gsc","type":"publication","date":"2016-08-11T09:24:15+0000","date_cached":"2016-08-12T05:56:44+0000","position":19},{"id":"relation-new","type":"relation-new","date":"2016-08-12T05:56:45+0000","position":20},{"id":"g7tlxn4dc5s8csk8k8c44kcwgkkw004","type":"publication","date":"2016-08-11T08:47:40+0000","date_cached":"2016-08-12T05:56:44+0000","position":21},{"id":"rcf7fhaxdysccko8o448c8sc0g4kwk4","type":"publication","date":"2016-08-11T08:07:40+0000","date_cached":"2016-08-12T05:56:44+0000","position":22},{"id":"3zjq0yibm6o0wgkwsskoww8cw4go4gw","type":"publication","date":"2016-08-11T07:41:26+0000","date_cached":"2016-08-12T05:56:44+0000","position":23},{"id":"86x4svq11sg8g8c4o0ck8ok0ok4gkgs","type":"publication","date":"2016-08-11T07:28:59+0000","date_cached":"2016-08-12T05:56:44+0000","position":24},{"id":"emje09uomg8o88s040cow0o4ws44ss4","type":"publication","date":"2016-08-11T07:07:01+0000","date_cached":"2016-08-12T05:56:44+0000","position":25},{"id":"j0t5s7wpatc0ss88ok0kkos4cowgg44","type":"publication","date":"2016-08-11T06:51:41+0000","date_cached":"2016-08-12T05:56:44+0000","position":26}]}});});};var addLike=exports.addLike=function addLike(publicationId){return new Promise(function(resolve,reject){return setTimeout(function(){return resolve({status:'OK'});},1500);});};var share=exports.share=function share(publicationId){return new Promise(function(resolve,reject){return setTimeout(function(){return resolve();},1500);});};var addComment=exports.addComment=function addComment(publicationId,comment){return new Promise(function(resolve,reject){return setTimeout(function(){return resolve({status:'OK'});},1500);});};
-
-/***/ },
+/* 601 */,
 /* 602 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -78574,13 +78580,13 @@
 	          'ul',
 	          null,
 	          _ramda2.default.map(function (_ref) {
-	            var id = _ref.id;
-	            var comment = _ref.comment;
+	            var _id = _ref._id;
+	            var content = _ref.content;
 	            var date = _ref.date;
 	            var profile = _ref.profile;
 	            return _react2.default.createElement(
 	              'li',
-	              { key: id },
+	              { key: _id },
 	              _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
@@ -78605,7 +78611,7 @@
 	                  _react2.default.createElement(
 	                    'p',
 	                    null,
-	                    comment
+	                    content
 	                  )
 	                )
 	              )
@@ -78735,7 +78741,7 @@
 
 
 	// module
-	exports.push([module.id, "body {\n    margin-top: 5px;\n    background-color: #efefef;\n}\n\n#app .publication {\n    background-color: #FFFFFF;\n    border-radius: 3px 3px 3px 3px;\n    padding: 10px;\n    margin-right: 10px;\n    margin-bottom: 25px;\n    max-width: 95%;\n    overflow: scroll;\n    overflow-x: hidden;\n    height: 400px;\n}\n\n#app .publication img {\n    max-width: 100%;\n}\n\n#app img.profile-avatar {\n    max-width: 75px;\n    max-height: 75px;\n    border-radius: 50px 50px;\n}\n\n#app .profile-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app img.company-logo {\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .company-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app .tags {\n    font-weight: bold;\n    margin-top: 5px;\n    margin-bottom: 5px;\n}\n\n#app .period {\n    width: 40px;\n    height: 60px;\n    background-color: #ffbc5b;\n    color: #FFFFFF;\n    font-weight: bold;\n    font-size: 12px;\n    text-align: center;\n    padding-top: 3px;\n    padding-bottom: 3px;\n    margin-top: -10px;\n    margin-left: -4px;\n}\n\n#app .actions div {\n    cursor: pointer;\n}\n\n#app .metrics {\n    margin-top: 15px;\n}\n\n#app .comments textarea {\n    margin-top: 10px;\n    resize: none;\n}\n\n#app .content {\n    text-align: justify;\n}\n\n#app .comments ul {\n    list-style: none;\n    padding: 8px;\n}\n\n#app .comments ul > li {\n    margin-top: 5px;\n    word-wrap: break-word;\n}\n\n#app .comments .adding-comment {\n    display: block;\n    position: relative;\n    top: 35px;\n    left: 150px;\n    margin-bottom: -5px;\n}\n\n#app .comments .date {\n    color: #999;\n}\n\n#app .comments .profile-avatar-comment{\n    display: block;\n    max-width: 30px;\n    max-height: 30px;\n    margin-right: auto;\n    margin-left: auto;\n}\n\n#app .comments small{\n    margin-top: 3px;\n    text-align: center;\n    display: block;\n}\n\n#app .profile{\n    margin-top: 10px;\n    margin-bottom: 20px;\n}\n\n#app .profile .avatar{\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .profile small{\n    color: #999;\n    display: block;\n    margin-top: -3px;\n}", "", {"version":3,"sources":["/./src/styles/style.css"],"names":[],"mappings":"AAAA;IACI,gBAAgB;IAChB,0BAA0B;CAC7B;;AAED;IACI,0BAA0B;IAC1B,+BAA+B;IAC/B,cAAc;IACd,mBAAmB;IACnB,oBAAoB;IACpB,eAAe;IACf,iBAAiB;IACjB,mBAAmB;IACnB,cAAc;CACjB;;AAED;IACI,gBAAgB;CACnB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;IACjB,yBAAyB;CAC5B;;AAED;IACI,eAAe;IACf,kBAAkB;IAClB,iBAAiB;CACpB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;CACpB;;AAED;IACI,eAAe;IACf,kBAAkB;IAClB,iBAAiB;CACpB;;AAED;IACI,kBAAkB;IAClB,gBAAgB;IAChB,mBAAmB;CACtB;;AAED;IACI,YAAY;IACZ,aAAa;IACb,0BAA0B;IAC1B,eAAe;IACf,kBAAkB;IAClB,gBAAgB;IAChB,mBAAmB;IACnB,iBAAiB;IACjB,oBAAoB;IACpB,kBAAkB;IAClB,kBAAkB;CACrB;;AAED;IACI,gBAAgB;CACnB;;AAED;IACI,iBAAiB;CACpB;;AAED;IACI,iBAAiB;IACjB,aAAa;CAChB;;AAED;IACI,oBAAoB;CACvB;;AAED;IACI,iBAAiB;IACjB,aAAa;CAChB;;AAED;IACI,gBAAgB;IAChB,sBAAsB;CACzB;;AAED;IACI,eAAe;IACf,mBAAmB;IACnB,UAAU;IACV,YAAY;IACZ,oBAAoB;CACvB;;AAED;IACI,YAAY;CACf;;AAED;IACI,eAAe;IACf,gBAAgB;IAChB,iBAAiB;IACjB,mBAAmB;IACnB,kBAAkB;CACrB;;AAED;IACI,gBAAgB;IAChB,mBAAmB;IACnB,eAAe;CAClB;;AAED;IACI,iBAAiB;IACjB,oBAAoB;CACvB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;CACpB;;AAED;IACI,YAAY;IACZ,eAAe;IACf,iBAAiB;CACpB","file":"style.css","sourcesContent":["body {\n    margin-top: 5px;\n    background-color: #efefef;\n}\n\n#app .publication {\n    background-color: #FFFFFF;\n    border-radius: 3px 3px 3px 3px;\n    padding: 10px;\n    margin-right: 10px;\n    margin-bottom: 25px;\n    max-width: 95%;\n    overflow: scroll;\n    overflow-x: hidden;\n    height: 400px;\n}\n\n#app .publication img {\n    max-width: 100%;\n}\n\n#app img.profile-avatar {\n    max-width: 75px;\n    max-height: 75px;\n    border-radius: 50px 50px;\n}\n\n#app .profile-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app img.company-logo {\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .company-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app .tags {\n    font-weight: bold;\n    margin-top: 5px;\n    margin-bottom: 5px;\n}\n\n#app .period {\n    width: 40px;\n    height: 60px;\n    background-color: #ffbc5b;\n    color: #FFFFFF;\n    font-weight: bold;\n    font-size: 12px;\n    text-align: center;\n    padding-top: 3px;\n    padding-bottom: 3px;\n    margin-top: -10px;\n    margin-left: -4px;\n}\n\n#app .actions div {\n    cursor: pointer;\n}\n\n#app .metrics {\n    margin-top: 15px;\n}\n\n#app .comments textarea {\n    margin-top: 10px;\n    resize: none;\n}\n\n#app .content {\n    text-align: justify;\n}\n\n#app .comments ul {\n    list-style: none;\n    padding: 8px;\n}\n\n#app .comments ul > li {\n    margin-top: 5px;\n    word-wrap: break-word;\n}\n\n#app .comments .adding-comment {\n    display: block;\n    position: relative;\n    top: 35px;\n    left: 150px;\n    margin-bottom: -5px;\n}\n\n#app .comments .date {\n    color: #999;\n}\n\n#app .comments .profile-avatar-comment{\n    display: block;\n    max-width: 30px;\n    max-height: 30px;\n    margin-right: auto;\n    margin-left: auto;\n}\n\n#app .comments small{\n    margin-top: 3px;\n    text-align: center;\n    display: block;\n}\n\n#app .profile{\n    margin-top: 10px;\n    margin-bottom: 20px;\n}\n\n#app .profile .avatar{\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .profile small{\n    color: #999;\n    display: block;\n    margin-top: -3px;\n}"],"sourceRoot":"webpack://"}]);
+	exports.push([module.id, "body {\n    margin-top: 5px;\n    background-color: #efefef;\n}\n\n#app .publication {\n    background-color: #FFFFFF;\n    border-radius: 3px 3px 3px 3px;\n    padding: 10px;\n    margin-right: 10px;\n    margin-bottom: 25px;\n    max-width: 95%;\n    overflow: scroll;\n    overflow-x: hidden;\n    height: 400px;\n}\n\n#app .publication img {\n    max-width: 100%;\n}\n\n#app img.profile-avatar {\n    max-width: 75px;\n    max-height: 75px;\n    border-radius: 50px 50px;\n}\n\n#app .profile-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app img.company-logo {\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .company-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app .tags {\n    font-weight: bold;\n    margin-top: 5px;\n    margin-bottom: 5px;\n}\n\n#app .period {\n    width: 40px;\n    height: 60px;\n    background-color: #ffbc5b;\n    color: #FFFFFF;\n    font-weight: bold;\n    font-size: 12px;\n    text-align: center;\n    padding-top: 3px;\n    padding-bottom: 3px;\n    margin-top: -10px;\n    margin-left: -4px;\n}\n\n#app .actions div {\n    cursor: pointer;\n}\n\n#app .metrics {\n    margin-top: 15px;\n}\n\n#app .comments textarea {\n    margin-top: 10px;\n    resize: none;\n}\n\n#app .content {\n    text-align: justify;\n}\n\n#app .comments ul {\n    list-style: none;\n    padding: 8px;\n}\n\n#app .comments ul > li {\n    margin-top: 5px;\n    word-wrap: break-word;\n}\n\n#app .comments .adding-comment {\n    display: block;\n    position: relative;\n    top: 35px;\n    left: 150px;\n    margin-bottom: -5px;\n}\n\n#app .comments .date {\n    color: #999;\n}\n\n#app .comments .profile-avatar-comment{\n    display: block;\n    max-width: 30px;\n    max-height: 30px;\n    margin-right: auto;\n    margin-left: auto;\n}\n\n#app .comments p{\n    text-align: justify;\n}\n\n#app .comments small{\n    margin-top: 3px;\n    text-align: center;\n    display: block;\n}\n\n#app .profile{\n    margin-top: 10px;\n    margin-bottom: 20px;\n}\n\n#app .profile .avatar{\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .profile small{\n    color: #999;\n    display: block;\n    margin-top: -3px;\n}", "", {"version":3,"sources":["/./src/styles/style.css"],"names":[],"mappings":"AAAA;IACI,gBAAgB;IAChB,0BAA0B;CAC7B;;AAED;IACI,0BAA0B;IAC1B,+BAA+B;IAC/B,cAAc;IACd,mBAAmB;IACnB,oBAAoB;IACpB,eAAe;IACf,iBAAiB;IACjB,mBAAmB;IACnB,cAAc;CACjB;;AAED;IACI,gBAAgB;CACnB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;IACjB,yBAAyB;CAC5B;;AAED;IACI,eAAe;IACf,kBAAkB;IAClB,iBAAiB;CACpB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;CACpB;;AAED;IACI,eAAe;IACf,kBAAkB;IAClB,iBAAiB;CACpB;;AAED;IACI,kBAAkB;IAClB,gBAAgB;IAChB,mBAAmB;CACtB;;AAED;IACI,YAAY;IACZ,aAAa;IACb,0BAA0B;IAC1B,eAAe;IACf,kBAAkB;IAClB,gBAAgB;IAChB,mBAAmB;IACnB,iBAAiB;IACjB,oBAAoB;IACpB,kBAAkB;IAClB,kBAAkB;CACrB;;AAED;IACI,gBAAgB;CACnB;;AAED;IACI,iBAAiB;CACpB;;AAED;IACI,iBAAiB;IACjB,aAAa;CAChB;;AAED;IACI,oBAAoB;CACvB;;AAED;IACI,iBAAiB;IACjB,aAAa;CAChB;;AAED;IACI,gBAAgB;IAChB,sBAAsB;CACzB;;AAED;IACI,eAAe;IACf,mBAAmB;IACnB,UAAU;IACV,YAAY;IACZ,oBAAoB;CACvB;;AAED;IACI,YAAY;CACf;;AAED;IACI,eAAe;IACf,gBAAgB;IAChB,iBAAiB;IACjB,mBAAmB;IACnB,kBAAkB;CACrB;;AAED;IACI,oBAAoB;CACvB;;AAED;IACI,gBAAgB;IAChB,mBAAmB;IACnB,eAAe;CAClB;;AAED;IACI,iBAAiB;IACjB,oBAAoB;CACvB;;AAED;IACI,gBAAgB;IAChB,iBAAiB;CACpB;;AAED;IACI,YAAY;IACZ,eAAe;IACf,iBAAiB;CACpB","file":"style.css","sourcesContent":["body {\n    margin-top: 5px;\n    background-color: #efefef;\n}\n\n#app .publication {\n    background-color: #FFFFFF;\n    border-radius: 3px 3px 3px 3px;\n    padding: 10px;\n    margin-right: 10px;\n    margin-bottom: 25px;\n    max-width: 95%;\n    overflow: scroll;\n    overflow-x: hidden;\n    height: 400px;\n}\n\n#app .publication img {\n    max-width: 100%;\n}\n\n#app img.profile-avatar {\n    max-width: 75px;\n    max-height: 75px;\n    border-radius: 50px 50px;\n}\n\n#app .profile-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app img.company-logo {\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .company-name {\n    color: #8f8bff;\n    font-weight: bold;\n    margin-top: 25px;\n}\n\n#app .tags {\n    font-weight: bold;\n    margin-top: 5px;\n    margin-bottom: 5px;\n}\n\n#app .period {\n    width: 40px;\n    height: 60px;\n    background-color: #ffbc5b;\n    color: #FFFFFF;\n    font-weight: bold;\n    font-size: 12px;\n    text-align: center;\n    padding-top: 3px;\n    padding-bottom: 3px;\n    margin-top: -10px;\n    margin-left: -4px;\n}\n\n#app .actions div {\n    cursor: pointer;\n}\n\n#app .metrics {\n    margin-top: 15px;\n}\n\n#app .comments textarea {\n    margin-top: 10px;\n    resize: none;\n}\n\n#app .content {\n    text-align: justify;\n}\n\n#app .comments ul {\n    list-style: none;\n    padding: 8px;\n}\n\n#app .comments ul > li {\n    margin-top: 5px;\n    word-wrap: break-word;\n}\n\n#app .comments .adding-comment {\n    display: block;\n    position: relative;\n    top: 35px;\n    left: 150px;\n    margin-bottom: -5px;\n}\n\n#app .comments .date {\n    color: #999;\n}\n\n#app .comments .profile-avatar-comment{\n    display: block;\n    max-width: 30px;\n    max-height: 30px;\n    margin-right: auto;\n    margin-left: auto;\n}\n\n#app .comments p{\n    text-align: justify;\n}\n\n#app .comments small{\n    margin-top: 3px;\n    text-align: center;\n    display: block;\n}\n\n#app .profile{\n    margin-top: 10px;\n    margin-bottom: 20px;\n}\n\n#app .profile .avatar{\n    max-width: 75px;\n    max-height: 75px;\n}\n\n#app .profile small{\n    color: #999;\n    display: block;\n    margin-top: -3px;\n}"],"sourceRoot":"webpack://"}]);
 
 	// exports
 
@@ -78794,6 +78800,10109 @@
 	};
 
 	exports.default = Content;
+
+/***/ },
+/* 887 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.addComment = exports.share = exports.addLike = exports.news = exports.authenticate = undefined;
+
+	var _jquery = __webpack_require__(888);
+
+	var _jquery2 = _interopRequireDefault(_jquery);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var authenticate = exports.authenticate = function authenticate(username, password) {
+	  return _jquery2.default.ajax({
+	    method: 'POST',
+	    url: 'http://localhost:8080/authenticate', //'https://api.wizbii.com/v1/account/validate',
+	    headers: {
+	      'Content-Type': 'application/x-www-form-urlencoded'
+	    },
+	    data: {
+	      username: encodeURI(username),
+	      password: password,
+	      client_id: 'test',
+	      grant_type: 'password'
+	    }
+	  });
+	};
+
+	var news = exports.news = function news(token) {
+	  return _jquery2.default.ajax({
+	    method: 'POST',
+	    url: 'http://localhost:8080/news', //'https://api.wizbii.com/v2/dashboard/?direction=newest', (405 issue)
+	    headers: {
+	      Authorization: 'Bearer ' + token
+	    }
+	  });
+	};
+
+	var addLike = exports.addLike = function addLike() {
+	  return new Promise(function (resolve) {
+	    return setTimeout(function () {
+	      return resolve();
+	    }, 1500);
+	  });
+	};
+
+	var share = exports.share = function share() {
+	  return new Promise(function (resolve) {
+	    return setTimeout(function () {
+	      return resolve();
+	    }, 1500);
+	  });
+	};
+
+	var addComment = exports.addComment = function addComment() {
+	  return new Promise(function (resolve) {
+	    return setTimeout(function () {
+	      return resolve();
+	    }, 1500);
+	  });
+	};
+
+/***/ },
+/* 888 */
+/***/ function(module, exports, __webpack_require__) {
+
+	var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*eslint-disable no-unused-vars*/
+	/*!
+	 * jQuery JavaScript Library v3.1.0
+	 * https://jquery.com/
+	 *
+	 * Includes Sizzle.js
+	 * https://sizzlejs.com/
+	 *
+	 * Copyright jQuery Foundation and other contributors
+	 * Released under the MIT license
+	 * https://jquery.org/license
+	 *
+	 * Date: 2016-07-07T21:44Z
+	 */
+	(function (global, factory) {
+
+	    "use strict";
+
+	    if (typeof module === "object" && typeof module.exports === "object") {
+
+	        // For CommonJS and CommonJS-like environments where a proper `window`
+	        // is present, execute the factory and get jQuery.
+	        // For environments that do not have a `window` with a `document`
+	        // (such as Node.js), expose a factory as module.exports.
+	        // This accentuates the need for the creation of a real `window`.
+	        // e.g. var jQuery = require("jquery")(window);
+	        // See ticket #14549 for more info.
+	        module.exports = global.document ?
+	            factory(global, true) :
+	            function (w) {
+	                if (!w.document) {
+	                    throw new Error("jQuery requires a window with a document");
+	                }
+	                return factory(w);
+	            };
+	    } else {
+	        factory(global);
+	    }
+
+	// Pass this if window is not defined yet
+	})(typeof window !== "undefined" ? window : this, function (window, noGlobal) {
+
+	// Edge <= 12 - 13+, Firefox <=18 - 45+, IE 10 - 11, Safari 5.1 - 9+, iOS 6 - 9.1
+	// throw exceptions when non-strict code (e.g., ASP.NET 4.5) accesses strict mode
+	// arguments.callee.caller (trac-13335). But as of jQuery 3.0 (2016), strict mode should be common
+	// enough that all such attempts are guarded in a try block.
+	    "use strict";
+
+	    var arr = [];
+
+	    var document = window.document;
+
+	    var getProto = Object.getPrototypeOf;
+
+	    var slice = arr.slice;
+
+	    var concat = arr.concat;
+
+	    var push = arr.push;
+
+	    var indexOf = arr.indexOf;
+
+	    var class2type = {};
+
+	    var toString = class2type.toString;
+
+	    var hasOwn = class2type.hasOwnProperty;
+
+	    var fnToString = hasOwn.toString;
+
+	    var ObjectFunctionString = fnToString.call(Object);
+
+	    var support = {};
+
+
+	    function DOMEval(code, doc) {
+	        doc = doc || document;
+
+	        var script = doc.createElement("script");
+
+	        script.text = code;
+	        doc.head.appendChild(script).parentNode.removeChild(script);
+	    }
+
+	    /* global Symbol */
+	// Defining this global in .eslintrc would create a danger of using the global
+	// unguarded in another place, it seems safer to define global only for this module
+
+
+	    var
+	        version = "3.1.0",
+
+	    // Define a local copy of jQuery
+	        jQuery = function (selector, context) {
+
+	            // The jQuery object is actually just the init constructor 'enhanced'
+	            // Need init if jQuery is called (just allow error to be thrown if not included)
+	            return new jQuery.fn.init(selector, context);
+	        },
+
+	    // Support: Android <=4.0 only
+	    // Make sure we trim BOM and NBSP
+	        rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
+
+	    // Matches dashed string for camelizing
+	        rmsPrefix = /^-ms-/,
+	        rdashAlpha = /-([a-z])/g,
+
+	    // Used by jQuery.camelCase as callback to replace()
+	        fcamelCase = function (all, letter) {
+	            return letter.toUpperCase();
+	        };
+
+	    jQuery.fn = jQuery.prototype = {
+
+	        // The current version of jQuery being used
+	        jquery: version,
+
+	        constructor: jQuery,
+
+	        // The default length of a jQuery object is 0
+	        length: 0,
+
+	        toArray: function () {
+	            return slice.call(this);
+	        },
+
+	        // Get the Nth element in the matched element set OR
+	        // Get the whole matched element set as a clean array
+	        get: function (num) {
+	            return num != null ?
+
+	                // Return just the one element from the set
+	                ( num < 0 ? this[num + this.length] : this[num] ) :
+
+	                // Return all the elements in a clean array
+	                slice.call(this);
+	        },
+
+	        // Take an array of elements and push it onto the stack
+	        // (returning the new matched element set)
+	        pushStack: function (elems) {
+
+	            // Build a new jQuery matched element set
+	            var ret = jQuery.merge(this.constructor(), elems);
+
+	            // Add the old object onto the stack (as a reference)
+	            ret.prevObject = this;
+
+	            // Return the newly-formed element set
+	            return ret;
+	        },
+
+	        // Execute a callback for every element in the matched set.
+	        each: function (callback) {
+	            return jQuery.each(this, callback);
+	        },
+
+	        map: function (callback) {
+	            return this.pushStack(jQuery.map(this, function (elem, i) {
+	                return callback.call(elem, i, elem);
+	            }));
+	        },
+
+	        slice: function () {
+	            return this.pushStack(slice.apply(this, arguments));
+	        },
+
+	        first: function () {
+	            return this.eq(0);
+	        },
+
+	        last: function () {
+	            return this.eq(-1);
+	        },
+
+	        eq: function (i) {
+	            var len = this.length,
+	                j = +i + ( i < 0 ? len : 0 );
+	            return this.pushStack(j >= 0 && j < len ? [this[j]] : []);
+	        },
+
+	        end: function () {
+	            return this.prevObject || this.constructor();
+	        },
+
+	        // For internal use only.
+	        // Behaves like an Array's method, not like a jQuery method.
+	        push: push,
+	        sort: arr.sort,
+	        splice: arr.splice
+	    };
+
+	    jQuery.extend = jQuery.fn.extend = function () {
+	        var options, name, src, copy, copyIsArray, clone,
+	            target = arguments[0] || {},
+	            i = 1,
+	            length = arguments.length,
+	            deep = false;
+
+	        // Handle a deep copy situation
+	        if (typeof target === "boolean") {
+	            deep = target;
+
+	            // Skip the boolean and the target
+	            target = arguments[i] || {};
+	            i++;
+	        }
+
+	        // Handle case when target is a string or something (possible in deep copy)
+	        if (typeof target !== "object" && !jQuery.isFunction(target)) {
+	            target = {};
+	        }
+
+	        // Extend jQuery itself if only one argument is passed
+	        if (i === length) {
+	            target = this;
+	            i--;
+	        }
+
+	        for (; i < length; i++) {
+
+	            // Only deal with non-null/undefined values
+	            if (( options = arguments[i] ) != null) {
+
+	                // Extend the base object
+	                for (name in options) {
+	                    src = target[name];
+	                    copy = options[name];
+
+	                    // Prevent never-ending loop
+	                    if (target === copy) {
+	                        continue;
+	                    }
+
+	                    // Recurse if we're merging plain objects or arrays
+	                    if (deep && copy && ( jQuery.isPlainObject(copy) ||
+	                        ( copyIsArray = jQuery.isArray(copy) ) )) {
+
+	                        if (copyIsArray) {
+	                            copyIsArray = false;
+	                            clone = src && jQuery.isArray(src) ? src : [];
+
+	                        } else {
+	                            clone = src && jQuery.isPlainObject(src) ? src : {};
+	                        }
+
+	                        // Never move original objects, clone them
+	                        target[name] = jQuery.extend(deep, clone, copy);
+
+	                        // Don't bring in undefined values
+	                    } else if (copy !== undefined) {
+	                        target[name] = copy;
+	                    }
+	                }
+	            }
+	        }
+
+	        // Return the modified object
+	        return target;
+	    };
+
+	    jQuery.extend({
+
+	        // Unique for each copy of jQuery on the page
+	        expando: "jQuery" + ( version + Math.random() ).replace(/\D/g, ""),
+
+	        // Assume jQuery is ready without the ready module
+	        isReady: true,
+
+	        error: function (msg) {
+	            throw new Error(msg);
+	        },
+
+	        noop: function () {
+	        },
+
+	        isFunction: function (obj) {
+	            return jQuery.type(obj) === "function";
+	        },
+
+	        isArray: Array.isArray,
+
+	        isWindow: function (obj) {
+	            return obj != null && obj === obj.window;
+	        },
+
+	        isNumeric: function (obj) {
+
+	            // As of jQuery 3.0, isNumeric is limited to
+	            // strings and numbers (primitives or objects)
+	            // that can be coerced to finite numbers (gh-2662)
+	            var type = jQuery.type(obj);
+	            return ( type === "number" || type === "string" ) &&
+
+	                // parseFloat NaNs numeric-cast false positives ("")
+	                // ...but misinterprets leading-number strings, particularly hex literals ("0x...")
+	                // subtraction forces infinities to NaN
+	            !isNaN(obj - parseFloat(obj));
+	        },
+
+	        isPlainObject: function (obj) {
+	            var proto, Ctor;
+
+	            // Detect obvious negatives
+	            // Use toString instead of jQuery.type to catch host objects
+	            if (!obj || toString.call(obj) !== "[object Object]") {
+	                return false;
+	            }
+
+	            proto = getProto(obj);
+
+	            // Objects with no prototype (e.g., `Object.create( null )`) are plain
+	            if (!proto) {
+	                return true;
+	            }
+
+	            // Objects with prototype are plain iff they were constructed by a global Object function
+	            Ctor = hasOwn.call(proto, "constructor") && proto.constructor;
+	            return typeof Ctor === "function" && fnToString.call(Ctor) === ObjectFunctionString;
+	        },
+
+	        isEmptyObject: function (obj) {
+
+	            /* eslint-disable no-unused-vars */
+	            // See https://github.com/eslint/eslint/issues/6125
+	            var name;
+
+	            for (name in obj) {
+	                return false;
+	            }
+	            return true;
+	        },
+
+	        type: function (obj) {
+	            if (obj == null) {
+	                return obj + "";
+	            }
+
+	            // Support: Android <=2.3 only (functionish RegExp)
+	            return typeof obj === "object" || typeof obj === "function" ?
+	            class2type[toString.call(obj)] || "object" :
+	                typeof obj;
+	        },
+
+	        // Evaluates a script in a global context
+	        globalEval: function (code) {
+	            DOMEval(code);
+	        },
+
+	        // Convert dashed to camelCase; used by the css and data modules
+	        // Support: IE <=9 - 11, Edge 12 - 13
+	        // Microsoft forgot to hump their vendor prefix (#9572)
+	        camelCase: function (string) {
+	            return string.replace(rmsPrefix, "ms-").replace(rdashAlpha, fcamelCase);
+	        },
+
+	        nodeName: function (elem, name) {
+	            return elem.nodeName && elem.nodeName.toLowerCase() === name.toLowerCase();
+	        },
+
+	        each: function (obj, callback) {
+	            var length, i = 0;
+
+	            if (isArrayLike(obj)) {
+	                length = obj.length;
+	                for (; i < length; i++) {
+	                    if (callback.call(obj[i], i, obj[i]) === false) {
+	                        break;
+	                    }
+	                }
+	            } else {
+	                for (i in obj) {
+	                    if (callback.call(obj[i], i, obj[i]) === false) {
+	                        break;
+	                    }
+	                }
+	            }
+
+	            return obj;
+	        },
+
+	        // Support: Android <=4.0 only
+	        trim: function (text) {
+	            return text == null ?
+	                "" :
+	                ( text + "" ).replace(rtrim, "");
+	        },
+
+	        // results is for internal usage only
+	        makeArray: function (arr, results) {
+	            var ret = results || [];
+
+	            if (arr != null) {
+	                if (isArrayLike(Object(arr))) {
+	                    jQuery.merge(ret,
+	                        typeof arr === "string" ?
+	                            [arr] : arr
+	                    );
+	                } else {
+	                    push.call(ret, arr);
+	                }
+	            }
+
+	            return ret;
+	        },
+
+	        inArray: function (elem, arr, i) {
+	            return arr == null ? -1 : indexOf.call(arr, elem, i);
+	        },
+
+	        // Support: Android <=4.0 only, PhantomJS 1 only
+	        // push.apply(_, arraylike) throws on ancient WebKit
+	        merge: function (first, second) {
+	            var len = +second.length,
+	                j = 0,
+	                i = first.length;
+
+	            for (; j < len; j++) {
+	                first[i++] = second[j];
+	            }
+
+	            first.length = i;
+
+	            return first;
+	        },
+
+	        grep: function (elems, callback, invert) {
+	            var callbackInverse,
+	                matches = [],
+	                i = 0,
+	                length = elems.length,
+	                callbackExpect = !invert;
+
+	            // Go through the array, only saving the items
+	            // that pass the validator function
+	            for (; i < length; i++) {
+	                callbackInverse = !callback(elems[i], i);
+	                if (callbackInverse !== callbackExpect) {
+	                    matches.push(elems[i]);
+	                }
+	            }
+
+	            return matches;
+	        },
+
+	        // arg is for internal usage only
+	        map: function (elems, callback, arg) {
+	            var length, value,
+	                i = 0,
+	                ret = [];
+
+	            // Go through the array, translating each of the items to their new values
+	            if (isArrayLike(elems)) {
+	                length = elems.length;
+	                for (; i < length; i++) {
+	                    value = callback(elems[i], i, arg);
+
+	                    if (value != null) {
+	                        ret.push(value);
+	                    }
+	                }
+
+	                // Go through every key on the object,
+	            } else {
+	                for (i in elems) {
+	                    value = callback(elems[i], i, arg);
+
+	                    if (value != null) {
+	                        ret.push(value);
+	                    }
+	                }
+	            }
+
+	            // Flatten any nested arrays
+	            return concat.apply([], ret);
+	        },
+
+	        // A global GUID counter for objects
+	        guid: 1,
+
+	        // Bind a function to a context, optionally partially applying any
+	        // arguments.
+	        proxy: function (fn, context) {
+	            var tmp, args, proxy;
+
+	            if (typeof context === "string") {
+	                tmp = fn[context];
+	                context = fn;
+	                fn = tmp;
+	            }
+
+	            // Quick check to determine if target is callable, in the spec
+	            // this throws a TypeError, but we will just return undefined.
+	            if (!jQuery.isFunction(fn)) {
+	                return undefined;
+	            }
+
+	            // Simulated bind
+	            args = slice.call(arguments, 2);
+	            proxy = function () {
+	                return fn.apply(context || this, args.concat(slice.call(arguments)));
+	            };
+
+	            // Set the guid of unique handler to the same of original handler, so it can be removed
+	            proxy.guid = fn.guid = fn.guid || jQuery.guid++;
+
+	            return proxy;
+	        },
+
+	        now: Date.now,
+
+	        // jQuery.support is not used in Core but other projects attach their
+	        // properties to it so it needs to exist.
+	        support: support
+	    });
+
+	    if (typeof Symbol === "function") {
+	        jQuery.fn[Symbol.iterator] = arr[Symbol.iterator];
+	    }
+
+	// Populate the class2type map
+	    jQuery.each("Boolean Number String Function Array Date RegExp Object Error Symbol".split(" "),
+	        function (i, name) {
+	            class2type["[object " + name + "]"] = name.toLowerCase();
+	        });
+
+	    function isArrayLike(obj) {
+
+	        // Support: real iOS 8.2 only (not reproducible in simulator)
+	        // `in` check used to prevent JIT error (gh-2145)
+	        // hasOwn isn't used here due to false negatives
+	        // regarding Nodelist length in IE
+	        var length = !!obj && "length" in obj && obj.length,
+	            type = jQuery.type(obj);
+
+	        if (type === "function" || jQuery.isWindow(obj)) {
+	            return false;
+	        }
+
+	        return type === "array" || length === 0 ||
+	        typeof length === "number" && length > 0 && ( length - 1 ) in obj;
+	    }
+
+	    var Sizzle =
+	        /*!
+	         * Sizzle CSS Selector Engine v2.3.0
+	         * https://sizzlejs.com/
+	         *
+	         * Copyright jQuery Foundation and other contributors
+	         * Released under the MIT license
+	         * http://jquery.org/license
+	         *
+	         * Date: 2016-01-04
+	         */
+	        (function (window) {
+
+	            var i,
+	                support,
+	                Expr,
+	                getText,
+	                isXML,
+	                tokenize,
+	                compile,
+	                select,
+	                outermostContext,
+	                sortInput,
+	                hasDuplicate,
+
+	            // Local document vars
+	                setDocument,
+	                document,
+	                docElem,
+	                documentIsHTML,
+	                rbuggyQSA,
+	                rbuggyMatches,
+	                matches,
+	                contains,
+
+	            // Instance-specific data
+	                expando = "sizzle" + 1 * new Date(),
+	                preferredDoc = window.document,
+	                dirruns = 0,
+	                done = 0,
+	                classCache = createCache(),
+	                tokenCache = createCache(),
+	                compilerCache = createCache(),
+	                sortOrder = function (a, b) {
+	                    if (a === b) {
+	                        hasDuplicate = true;
+	                    }
+	                    return 0;
+	                },
+
+	            // Instance methods
+	                hasOwn = ({}).hasOwnProperty,
+	                arr = [],
+	                pop = arr.pop,
+	                push_native = arr.push,
+	                push = arr.push,
+	                slice = arr.slice,
+	            // Use a stripped-down indexOf as it's faster than native
+	            // https://jsperf.com/thor-indexof-vs-for/5
+	                indexOf = function (list, elem) {
+	                    var i = 0,
+	                        len = list.length;
+	                    for (; i < len; i++) {
+	                        if (list[i] === elem) {
+	                            return i;
+	                        }
+	                    }
+	                    return -1;
+	                },
+
+	                booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
+
+	            // Regular expressions
+
+	            // http://www.w3.org/TR/css3-selectors/#whitespace
+	                whitespace = "[\\x20\\t\\r\\n\\f]",
+
+	            // http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+	                identifier = "(?:\\\\.|[\\w-]|[^\0-\\xa0])+",
+
+	            // Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
+	                attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
+	                        // Operator (capture 2)
+	                    "*([*^$|!~]?=)" + whitespace +
+	                        // "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
+	                    "*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
+	                    "*\\]",
+
+	                pseudos = ":(" + identifier + ")(?:\\((" +
+	                        // To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
+	                        // 1. quoted (capture 3; capture 4 or capture 5)
+	                    "('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|" +
+	                        // 2. simple (capture 6)
+	                    "((?:\\\\.|[^\\\\()[\\]]|" + attributes + ")*)|" +
+	                        // 3. anything else (capture 2)
+	                    ".*" +
+	                    ")\\)|)",
+
+	            // Leading and non-escaped trailing whitespace, capturing some non-whitespace characters preceding the latter
+	                rwhitespace = new RegExp(whitespace + "+", "g"),
+	                rtrim = new RegExp("^" + whitespace + "+|((?:^|[^\\\\])(?:\\\\.)*)" + whitespace + "+$", "g"),
+
+	                rcomma = new RegExp("^" + whitespace + "*," + whitespace + "*"),
+	                rcombinators = new RegExp("^" + whitespace + "*([>+~]|" + whitespace + ")" + whitespace + "*"),
+
+	                rattributeQuotes = new RegExp("=" + whitespace + "*([^\\]'\"]*?)" + whitespace + "*\\]", "g"),
+
+	                rpseudo = new RegExp(pseudos),
+	                ridentifier = new RegExp("^" + identifier + "$"),
+
+	                matchExpr = {
+	                    "ID": new RegExp("^#(" + identifier + ")"),
+	                    "CLASS": new RegExp("^\\.(" + identifier + ")"),
+	                    "TAG": new RegExp("^(" + identifier + "|[*])"),
+	                    "ATTR": new RegExp("^" + attributes),
+	                    "PSEUDO": new RegExp("^" + pseudos),
+	                    "CHILD": new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\(" + whitespace +
+	                    "*(even|odd|(([+-]|)(\\d*)n|)" + whitespace + "*(?:([+-]|)" + whitespace +
+	                    "*(\\d+)|))" + whitespace + "*\\)|)", "i"),
+	                    "bool": new RegExp("^(?:" + booleans + ")$", "i"),
+	                    // For use in libraries implementing .is()
+	                    // We use this for POS matching in `select`
+	                    "needsContext": new RegExp("^" + whitespace + "*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\(" +
+	                    whitespace + "*((?:-\\d)?\\d*)" + whitespace + "*\\)|)(?=[^-]|$)", "i")
+	                },
+
+	                rinputs = /^(?:input|select|textarea|button)$/i,
+	                rheader = /^h\d$/i,
+
+	                rnative = /^[^{]+\{\s*\[native \w/,
+
+	            // Easily-parseable/retrievable ID or TAG or CLASS selectors
+	                rquickExpr = /^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,
+
+	                rsibling = /[+~]/,
+
+	            // CSS escapes
+	            // http://www.w3.org/TR/CSS21/syndata.html#escaped-characters
+	                runescape = new RegExp("\\\\([\\da-f]{1,6}" + whitespace + "?|(" + whitespace + ")|.)", "ig"),
+	                funescape = function (_, escaped, escapedWhitespace) {
+	                    var high = "0x" + escaped - 0x10000;
+	                    // NaN means non-codepoint
+	                    // Support: Firefox<24
+	                    // Workaround erroneous numeric interpretation of +"0x"
+	                    return high !== high || escapedWhitespace ?
+	                        escaped :
+	                        high < 0 ?
+	                            // BMP codepoint
+	                            String.fromCharCode(high + 0x10000) :
+	                            // Supplemental Plane codepoint (surrogate pair)
+	                            String.fromCharCode(high >> 10 | 0xD800, high & 0x3FF | 0xDC00);
+	                },
+
+	            // CSS string/identifier serialization
+	            // https://drafts.csswg.org/cssom/#common-serializing-idioms
+	                rcssescape = /([\0-\x1f\x7f]|^-?\d)|^-$|[^\x80-\uFFFF\w-]/g,
+	                fcssescape = function (ch, asCodePoint) {
+	                    if (asCodePoint) {
+
+	                        // U+0000 NULL becomes U+FFFD REPLACEMENT CHARACTER
+	                        if (ch === "\0") {
+	                            return "\uFFFD";
+	                        }
+
+	                        // Control characters and (dependent upon position) numbers get escaped as code points
+	                        return ch.slice(0, -1) + "\\" + ch.charCodeAt(ch.length - 1).toString(16) + " ";
+	                    }
+
+	                    // Other potentially-special ASCII characters get backslash-escaped
+	                    return "\\" + ch;
+	                },
+
+	            // Used for iframes
+	            // See setDocument()
+	            // Removing the function wrapper causes a "Permission Denied"
+	            // error in IE
+	                unloadHandler = function () {
+	                    setDocument();
+	                },
+
+	                disabledAncestor = addCombinator(
+	                    function (elem) {
+	                        return elem.disabled === true;
+	                    },
+	                    {dir: "parentNode", next: "legend"}
+	                );
+
+	// Optimize for push.apply( _, NodeList )
+	            try {
+	                push.apply(
+	                    (arr = slice.call(preferredDoc.childNodes)),
+	                    preferredDoc.childNodes
+	                );
+	                // Support: Android<4.0
+	                // Detect silently failing push.apply
+	                arr[preferredDoc.childNodes.length].nodeType;
+	            } catch (e) {
+	                push = {
+	                    apply: arr.length ?
+
+	                        // Leverage slice if possible
+	                        function (target, els) {
+	                            push_native.apply(target, slice.call(els));
+	                        } :
+
+	                        // Support: IE<9
+	                        // Otherwise append directly
+	                        function (target, els) {
+	                            var j = target.length,
+	                                i = 0;
+	                            // Can't trust NodeList.length
+	                            while ((target[j++] = els[i++])) {
+	                            }
+	                            target.length = j - 1;
+	                        }
+	                };
+	            }
+
+	            function Sizzle(selector, context, results, seed) {
+	                var m, i, elem, nid, match, groups, newSelector,
+	                    newContext = context && context.ownerDocument,
+
+	                // nodeType defaults to 9, since context defaults to document
+	                    nodeType = context ? context.nodeType : 9;
+
+	                results = results || [];
+
+	                // Return early from calls with invalid selector or context
+	                if (typeof selector !== "string" || !selector ||
+	                    nodeType !== 1 && nodeType !== 9 && nodeType !== 11) {
+
+	                    return results;
+	                }
+
+	                // Try to shortcut find operations (as opposed to filters) in HTML documents
+	                if (!seed) {
+
+	                    if (( context ? context.ownerDocument || context : preferredDoc ) !== document) {
+	                        setDocument(context);
+	                    }
+	                    context = context || document;
+
+	                    if (documentIsHTML) {
+
+	                        // If the selector is sufficiently simple, try using a "get*By*" DOM method
+	                        // (excepting DocumentFragment context, where the methods don't exist)
+	                        if (nodeType !== 11 && (match = rquickExpr.exec(selector))) {
+
+	                            // ID selector
+	                            if ((m = match[1])) {
+
+	                                // Document context
+	                                if (nodeType === 9) {
+	                                    if ((elem = context.getElementById(m))) {
+
+	                                        // Support: IE, Opera, Webkit
+	                                        // TODO: identify versions
+	                                        // getElementById can match elements by name instead of ID
+	                                        if (elem.id === m) {
+	                                            results.push(elem);
+	                                            return results;
+	                                        }
+	                                    } else {
+	                                        return results;
+	                                    }
+
+	                                    // Element context
+	                                } else {
+
+	                                    // Support: IE, Opera, Webkit
+	                                    // TODO: identify versions
+	                                    // getElementById can match elements by name instead of ID
+	                                    if (newContext && (elem = newContext.getElementById(m)) &&
+	                                        contains(context, elem) &&
+	                                        elem.id === m) {
+
+	                                        results.push(elem);
+	                                        return results;
+	                                    }
+	                                }
+
+	                                // Type selector
+	                            } else if (match[2]) {
+	                                push.apply(results, context.getElementsByTagName(selector));
+	                                return results;
+
+	                                // Class selector
+	                            } else if ((m = match[3]) && support.getElementsByClassName &&
+	                                context.getElementsByClassName) {
+
+	                                push.apply(results, context.getElementsByClassName(m));
+	                                return results;
+	                            }
+	                        }
+
+	                        // Take advantage of querySelectorAll
+	                        if (support.qsa && !compilerCache[selector + " "] &&
+	                            (!rbuggyQSA || !rbuggyQSA.test(selector))) {
+
+	                            if (nodeType !== 1) {
+	                                newContext = context;
+	                                newSelector = selector;
+
+	                                // qSA looks outside Element context, which is not what we want
+	                                // Thanks to Andrew Dupont for this workaround technique
+	                                // Support: IE <=8
+	                                // Exclude object elements
+	                            } else if (context.nodeName.toLowerCase() !== "object") {
+
+	                                // Capture the context ID, setting it first if necessary
+	                                if ((nid = context.getAttribute("id"))) {
+	                                    nid = nid.replace(rcssescape, fcssescape);
+	                                } else {
+	                                    context.setAttribute("id", (nid = expando));
+	                                }
+
+	                                // Prefix every selector in the list
+	                                groups = tokenize(selector);
+	                                i = groups.length;
+	                                while (i--) {
+	                                    groups[i] = "#" + nid + " " + toSelector(groups[i]);
+	                                }
+	                                newSelector = groups.join(",");
+
+	                                // Expand context for sibling selectors
+	                                newContext = rsibling.test(selector) && testContext(context.parentNode) ||
+	                                context;
+	                            }
+
+	                            if (newSelector) {
+	                                try {
+	                                    push.apply(results,
+	                                        newContext.querySelectorAll(newSelector)
+	                                    );
+	                                    return results;
+	                                } catch (qsaError) {
+	                                } finally {
+	                                    if (nid === expando) {
+	                                        context.removeAttribute("id");
+	                                    }
+	                                }
+	                            }
+	                        }
+	                    }
+	                }
+
+	                // All others
+	                return select(selector.replace(rtrim, "$1"), context, results, seed);
+	            }
+
+	            /**
+	             * Create key-value caches of limited size
+	             * @returns {function(string, object)} Returns the Object data after storing it on itself with
+	             *    property name the (space-suffixed) string and (if the cache is larger than Expr.cacheLength)
+	             *    deleting the oldest entry
+	             */
+	            function createCache() {
+	                var keys = [];
+
+	                function cache(key, value) {
+	                    // Use (key + " ") to avoid collision with native prototype properties (see Issue #157)
+	                    if (keys.push(key + " ") > Expr.cacheLength) {
+	                        // Only keep the most recent entries
+	                        delete cache[keys.shift()];
+	                    }
+	                    return (cache[key + " "] = value);
+	                }
+
+	                return cache;
+	            }
+
+	            /**
+	             * Mark a function for special use by Sizzle
+	             * @param {Function} fn The function to mark
+	             */
+	            function markFunction(fn) {
+	                fn[expando] = true;
+	                return fn;
+	            }
+
+	            /**
+	             * Support testing using an element
+	             * @param {Function} fn Passed the created element and returns a boolean result
+	             */
+	            function assert(fn) {
+	                var el = document.createElement("fieldset");
+
+	                try {
+	                    return !!fn(el);
+	                } catch (e) {
+	                    return false;
+	                } finally {
+	                    // Remove from its parent by default
+	                    if (el.parentNode) {
+	                        el.parentNode.removeChild(el);
+	                    }
+	                    // release memory in IE
+	                    el = null;
+	                }
+	            }
+
+	            /**
+	             * Adds the same handler for all of the specified attrs
+	             * @param {String} attrs Pipe-separated list of attributes
+	             * @param {Function} handler The method that will be applied
+	             */
+	            function addHandle(attrs, handler) {
+	                var arr = attrs.split("|"),
+	                    i = arr.length;
+
+	                while (i--) {
+	                    Expr.attrHandle[arr[i]] = handler;
+	                }
+	            }
+
+	            /**
+	             * Checks document order of two siblings
+	             * @param {Element} a
+	             * @param {Element} b
+	             * @returns {Number} Returns less than 0 if a precedes b, greater than 0 if a follows b
+	             */
+	            function siblingCheck(a, b) {
+	                var cur = b && a,
+	                    diff = cur && a.nodeType === 1 && b.nodeType === 1 &&
+	                        a.sourceIndex - b.sourceIndex;
+
+	                // Use IE sourceIndex if available on both nodes
+	                if (diff) {
+	                    return diff;
+	                }
+
+	                // Check if b follows a
+	                if (cur) {
+	                    while ((cur = cur.nextSibling)) {
+	                        if (cur === b) {
+	                            return -1;
+	                        }
+	                    }
+	                }
+
+	                return a ? 1 : -1;
+	            }
+
+	            /**
+	             * Returns a function to use in pseudos for input types
+	             * @param {String} type
+	             */
+	            function createInputPseudo(type) {
+	                return function (elem) {
+	                    var name = elem.nodeName.toLowerCase();
+	                    return name === "input" && elem.type === type;
+	                };
+	            }
+
+	            /**
+	             * Returns a function to use in pseudos for buttons
+	             * @param {String} type
+	             */
+	            function createButtonPseudo(type) {
+	                return function (elem) {
+	                    var name = elem.nodeName.toLowerCase();
+	                    return (name === "input" || name === "button") && elem.type === type;
+	                };
+	            }
+
+	            /**
+	             * Returns a function to use in pseudos for :enabled/:disabled
+	             * @param {Boolean} disabled true for :disabled; false for :enabled
+	             */
+	            function createDisabledPseudo(disabled) {
+	                // Known :disabled false positives:
+	                // IE: *[disabled]:not(button, input, select, textarea, optgroup, option, menuitem, fieldset)
+	                // not IE: fieldset[disabled] > legend:nth-of-type(n+2) :can-disable
+	                return function (elem) {
+
+	                    // Check form elements and option elements for explicit disabling
+	                    return "label" in elem && elem.disabled === disabled ||
+	                    "form" in elem && elem.disabled === disabled ||
+
+	                        // Check non-disabled form elements for fieldset[disabled] ancestors
+	                    "form" in elem && elem.disabled === false && (
+	                        // Support: IE6-11+
+	                        // Ancestry is covered for us
+	                    elem.isDisabled === disabled ||
+
+	                        // Otherwise, assume any non-<option> under fieldset[disabled] is disabled
+	                        /* jshint -W018 */
+	                    elem.isDisabled !== !disabled &&
+	                    ("label" in elem || !disabledAncestor(elem)) !== disabled
+	                    );
+	                };
+	            }
+
+	            /**
+	             * Returns a function to use in pseudos for positionals
+	             * @param {Function} fn
+	             */
+	            function createPositionalPseudo(fn) {
+	                return markFunction(function (argument) {
+	                    argument = +argument;
+	                    return markFunction(function (seed, matches) {
+	                        var j,
+	                            matchIndexes = fn([], seed.length, argument),
+	                            i = matchIndexes.length;
+
+	                        // Match elements found at the specified indexes
+	                        while (i--) {
+	                            if (seed[(j = matchIndexes[i])]) {
+	                                seed[j] = !(matches[j] = seed[j]);
+	                            }
+	                        }
+	                    });
+	                });
+	            }
+
+	            /**
+	             * Checks a node for validity as a Sizzle context
+	             * @param {Element|Object=} context
+	             * @returns {Element|Object|Boolean} The input node if acceptable, otherwise a falsy value
+	             */
+	            function testContext(context) {
+	                return context && typeof context.getElementsByTagName !== "undefined" && context;
+	            }
+
+	// Expose support vars for convenience
+	            support = Sizzle.support = {};
+
+	            /**
+	             * Detects XML nodes
+	             * @param {Element|Object} elem An element or a document
+	             * @returns {Boolean} True iff elem is a non-HTML XML node
+	             */
+	            isXML = Sizzle.isXML = function (elem) {
+	                // documentElement is verified for cases where it doesn't yet exist
+	                // (such as loading iframes in IE - #4833)
+	                var documentElement = elem && (elem.ownerDocument || elem).documentElement;
+	                return documentElement ? documentElement.nodeName !== "HTML" : false;
+	            };
+
+	            /**
+	             * Sets document-related variables once based on the current document
+	             * @param {Element|Object} [doc] An element or document object to use to set the document
+	             * @returns {Object} Returns the current document
+	             */
+	            setDocument = Sizzle.setDocument = function (node) {
+	                var hasCompare, subWindow,
+	                    doc = node ? node.ownerDocument || node : preferredDoc;
+
+	                // Return early if doc is invalid or already selected
+	                if (doc === document || doc.nodeType !== 9 || !doc.documentElement) {
+	                    return document;
+	                }
+
+	                // Update global variables
+	                document = doc;
+	                docElem = document.documentElement;
+	                documentIsHTML = !isXML(document);
+
+	                // Support: IE 9-11, Edge
+	                // Accessing iframe documents after unload throws "permission denied" errors (jQuery #13936)
+	                if (preferredDoc !== document &&
+	                    (subWindow = document.defaultView) && subWindow.top !== subWindow) {
+
+	                    // Support: IE 11, Edge
+	                    if (subWindow.addEventListener) {
+	                        subWindow.addEventListener("unload", unloadHandler, false);
+
+	                        // Support: IE 9 - 10 only
+	                    } else if (subWindow.attachEvent) {
+	                        subWindow.attachEvent("onunload", unloadHandler);
+	                    }
+	                }
+
+	                /* Attributes
+	                 ---------------------------------------------------------------------- */
+
+	                // Support: IE<8
+	                // Verify that getAttribute really returns attributes and not properties
+	                // (excepting IE8 booleans)
+	                support.attributes = assert(function (el) {
+	                    el.className = "i";
+	                    return !el.getAttribute("className");
+	                });
+
+	                /* getElement(s)By*
+	                 ---------------------------------------------------------------------- */
+
+	                // Check if getElementsByTagName("*") returns only elements
+	                support.getElementsByTagName = assert(function (el) {
+	                    el.appendChild(document.createComment(""));
+	                    return !el.getElementsByTagName("*").length;
+	                });
+
+	                // Support: IE<9
+	                support.getElementsByClassName = rnative.test(document.getElementsByClassName);
+
+	                // Support: IE<10
+	                // Check if getElementById returns elements by name
+	                // The broken getElementById methods don't pick up programmatically-set names,
+	                // so use a roundabout getElementsByName test
+	                support.getById = assert(function (el) {
+	                    docElem.appendChild(el).id = expando;
+	                    return !document.getElementsByName || !document.getElementsByName(expando).length;
+	                });
+
+	                // ID find and filter
+	                if (support.getById) {
+	                    Expr.find["ID"] = function (id, context) {
+	                        if (typeof context.getElementById !== "undefined" && documentIsHTML) {
+	                            var m = context.getElementById(id);
+	                            return m ? [m] : [];
+	                        }
+	                    };
+	                    Expr.filter["ID"] = function (id) {
+	                        var attrId = id.replace(runescape, funescape);
+	                        return function (elem) {
+	                            return elem.getAttribute("id") === attrId;
+	                        };
+	                    };
+	                } else {
+	                    // Support: IE6/7
+	                    // getElementById is not reliable as a find shortcut
+	                    delete Expr.find["ID"];
+
+	                    Expr.filter["ID"] = function (id) {
+	                        var attrId = id.replace(runescape, funescape);
+	                        return function (elem) {
+	                            var node = typeof elem.getAttributeNode !== "undefined" &&
+	                                elem.getAttributeNode("id");
+	                            return node && node.value === attrId;
+	                        };
+	                    };
+	                }
+
+	                // Tag
+	                Expr.find["TAG"] = support.getElementsByTagName ?
+	                    function (tag, context) {
+	                        if (typeof context.getElementsByTagName !== "undefined") {
+	                            return context.getElementsByTagName(tag);
+
+	                            // DocumentFragment nodes don't have gEBTN
+	                        } else if (support.qsa) {
+	                            return context.querySelectorAll(tag);
+	                        }
+	                    } :
+
+	                    function (tag, context) {
+	                        var elem,
+	                            tmp = [],
+	                            i = 0,
+	                        // By happy coincidence, a (broken) gEBTN appears on DocumentFragment nodes too
+	                            results = context.getElementsByTagName(tag);
+
+	                        // Filter out possible comments
+	                        if (tag === "*") {
+	                            while ((elem = results[i++])) {
+	                                if (elem.nodeType === 1) {
+	                                    tmp.push(elem);
+	                                }
+	                            }
+
+	                            return tmp;
+	                        }
+	                        return results;
+	                    };
+
+	                // Class
+	                Expr.find["CLASS"] = support.getElementsByClassName && function (className, context) {
+	                    if (typeof context.getElementsByClassName !== "undefined" && documentIsHTML) {
+	                        return context.getElementsByClassName(className);
+	                    }
+	                };
+
+	                /* QSA/matchesSelector
+	                 ---------------------------------------------------------------------- */
+
+	                // QSA and matchesSelector support
+
+	                // matchesSelector(:active) reports false when true (IE9/Opera 11.5)
+	                rbuggyMatches = [];
+
+	                // qSa(:focus) reports false when true (Chrome 21)
+	                // We allow this because of a bug in IE8/9 that throws an error
+	                // whenever `document.activeElement` is accessed on an iframe
+	                // So, we allow :focus to pass through QSA all the time to avoid the IE error
+	                // See https://bugs.jquery.com/ticket/13378
+	                rbuggyQSA = [];
+
+	                if ((support.qsa = rnative.test(document.querySelectorAll))) {
+	                    // Build QSA regex
+	                    // Regex strategy adopted from Diego Perini
+	                    assert(function (el) {
+	                        // Select is set to empty string on purpose
+	                        // This is to test IE's treatment of not explicitly
+	                        // setting a boolean content attribute,
+	                        // since its presence should be enough
+	                        // https://bugs.jquery.com/ticket/12359
+	                        docElem.appendChild(el).innerHTML = "<a id='" + expando + "'></a>" +
+	                        "<select id='" + expando + "-\r\\' msallowcapture=''>" +
+	                        "<option selected=''></option></select>";
+
+	                        // Support: IE8, Opera 11-12.16
+	                        // Nothing should be selected when empty strings follow ^= or $= or *=
+	                        // The test attribute must be unknown in Opera but "safe" for WinRT
+	                        // https://msdn.microsoft.com/en-us/library/ie/hh465388.aspx#attribute_section
+	                        if (el.querySelectorAll("[msallowcapture^='']").length) {
+	                            rbuggyQSA.push("[*^$]=" + whitespace + "*(?:''|\"\")");
+	                        }
+
+	                        // Support: IE8
+	                        // Boolean attributes and "value" are not treated correctly
+	                        if (!el.querySelectorAll("[selected]").length) {
+	                            rbuggyQSA.push("\\[" + whitespace + "*(?:value|" + booleans + ")");
+	                        }
+
+	                        // Support: Chrome<29, Android<4.4, Safari<7.0+, iOS<7.0+, PhantomJS<1.9.8+
+	                        if (!el.querySelectorAll("[id~=" + expando + "-]").length) {
+	                            rbuggyQSA.push("~=");
+	                        }
+
+	                        // Webkit/Opera - :checked should return selected option elements
+	                        // http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+	                        // IE8 throws error here and will not see later tests
+	                        if (!el.querySelectorAll(":checked").length) {
+	                            rbuggyQSA.push(":checked");
+	                        }
+
+	                        // Support: Safari 8+, iOS 8+
+	                        // https://bugs.webkit.org/show_bug.cgi?id=136851
+	                        // In-page `selector#id sibling-combinator selector` fails
+	                        if (!el.querySelectorAll("a#" + expando + "+*").length) {
+	                            rbuggyQSA.push(".#.+[+~]");
+	                        }
+	                    });
+
+	                    assert(function (el) {
+	                        el.innerHTML = "<a href='' disabled='disabled'></a>" +
+	                        "<select disabled='disabled'><option/></select>";
+
+	                        // Support: Windows 8 Native Apps
+	                        // The type and name attributes are restricted during .innerHTML assignment
+	                        var input = document.createElement("input");
+	                        input.setAttribute("type", "hidden");
+	                        el.appendChild(input).setAttribute("name", "D");
+
+	                        // Support: IE8
+	                        // Enforce case-sensitivity of name attribute
+	                        if (el.querySelectorAll("[name=d]").length) {
+	                            rbuggyQSA.push("name" + whitespace + "*[*^$|!~]?=");
+	                        }
+
+	                        // FF 3.5 - :enabled/:disabled and hidden elements (hidden elements are still enabled)
+	                        // IE8 throws error here and will not see later tests
+	                        if (el.querySelectorAll(":enabled").length !== 2) {
+	                            rbuggyQSA.push(":enabled", ":disabled");
+	                        }
+
+	                        // Support: IE9-11+
+	                        // IE's :disabled selector does not pick up the children of disabled fieldsets
+	                        docElem.appendChild(el).disabled = true;
+	                        if (el.querySelectorAll(":disabled").length !== 2) {
+	                            rbuggyQSA.push(":enabled", ":disabled");
+	                        }
+
+	                        // Opera 10-11 does not throw on post-comma invalid pseudos
+	                        el.querySelectorAll("*,:x");
+	                        rbuggyQSA.push(",.*:");
+	                    });
+	                }
+
+	                if ((support.matchesSelector = rnative.test((matches = docElem.matches ||
+	                    docElem.webkitMatchesSelector ||
+	                    docElem.mozMatchesSelector ||
+	                    docElem.oMatchesSelector ||
+	                    docElem.msMatchesSelector)))) {
+
+	                    assert(function (el) {
+	                        // Check to see if it's possible to do matchesSelector
+	                        // on a disconnected node (IE 9)
+	                        support.disconnectedMatch = matches.call(el, "*");
+
+	                        // This should fail with an exception
+	                        // Gecko does not error, returns false instead
+	                        matches.call(el, "[s!='']:x");
+	                        rbuggyMatches.push("!=", pseudos);
+	                    });
+	                }
+
+	                rbuggyQSA = rbuggyQSA.length && new RegExp(rbuggyQSA.join("|"));
+	                rbuggyMatches = rbuggyMatches.length && new RegExp(rbuggyMatches.join("|"));
+
+	                /* Contains
+	                 ---------------------------------------------------------------------- */
+	                hasCompare = rnative.test(docElem.compareDocumentPosition);
+
+	                // Element contains another
+	                // Purposefully self-exclusive
+	                // As in, an element does not contain itself
+	                contains = hasCompare || rnative.test(docElem.contains) ?
+	                    function (a, b) {
+	                        var adown = a.nodeType === 9 ? a.documentElement : a,
+	                            bup = b && b.parentNode;
+	                        return a === bup || !!( bup && bup.nodeType === 1 && (
+	                            adown.contains ?
+	                                adown.contains(bup) :
+	                            a.compareDocumentPosition && a.compareDocumentPosition(bup) & 16
+	                        ));
+	                    } :
+	                    function (a, b) {
+	                        if (b) {
+	                            while ((b = b.parentNode)) {
+	                                if (b === a) {
+	                                    return true;
+	                                }
+	                            }
+	                        }
+	                        return false;
+	                    };
+
+	                /* Sorting
+	                 ---------------------------------------------------------------------- */
+
+	                // Document order sorting
+	                sortOrder = hasCompare ?
+	                    function (a, b) {
+
+	                        // Flag for duplicate removal
+	                        if (a === b) {
+	                            hasDuplicate = true;
+	                            return 0;
+	                        }
+
+	                        // Sort on method existence if only one input has compareDocumentPosition
+	                        var compare = !a.compareDocumentPosition - !b.compareDocumentPosition;
+	                        if (compare) {
+	                            return compare;
+	                        }
+
+	                        // Calculate position if both inputs belong to the same document
+	                        compare = ( a.ownerDocument || a ) === ( b.ownerDocument || b ) ?
+	                            a.compareDocumentPosition(b) :
+
+	                            // Otherwise we know they are disconnected
+	                            1;
+
+	                        // Disconnected nodes
+	                        if (compare & 1 ||
+	                            (!support.sortDetached && b.compareDocumentPosition(a) === compare)) {
+
+	                            // Choose the first element that is related to our preferred document
+	                            if (a === document || a.ownerDocument === preferredDoc && contains(preferredDoc, a)) {
+	                                return -1;
+	                            }
+	                            if (b === document || b.ownerDocument === preferredDoc && contains(preferredDoc, b)) {
+	                                return 1;
+	                            }
+
+	                            // Maintain original order
+	                            return sortInput ?
+	                                ( indexOf(sortInput, a) - indexOf(sortInput, b) ) :
+	                                0;
+	                        }
+
+	                        return compare & 4 ? -1 : 1;
+	                    } :
+	                    function (a, b) {
+	                        // Exit early if the nodes are identical
+	                        if (a === b) {
+	                            hasDuplicate = true;
+	                            return 0;
+	                        }
+
+	                        var cur,
+	                            i = 0,
+	                            aup = a.parentNode,
+	                            bup = b.parentNode,
+	                            ap = [a],
+	                            bp = [b];
+
+	                        // Parentless nodes are either documents or disconnected
+	                        if (!aup || !bup) {
+	                            return a === document ? -1 :
+	                                b === document ? 1 :
+	                                    aup ? -1 :
+	                                        bup ? 1 :
+	                                            sortInput ?
+	                                                ( indexOf(sortInput, a) - indexOf(sortInput, b) ) :
+	                                                0;
+
+	                            // If the nodes are siblings, we can do a quick check
+	                        } else if (aup === bup) {
+	                            return siblingCheck(a, b);
+	                        }
+
+	                        // Otherwise we need full lists of their ancestors for comparison
+	                        cur = a;
+	                        while ((cur = cur.parentNode)) {
+	                            ap.unshift(cur);
+	                        }
+	                        cur = b;
+	                        while ((cur = cur.parentNode)) {
+	                            bp.unshift(cur);
+	                        }
+
+	                        // Walk down the tree looking for a discrepancy
+	                        while (ap[i] === bp[i]) {
+	                            i++;
+	                        }
+
+	                        return i ?
+	                            // Do a sibling check if the nodes have a common ancestor
+	                            siblingCheck(ap[i], bp[i]) :
+
+	                            // Otherwise nodes in our document sort first
+	                            ap[i] === preferredDoc ? -1 :
+	                                bp[i] === preferredDoc ? 1 :
+	                                    0;
+	                    };
+
+	                return document;
+	            };
+
+	            Sizzle.matches = function (expr, elements) {
+	                return Sizzle(expr, null, null, elements);
+	            };
+
+	            Sizzle.matchesSelector = function (elem, expr) {
+	                // Set document vars if needed
+	                if (( elem.ownerDocument || elem ) !== document) {
+	                    setDocument(elem);
+	                }
+
+	                // Make sure that attribute selectors are quoted
+	                expr = expr.replace(rattributeQuotes, "='$1']");
+
+	                if (support.matchesSelector && documentIsHTML && !compilerCache[expr + " "] &&
+	                    ( !rbuggyMatches || !rbuggyMatches.test(expr) ) &&
+	                    ( !rbuggyQSA || !rbuggyQSA.test(expr) )) {
+
+	                    try {
+	                        var ret = matches.call(elem, expr);
+
+	                        // IE 9's matchesSelector returns false on disconnected nodes
+	                        if (ret || support.disconnectedMatch ||
+	                                // As well, disconnected nodes are said to be in a document
+	                                // fragment in IE 9
+	                            elem.document && elem.document.nodeType !== 11) {
+	                            return ret;
+	                        }
+	                    } catch (e) {
+	                    }
+	                }
+
+	                return Sizzle(expr, document, null, [elem]).length > 0;
+	            };
+
+	            Sizzle.contains = function (context, elem) {
+	                // Set document vars if needed
+	                if (( context.ownerDocument || context ) !== document) {
+	                    setDocument(context);
+	                }
+	                return contains(context, elem);
+	            };
+
+	            Sizzle.attr = function (elem, name) {
+	                // Set document vars if needed
+	                if (( elem.ownerDocument || elem ) !== document) {
+	                    setDocument(elem);
+	                }
+
+	                var fn = Expr.attrHandle[name.toLowerCase()],
+	                // Don't get fooled by Object.prototype properties (jQuery #13807)
+	                    val = fn && hasOwn.call(Expr.attrHandle, name.toLowerCase()) ?
+	                        fn(elem, name, !documentIsHTML) :
+	                        undefined;
+
+	                return val !== undefined ?
+	                    val :
+	                    support.attributes || !documentIsHTML ?
+	                        elem.getAttribute(name) :
+	                        (val = elem.getAttributeNode(name)) && val.specified ?
+	                            val.value :
+	                            null;
+	            };
+
+	            Sizzle.escape = function (sel) {
+	                return (sel + "").replace(rcssescape, fcssescape);
+	            };
+
+	            Sizzle.error = function (msg) {
+	                throw new Error("Syntax error, unrecognized expression: " + msg);
+	            };
+
+	            /**
+	             * Document sorting and removing duplicates
+	             * @param {ArrayLike} results
+	             */
+	            Sizzle.uniqueSort = function (results) {
+	                var elem,
+	                    duplicates = [],
+	                    j = 0,
+	                    i = 0;
+
+	                // Unless we *know* we can detect duplicates, assume their presence
+	                hasDuplicate = !support.detectDuplicates;
+	                sortInput = !support.sortStable && results.slice(0);
+	                results.sort(sortOrder);
+
+	                if (hasDuplicate) {
+	                    while ((elem = results[i++])) {
+	                        if (elem === results[i]) {
+	                            j = duplicates.push(i);
+	                        }
+	                    }
+	                    while (j--) {
+	                        results.splice(duplicates[j], 1);
+	                    }
+	                }
+
+	                // Clear input after sorting to release objects
+	                // See https://github.com/jquery/sizzle/pull/225
+	                sortInput = null;
+
+	                return results;
+	            };
+
+	            /**
+	             * Utility function for retrieving the text value of an array of DOM nodes
+	             * @param {Array|Element} elem
+	             */
+	            getText = Sizzle.getText = function (elem) {
+	                var node,
+	                    ret = "",
+	                    i = 0,
+	                    nodeType = elem.nodeType;
+
+	                if (!nodeType) {
+	                    // If no nodeType, this is expected to be an array
+	                    while ((node = elem[i++])) {
+	                        // Do not traverse comment nodes
+	                        ret += getText(node);
+	                    }
+	                } else if (nodeType === 1 || nodeType === 9 || nodeType === 11) {
+	                    // Use textContent for elements
+	                    // innerText usage removed for consistency of new lines (jQuery #11153)
+	                    if (typeof elem.textContent === "string") {
+	                        return elem.textContent;
+	                    } else {
+	                        // Traverse its children
+	                        for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
+	                            ret += getText(elem);
+	                        }
+	                    }
+	                } else if (nodeType === 3 || nodeType === 4) {
+	                    return elem.nodeValue;
+	                }
+	                // Do not include comment or processing instruction nodes
+
+	                return ret;
+	            };
+
+	            Expr = Sizzle.selectors = {
+
+	                // Can be adjusted by the user
+	                cacheLength: 50,
+
+	                createPseudo: markFunction,
+
+	                match: matchExpr,
+
+	                attrHandle: {},
+
+	                find: {},
+
+	                relative: {
+	                    ">": {dir: "parentNode", first: true},
+	                    " ": {dir: "parentNode"},
+	                    "+": {dir: "previousSibling", first: true},
+	                    "~": {dir: "previousSibling"}
+	                },
+
+	                preFilter: {
+	                    "ATTR": function (match) {
+	                        match[1] = match[1].replace(runescape, funescape);
+
+	                        // Move the given value to match[3] whether quoted or unquoted
+	                        match[3] = ( match[3] || match[4] || match[5] || "" ).replace(runescape, funescape);
+
+	                        if (match[2] === "~=") {
+	                            match[3] = " " + match[3] + " ";
+	                        }
+
+	                        return match.slice(0, 4);
+	                    },
+
+	                    "CHILD": function (match) {
+	                        /* matches from matchExpr["CHILD"]
+	                         1 type (only|nth|...)
+	                         2 what (child|of-type)
+	                         3 argument (even|odd|\d*|\d*n([+-]\d+)?|...)
+	                         4 xn-component of xn+y argument ([+-]?\d*n|)
+	                         5 sign of xn-component
+	                         6 x of xn-component
+	                         7 sign of y-component
+	                         8 y of y-component
+	                         */
+	                        match[1] = match[1].toLowerCase();
+
+	                        if (match[1].slice(0, 3) === "nth") {
+	                            // nth-* requires argument
+	                            if (!match[3]) {
+	                                Sizzle.error(match[0]);
+	                            }
+
+	                            // numeric x and y parameters for Expr.filter.CHILD
+	                            // remember that false/true cast respectively to 0/1
+	                            match[4] = +( match[4] ? match[5] + (match[6] || 1) : 2 * ( match[3] === "even" || match[3] === "odd" ) );
+	                            match[5] = +( ( match[7] + match[8] ) || match[3] === "odd" );
+
+	                            // other types prohibit arguments
+	                        } else if (match[3]) {
+	                            Sizzle.error(match[0]);
+	                        }
+
+	                        return match;
+	                    },
+
+	                    "PSEUDO": function (match) {
+	                        var excess,
+	                            unquoted = !match[6] && match[2];
+
+	                        if (matchExpr["CHILD"].test(match[0])) {
+	                            return null;
+	                        }
+
+	                        // Accept quoted arguments as-is
+	                        if (match[3]) {
+	                            match[2] = match[4] || match[5] || "";
+
+	                            // Strip excess characters from unquoted arguments
+	                        } else if (unquoted && rpseudo.test(unquoted) &&
+	                                // Get excess from tokenize (recursively)
+	                            (excess = tokenize(unquoted, true)) &&
+	                                // advance to the next closing parenthesis
+	                            (excess = unquoted.indexOf(")", unquoted.length - excess) - unquoted.length)) {
+
+	                            // excess is a negative index
+	                            match[0] = match[0].slice(0, excess);
+	                            match[2] = unquoted.slice(0, excess);
+	                        }
+
+	                        // Return only captures needed by the pseudo filter method (type and argument)
+	                        return match.slice(0, 3);
+	                    }
+	                },
+
+	                filter: {
+
+	                    "TAG": function (nodeNameSelector) {
+	                        var nodeName = nodeNameSelector.replace(runescape, funescape).toLowerCase();
+	                        return nodeNameSelector === "*" ?
+	                            function () {
+	                                return true;
+	                            } :
+	                            function (elem) {
+	                                return elem.nodeName && elem.nodeName.toLowerCase() === nodeName;
+	                            };
+	                    },
+
+	                    "CLASS": function (className) {
+	                        var pattern = classCache[className + " "];
+
+	                        return pattern ||
+	                        (pattern = new RegExp("(^|" + whitespace + ")" + className + "(" + whitespace + "|$)")) &&
+	                        classCache(className, function (elem) {
+	                            return pattern.test(typeof elem.className === "string" && elem.className || typeof elem.getAttribute !== "undefined" && elem.getAttribute("class") || "");
+	                        });
+	                    },
+
+	                    "ATTR": function (name, operator, check) {
+	                        return function (elem) {
+	                            var result = Sizzle.attr(elem, name);
+
+	                            if (result == null) {
+	                                return operator === "!=";
+	                            }
+	                            if (!operator) {
+	                                return true;
+	                            }
+
+	                            result += "";
+
+	                            return operator === "=" ? result === check :
+	                                operator === "!=" ? result !== check :
+	                                    operator === "^=" ? check && result.indexOf(check) === 0 :
+	                                        operator === "*=" ? check && result.indexOf(check) > -1 :
+	                                            operator === "$=" ? check && result.slice(-check.length) === check :
+	                                                operator === "~=" ? ( " " + result.replace(rwhitespace, " ") + " " ).indexOf(check) > -1 :
+	                                                    operator === "|=" ? result === check || result.slice(0, check.length + 1) === check + "-" :
+	                                                        false;
+	                        };
+	                    },
+
+	                    "CHILD": function (type, what, argument, first, last) {
+	                        var simple = type.slice(0, 3) !== "nth",
+	                            forward = type.slice(-4) !== "last",
+	                            ofType = what === "of-type";
+
+	                        return first === 1 && last === 0 ?
+
+	                            // Shortcut for :nth-*(n)
+	                            function (elem) {
+	                                return !!elem.parentNode;
+	                            } :
+
+	                            function (elem, context, xml) {
+	                                var cache, uniqueCache, outerCache, node, nodeIndex, start,
+	                                    dir = simple !== forward ? "nextSibling" : "previousSibling",
+	                                    parent = elem.parentNode,
+	                                    name = ofType && elem.nodeName.toLowerCase(),
+	                                    useCache = !xml && !ofType,
+	                                    diff = false;
+
+	                                if (parent) {
+
+	                                    // :(first|last|only)-(child|of-type)
+	                                    if (simple) {
+	                                        while (dir) {
+	                                            node = elem;
+	                                            while ((node = node[dir])) {
+	                                                if (ofType ?
+	                                                    node.nodeName.toLowerCase() === name :
+	                                                    node.nodeType === 1) {
+
+	                                                    return false;
+	                                                }
+	                                            }
+	                                            // Reverse direction for :only-* (if we haven't yet done so)
+	                                            start = dir = type === "only" && !start && "nextSibling";
+	                                        }
+	                                        return true;
+	                                    }
+
+	                                    start = [forward ? parent.firstChild : parent.lastChild];
+
+	                                    // non-xml :nth-child(...) stores cache data on `parent`
+	                                    if (forward && useCache) {
+
+	                                        // Seek `elem` from a previously-cached index
+
+	                                        // ...in a gzip-friendly way
+	                                        node = parent;
+	                                        outerCache = node[expando] || (node[expando] = {});
+
+	                                        // Support: IE <9 only
+	                                        // Defend against cloned attroperties (jQuery gh-1709)
+	                                        uniqueCache = outerCache[node.uniqueID] ||
+	                                        (outerCache[node.uniqueID] = {});
+
+	                                        cache = uniqueCache[type] || [];
+	                                        nodeIndex = cache[0] === dirruns && cache[1];
+	                                        diff = nodeIndex && cache[2];
+	                                        node = nodeIndex && parent.childNodes[nodeIndex];
+
+	                                        while ((node = ++nodeIndex && node && node[dir] ||
+
+	                                            // Fallback to seeking `elem` from the start
+	                                        (diff = nodeIndex = 0) || start.pop())) {
+
+	                                            // When found, cache indexes on `parent` and break
+	                                            if (node.nodeType === 1 && ++diff && node === elem) {
+	                                                uniqueCache[type] = [dirruns, nodeIndex, diff];
+	                                                break;
+	                                            }
+	                                        }
+
+	                                    } else {
+	                                        // Use previously-cached element index if available
+	                                        if (useCache) {
+	                                            // ...in a gzip-friendly way
+	                                            node = elem;
+	                                            outerCache = node[expando] || (node[expando] = {});
+
+	                                            // Support: IE <9 only
+	                                            // Defend against cloned attroperties (jQuery gh-1709)
+	                                            uniqueCache = outerCache[node.uniqueID] ||
+	                                            (outerCache[node.uniqueID] = {});
+
+	                                            cache = uniqueCache[type] || [];
+	                                            nodeIndex = cache[0] === dirruns && cache[1];
+	                                            diff = nodeIndex;
+	                                        }
+
+	                                        // xml :nth-child(...)
+	                                        // or :nth-last-child(...) or :nth(-last)?-of-type(...)
+	                                        if (diff === false) {
+	                                            // Use the same loop as above to seek `elem` from the start
+	                                            while ((node = ++nodeIndex && node && node[dir] ||
+	                                            (diff = nodeIndex = 0) || start.pop())) {
+
+	                                                if (( ofType ?
+	                                                    node.nodeName.toLowerCase() === name :
+	                                                    node.nodeType === 1 ) && ++diff) {
+
+	                                                    // Cache the index of each encountered element
+	                                                    if (useCache) {
+	                                                        outerCache = node[expando] || (node[expando] = {});
+
+	                                                        // Support: IE <9 only
+	                                                        // Defend against cloned attroperties (jQuery gh-1709)
+	                                                        uniqueCache = outerCache[node.uniqueID] ||
+	                                                        (outerCache[node.uniqueID] = {});
+
+	                                                        uniqueCache[type] = [dirruns, diff];
+	                                                    }
+
+	                                                    if (node === elem) {
+	                                                        break;
+	                                                    }
+	                                                }
+	                                            }
+	                                        }
+	                                    }
+
+	                                    // Incorporate the offset, then check against cycle size
+	                                    diff -= last;
+	                                    return diff === first || ( diff % first === 0 && diff / first >= 0 );
+	                                }
+	                            };
+	                    },
+
+	                    "PSEUDO": function (pseudo, argument) {
+	                        // pseudo-class names are case-insensitive
+	                        // http://www.w3.org/TR/selectors/#pseudo-classes
+	                        // Prioritize by case sensitivity in case custom pseudos are added with uppercase letters
+	                        // Remember that setFilters inherits from pseudos
+	                        var args,
+	                            fn = Expr.pseudos[pseudo] || Expr.setFilters[pseudo.toLowerCase()] ||
+	                                Sizzle.error("unsupported pseudo: " + pseudo);
+
+	                        // The user may use createPseudo to indicate that
+	                        // arguments are needed to create the filter function
+	                        // just as Sizzle does
+	                        if (fn[expando]) {
+	                            return fn(argument);
+	                        }
+
+	                        // But maintain support for old signatures
+	                        if (fn.length > 1) {
+	                            args = [pseudo, pseudo, "", argument];
+	                            return Expr.setFilters.hasOwnProperty(pseudo.toLowerCase()) ?
+	                                markFunction(function (seed, matches) {
+	                                    var idx,
+	                                        matched = fn(seed, argument),
+	                                        i = matched.length;
+	                                    while (i--) {
+	                                        idx = indexOf(seed, matched[i]);
+	                                        seed[idx] = !( matches[idx] = matched[i] );
+	                                    }
+	                                }) :
+	                                function (elem) {
+	                                    return fn(elem, 0, args);
+	                                };
+	                        }
+
+	                        return fn;
+	                    }
+	                },
+
+	                pseudos: {
+	                    // Potentially complex pseudos
+	                    "not": markFunction(function (selector) {
+	                        // Trim the selector passed to compile
+	                        // to avoid treating leading and trailing
+	                        // spaces as combinators
+	                        var input = [],
+	                            results = [],
+	                            matcher = compile(selector.replace(rtrim, "$1"));
+
+	                        return matcher[expando] ?
+	                            markFunction(function (seed, matches, context, xml) {
+	                                var elem,
+	                                    unmatched = matcher(seed, null, xml, []),
+	                                    i = seed.length;
+
+	                                // Match elements unmatched by `matcher`
+	                                while (i--) {
+	                                    if ((elem = unmatched[i])) {
+	                                        seed[i] = !(matches[i] = elem);
+	                                    }
+	                                }
+	                            }) :
+	                            function (elem, context, xml) {
+	                                input[0] = elem;
+	                                matcher(input, null, xml, results);
+	                                // Don't keep the element (issue #299)
+	                                input[0] = null;
+	                                return !results.pop();
+	                            };
+	                    }),
+
+	                    "has": markFunction(function (selector) {
+	                        return function (elem) {
+	                            return Sizzle(selector, elem).length > 0;
+	                        };
+	                    }),
+
+	                    "contains": markFunction(function (text) {
+	                        text = text.replace(runescape, funescape);
+	                        return function (elem) {
+	                            return ( elem.textContent || elem.innerText || getText(elem) ).indexOf(text) > -1;
+	                        };
+	                    }),
+
+	                    // "Whether an element is represented by a :lang() selector
+	                    // is based solely on the element's language value
+	                    // being equal to the identifier C,
+	                    // or beginning with the identifier C immediately followed by "-".
+	                    // The matching of C against the element's language value is performed case-insensitively.
+	                    // The identifier C does not have to be a valid language name."
+	                    // http://www.w3.org/TR/selectors/#lang-pseudo
+	                    "lang": markFunction(function (lang) {
+	                        // lang value must be a valid identifier
+	                        if (!ridentifier.test(lang || "")) {
+	                            Sizzle.error("unsupported lang: " + lang);
+	                        }
+	                        lang = lang.replace(runescape, funescape).toLowerCase();
+	                        return function (elem) {
+	                            var elemLang;
+	                            do {
+	                                if ((elemLang = documentIsHTML ?
+	                                        elem.lang :
+	                                    elem.getAttribute("xml:lang") || elem.getAttribute("lang"))) {
+
+	                                    elemLang = elemLang.toLowerCase();
+	                                    return elemLang === lang || elemLang.indexOf(lang + "-") === 0;
+	                                }
+	                            } while ((elem = elem.parentNode) && elem.nodeType === 1);
+	                            return false;
+	                        };
+	                    }),
+
+	                    // Miscellaneous
+	                    "target": function (elem) {
+	                        var hash = window.location && window.location.hash;
+	                        return hash && hash.slice(1) === elem.id;
+	                    },
+
+	                    "root": function (elem) {
+	                        return elem === docElem;
+	                    },
+
+	                    "focus": function (elem) {
+	                        return elem === document.activeElement && (!document.hasFocus || document.hasFocus()) && !!(elem.type || elem.href || ~elem.tabIndex);
+	                    },
+
+	                    // Boolean properties
+	                    "enabled": createDisabledPseudo(false),
+	                    "disabled": createDisabledPseudo(true),
+
+	                    "checked": function (elem) {
+	                        // In CSS3, :checked should return both checked and selected elements
+	                        // http://www.w3.org/TR/2011/REC-css3-selectors-20110929/#checked
+	                        var nodeName = elem.nodeName.toLowerCase();
+	                        return (nodeName === "input" && !!elem.checked) || (nodeName === "option" && !!elem.selected);
+	                    },
+
+	                    "selected": function (elem) {
+	                        // Accessing this property makes selected-by-default
+	                        // options in Safari work properly
+	                        if (elem.parentNode) {
+	                            elem.parentNode.selectedIndex;
+	                        }
+
+	                        return elem.selected === true;
+	                    },
+
+	                    // Contents
+	                    "empty": function (elem) {
+	                        // http://www.w3.org/TR/selectors/#empty-pseudo
+	                        // :empty is negated by element (1) or content nodes (text: 3; cdata: 4; entity ref: 5),
+	                        //   but not by others (comment: 8; processing instruction: 7; etc.)
+	                        // nodeType < 6 works because attributes (2) do not appear as children
+	                        for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
+	                            if (elem.nodeType < 6) {
+	                                return false;
+	                            }
+	                        }
+	                        return true;
+	                    },
+
+	                    "parent": function (elem) {
+	                        return !Expr.pseudos["empty"](elem);
+	                    },
+
+	                    // Element/input types
+	                    "header": function (elem) {
+	                        return rheader.test(elem.nodeName);
+	                    },
+
+	                    "input": function (elem) {
+	                        return rinputs.test(elem.nodeName);
+	                    },
+
+	                    "button": function (elem) {
+	                        var name = elem.nodeName.toLowerCase();
+	                        return name === "input" && elem.type === "button" || name === "button";
+	                    },
+
+	                    "text": function (elem) {
+	                        var attr;
+	                        return elem.nodeName.toLowerCase() === "input" &&
+	                        elem.type === "text" &&
+
+	                            // Support: IE<8
+	                            // New HTML5 attribute values (e.g., "search") appear with elem.type === "text"
+	                        ( (attr = elem.getAttribute("type")) == null || attr.toLowerCase() === "text" );
+	                    },
+
+	                    // Position-in-collection
+	                    "first": createPositionalPseudo(function () {
+	                        return [0];
+	                    }),
+
+	                    "last": createPositionalPseudo(function (matchIndexes, length) {
+	                        return [length - 1];
+	                    }),
+
+	                    "eq": createPositionalPseudo(function (matchIndexes, length, argument) {
+	                        return [argument < 0 ? argument + length : argument];
+	                    }),
+
+	                    "even": createPositionalPseudo(function (matchIndexes, length) {
+	                        var i = 0;
+	                        for (; i < length; i += 2) {
+	                            matchIndexes.push(i);
+	                        }
+	                        return matchIndexes;
+	                    }),
+
+	                    "odd": createPositionalPseudo(function (matchIndexes, length) {
+	                        var i = 1;
+	                        for (; i < length; i += 2) {
+	                            matchIndexes.push(i);
+	                        }
+	                        return matchIndexes;
+	                    }),
+
+	                    "lt": createPositionalPseudo(function (matchIndexes, length, argument) {
+	                        var i = argument < 0 ? argument + length : argument;
+	                        for (; --i >= 0;) {
+	                            matchIndexes.push(i);
+	                        }
+	                        return matchIndexes;
+	                    }),
+
+	                    "gt": createPositionalPseudo(function (matchIndexes, length, argument) {
+	                        var i = argument < 0 ? argument + length : argument;
+	                        for (; ++i < length;) {
+	                            matchIndexes.push(i);
+	                        }
+	                        return matchIndexes;
+	                    })
+	                }
+	            };
+
+	            Expr.pseudos["nth"] = Expr.pseudos["eq"];
+
+	// Add button/input type pseudos
+	            for (i in {radio: true, checkbox: true, file: true, password: true, image: true}) {
+	                Expr.pseudos[i] = createInputPseudo(i);
+	            }
+	            for (i in {submit: true, reset: true}) {
+	                Expr.pseudos[i] = createButtonPseudo(i);
+	            }
+
+	// Easy API for creating new setFilters
+	            function setFilters() {
+	            }
+
+	            setFilters.prototype = Expr.filters = Expr.pseudos;
+	            Expr.setFilters = new setFilters();
+
+	            tokenize = Sizzle.tokenize = function (selector, parseOnly) {
+	                var matched, match, tokens, type,
+	                    soFar, groups, preFilters,
+	                    cached = tokenCache[selector + " "];
+
+	                if (cached) {
+	                    return parseOnly ? 0 : cached.slice(0);
+	                }
+
+	                soFar = selector;
+	                groups = [];
+	                preFilters = Expr.preFilter;
+
+	                while (soFar) {
+
+	                    // Comma and first run
+	                    if (!matched || (match = rcomma.exec(soFar))) {
+	                        if (match) {
+	                            // Don't consume trailing commas as valid
+	                            soFar = soFar.slice(match[0].length) || soFar;
+	                        }
+	                        groups.push((tokens = []));
+	                    }
+
+	                    matched = false;
+
+	                    // Combinators
+	                    if ((match = rcombinators.exec(soFar))) {
+	                        matched = match.shift();
+	                        tokens.push({
+	                            value: matched,
+	                            // Cast descendant combinators to space
+	                            type: match[0].replace(rtrim, " ")
+	                        });
+	                        soFar = soFar.slice(matched.length);
+	                    }
+
+	                    // Filters
+	                    for (type in Expr.filter) {
+	                        if ((match = matchExpr[type].exec(soFar)) && (!preFilters[type] ||
+	                            (match = preFilters[type](match)))) {
+	                            matched = match.shift();
+	                            tokens.push({
+	                                value: matched,
+	                                type: type,
+	                                matches: match
+	                            });
+	                            soFar = soFar.slice(matched.length);
+	                        }
+	                    }
+
+	                    if (!matched) {
+	                        break;
+	                    }
+	                }
+
+	                // Return the length of the invalid excess
+	                // if we're just parsing
+	                // Otherwise, throw an error or return tokens
+	                return parseOnly ?
+	                    soFar.length :
+	                    soFar ?
+	                        Sizzle.error(selector) :
+	                        // Cache the tokens
+	                        tokenCache(selector, groups).slice(0);
+	            };
+
+	            function toSelector(tokens) {
+	                var i = 0,
+	                    len = tokens.length,
+	                    selector = "";
+	                for (; i < len; i++) {
+	                    selector += tokens[i].value;
+	                }
+	                return selector;
+	            }
+
+	            function addCombinator(matcher, combinator, base) {
+	                var dir = combinator.dir,
+	                    skip = combinator.next,
+	                    key = skip || dir,
+	                    checkNonElements = base && key === "parentNode",
+	                    doneName = done++;
+
+	                return combinator.first ?
+	                    // Check against closest ancestor/preceding element
+	                    function (elem, context, xml) {
+	                        while ((elem = elem[dir])) {
+	                            if (elem.nodeType === 1 || checkNonElements) {
+	                                return matcher(elem, context, xml);
+	                            }
+	                        }
+	                    } :
+
+	                    // Check against all ancestor/preceding elements
+	                    function (elem, context, xml) {
+	                        var oldCache, uniqueCache, outerCache,
+	                            newCache = [dirruns, doneName];
+
+	                        // We can't set arbitrary data on XML nodes, so they don't benefit from combinator caching
+	                        if (xml) {
+	                            while ((elem = elem[dir])) {
+	                                if (elem.nodeType === 1 || checkNonElements) {
+	                                    if (matcher(elem, context, xml)) {
+	                                        return true;
+	                                    }
+	                                }
+	                            }
+	                        } else {
+	                            while ((elem = elem[dir])) {
+	                                if (elem.nodeType === 1 || checkNonElements) {
+	                                    outerCache = elem[expando] || (elem[expando] = {});
+
+	                                    // Support: IE <9 only
+	                                    // Defend against cloned attroperties (jQuery gh-1709)
+	                                    uniqueCache = outerCache[elem.uniqueID] || (outerCache[elem.uniqueID] = {});
+
+	                                    if (skip && skip === elem.nodeName.toLowerCase()) {
+	                                        elem = elem[dir] || elem;
+	                                    } else if ((oldCache = uniqueCache[key]) &&
+	                                        oldCache[0] === dirruns && oldCache[1] === doneName) {
+
+	                                        // Assign to newCache so results back-propagate to previous elements
+	                                        return (newCache[2] = oldCache[2]);
+	                                    } else {
+	                                        // Reuse newcache so results back-propagate to previous elements
+	                                        uniqueCache[key] = newCache;
+
+	                                        // A match means we're done; a fail means we have to keep checking
+	                                        if ((newCache[2] = matcher(elem, context, xml))) {
+	                                            return true;
+	                                        }
+	                                    }
+	                                }
+	                            }
+	                        }
+	                    };
+	            }
+
+	            function elementMatcher(matchers) {
+	                return matchers.length > 1 ?
+	                    function (elem, context, xml) {
+	                        var i = matchers.length;
+	                        while (i--) {
+	                            if (!matchers[i](elem, context, xml)) {
+	                                return false;
+	                            }
+	                        }
+	                        return true;
+	                    } :
+	                    matchers[0];
+	            }
+
+	            function multipleContexts(selector, contexts, results) {
+	                var i = 0,
+	                    len = contexts.length;
+	                for (; i < len; i++) {
+	                    Sizzle(selector, contexts[i], results);
+	                }
+	                return results;
+	            }
+
+	            function condense(unmatched, map, filter, context, xml) {
+	                var elem,
+	                    newUnmatched = [],
+	                    i = 0,
+	                    len = unmatched.length,
+	                    mapped = map != null;
+
+	                for (; i < len; i++) {
+	                    if ((elem = unmatched[i])) {
+	                        if (!filter || filter(elem, context, xml)) {
+	                            newUnmatched.push(elem);
+	                            if (mapped) {
+	                                map.push(i);
+	                            }
+	                        }
+	                    }
+	                }
+
+	                return newUnmatched;
+	            }
+
+	            function setMatcher(preFilter, selector, matcher, postFilter, postFinder, postSelector) {
+	                if (postFilter && !postFilter[expando]) {
+	                    postFilter = setMatcher(postFilter);
+	                }
+	                if (postFinder && !postFinder[expando]) {
+	                    postFinder = setMatcher(postFinder, postSelector);
+	                }
+	                return markFunction(function (seed, results, context, xml) {
+	                    var temp, i, elem,
+	                        preMap = [],
+	                        postMap = [],
+	                        preexisting = results.length,
+
+	                    // Get initial elements from seed or context
+	                        elems = seed || multipleContexts(selector || "*", context.nodeType ? [context] : context, []),
+
+	                    // Prefilter to get matcher input, preserving a map for seed-results synchronization
+	                        matcherIn = preFilter && ( seed || !selector ) ?
+	                            condense(elems, preMap, preFilter, context, xml) :
+	                            elems,
+
+	                        matcherOut = matcher ?
+	                            // If we have a postFinder, or filtered seed, or non-seed postFilter or preexisting results,
+	                            postFinder || ( seed ? preFilter : preexisting || postFilter ) ?
+
+	                                // ...intermediate processing is necessary
+	                                [] :
+
+	                                // ...otherwise use results directly
+	                                results :
+	                            matcherIn;
+
+	                    // Find primary matches
+	                    if (matcher) {
+	                        matcher(matcherIn, matcherOut, context, xml);
+	                    }
+
+	                    // Apply postFilter
+	                    if (postFilter) {
+	                        temp = condense(matcherOut, postMap);
+	                        postFilter(temp, [], context, xml);
+
+	                        // Un-match failing elements by moving them back to matcherIn
+	                        i = temp.length;
+	                        while (i--) {
+	                            if ((elem = temp[i])) {
+	                                matcherOut[postMap[i]] = !(matcherIn[postMap[i]] = elem);
+	                            }
+	                        }
+	                    }
+
+	                    if (seed) {
+	                        if (postFinder || preFilter) {
+	                            if (postFinder) {
+	                                // Get the final matcherOut by condensing this intermediate into postFinder contexts
+	                                temp = [];
+	                                i = matcherOut.length;
+	                                while (i--) {
+	                                    if ((elem = matcherOut[i])) {
+	                                        // Restore matcherIn since elem is not yet a final match
+	                                        temp.push((matcherIn[i] = elem));
+	                                    }
+	                                }
+	                                postFinder(null, (matcherOut = []), temp, xml);
+	                            }
+
+	                            // Move matched elements from seed to results to keep them synchronized
+	                            i = matcherOut.length;
+	                            while (i--) {
+	                                if ((elem = matcherOut[i]) &&
+	                                    (temp = postFinder ? indexOf(seed, elem) : preMap[i]) > -1) {
+
+	                                    seed[temp] = !(results[temp] = elem);
+	                                }
+	                            }
+	                        }
+
+	                        // Add elements to results, through postFinder if defined
+	                    } else {
+	                        matcherOut = condense(
+	                            matcherOut === results ?
+	                                matcherOut.splice(preexisting, matcherOut.length) :
+	                                matcherOut
+	                        );
+	                        if (postFinder) {
+	                            postFinder(null, results, matcherOut, xml);
+	                        } else {
+	                            push.apply(results, matcherOut);
+	                        }
+	                    }
+	                });
+	            }
+
+	            function matcherFromTokens(tokens) {
+	                var checkContext, matcher, j,
+	                    len = tokens.length,
+	                    leadingRelative = Expr.relative[tokens[0].type],
+	                    implicitRelative = leadingRelative || Expr.relative[" "],
+	                    i = leadingRelative ? 1 : 0,
+
+	                // The foundational matcher ensures that elements are reachable from top-level context(s)
+	                    matchContext = addCombinator(function (elem) {
+	                        return elem === checkContext;
+	                    }, implicitRelative, true),
+	                    matchAnyContext = addCombinator(function (elem) {
+	                        return indexOf(checkContext, elem) > -1;
+	                    }, implicitRelative, true),
+	                    matchers = [function (elem, context, xml) {
+	                        var ret = ( !leadingRelative && ( xml || context !== outermostContext ) ) || (
+	                                (checkContext = context).nodeType ?
+	                                    matchContext(elem, context, xml) :
+	                                    matchAnyContext(elem, context, xml) );
+	                        // Avoid hanging onto element (issue #299)
+	                        checkContext = null;
+	                        return ret;
+	                    }];
+
+	                for (; i < len; i++) {
+	                    if ((matcher = Expr.relative[tokens[i].type])) {
+	                        matchers = [addCombinator(elementMatcher(matchers), matcher)];
+	                    } else {
+	                        matcher = Expr.filter[tokens[i].type].apply(null, tokens[i].matches);
+
+	                        // Return special upon seeing a positional matcher
+	                        if (matcher[expando]) {
+	                            // Find the next relative operator (if any) for proper handling
+	                            j = ++i;
+	                            for (; j < len; j++) {
+	                                if (Expr.relative[tokens[j].type]) {
+	                                    break;
+	                                }
+	                            }
+	                            return setMatcher(
+	                                i > 1 && elementMatcher(matchers),
+	                                i > 1 && toSelector(
+	                                    // If the preceding token was a descendant combinator, insert an implicit any-element `*`
+	                                    tokens.slice(0, i - 1).concat({value: tokens[i - 2].type === " " ? "*" : ""})
+	                                ).replace(rtrim, "$1"),
+	                                matcher,
+	                                i < j && matcherFromTokens(tokens.slice(i, j)),
+	                                j < len && matcherFromTokens((tokens = tokens.slice(j))),
+	                                j < len && toSelector(tokens)
+	                            );
+	                        }
+	                        matchers.push(matcher);
+	                    }
+	                }
+
+	                return elementMatcher(matchers);
+	            }
+
+	            function matcherFromGroupMatchers(elementMatchers, setMatchers) {
+	                var bySet = setMatchers.length > 0,
+	                    byElement = elementMatchers.length > 0,
+	                    superMatcher = function (seed, context, xml, results, outermost) {
+	                        var elem, j, matcher,
+	                            matchedCount = 0,
+	                            i = "0",
+	                            unmatched = seed && [],
+	                            setMatched = [],
+	                            contextBackup = outermostContext,
+	                        // We must always have either seed elements or outermost context
+	                            elems = seed || byElement && Expr.find["TAG"]("*", outermost),
+	                        // Use integer dirruns iff this is the outermost matcher
+	                            dirrunsUnique = (dirruns += contextBackup == null ? 1 : Math.random() || 0.1),
+	                            len = elems.length;
+
+	                        if (outermost) {
+	                            outermostContext = context === document || context || outermost;
+	                        }
+
+	                        // Add elements passing elementMatchers directly to results
+	                        // Support: IE<9, Safari
+	                        // Tolerate NodeList properties (IE: "length"; Safari: <number>) matching elements by id
+	                        for (; i !== len && (elem = elems[i]) != null; i++) {
+	                            if (byElement && elem) {
+	                                j = 0;
+	                                if (!context && elem.ownerDocument !== document) {
+	                                    setDocument(elem);
+	                                    xml = !documentIsHTML;
+	                                }
+	                                while ((matcher = elementMatchers[j++])) {
+	                                    if (matcher(elem, context || document, xml)) {
+	                                        results.push(elem);
+	                                        break;
+	                                    }
+	                                }
+	                                if (outermost) {
+	                                    dirruns = dirrunsUnique;
+	                                }
+	                            }
+
+	                            // Track unmatched elements for set filters
+	                            if (bySet) {
+	                                // They will have gone through all possible matchers
+	                                if ((elem = !matcher && elem)) {
+	                                    matchedCount--;
+	                                }
+
+	                                // Lengthen the array for every element, matched or not
+	                                if (seed) {
+	                                    unmatched.push(elem);
+	                                }
+	                            }
+	                        }
+
+	                        // `i` is now the count of elements visited above, and adding it to `matchedCount`
+	                        // makes the latter nonnegative.
+	                        matchedCount += i;
+
+	                        // Apply set filters to unmatched elements
+	                        // NOTE: This can be skipped if there are no unmatched elements (i.e., `matchedCount`
+	                        // equals `i`), unless we didn't visit _any_ elements in the above loop because we have
+	                        // no element matchers and no seed.
+	                        // Incrementing an initially-string "0" `i` allows `i` to remain a string only in that
+	                        // case, which will result in a "00" `matchedCount` that differs from `i` but is also
+	                        // numerically zero.
+	                        if (bySet && i !== matchedCount) {
+	                            j = 0;
+	                            while ((matcher = setMatchers[j++])) {
+	                                matcher(unmatched, setMatched, context, xml);
+	                            }
+
+	                            if (seed) {
+	                                // Reintegrate element matches to eliminate the need for sorting
+	                                if (matchedCount > 0) {
+	                                    while (i--) {
+	                                        if (!(unmatched[i] || setMatched[i])) {
+	                                            setMatched[i] = pop.call(results);
+	                                        }
+	                                    }
+	                                }
+
+	                                // Discard index placeholder values to get only actual matches
+	                                setMatched = condense(setMatched);
+	                            }
+
+	                            // Add matches to results
+	                            push.apply(results, setMatched);
+
+	                            // Seedless set matches succeeding multiple successful matchers stipulate sorting
+	                            if (outermost && !seed && setMatched.length > 0 &&
+	                                ( matchedCount + setMatchers.length ) > 1) {
+
+	                                Sizzle.uniqueSort(results);
+	                            }
+	                        }
+
+	                        // Override manipulation of globals by nested matchers
+	                        if (outermost) {
+	                            dirruns = dirrunsUnique;
+	                            outermostContext = contextBackup;
+	                        }
+
+	                        return unmatched;
+	                    };
+
+	                return bySet ?
+	                    markFunction(superMatcher) :
+	                    superMatcher;
+	            }
+
+	            compile = Sizzle.compile = function (selector, match /* Internal Use Only */) {
+	                var i,
+	                    setMatchers = [],
+	                    elementMatchers = [],
+	                    cached = compilerCache[selector + " "];
+
+	                if (!cached) {
+	                    // Generate a function of recursive functions that can be used to check each element
+	                    if (!match) {
+	                        match = tokenize(selector);
+	                    }
+	                    i = match.length;
+	                    while (i--) {
+	                        cached = matcherFromTokens(match[i]);
+	                        if (cached[expando]) {
+	                            setMatchers.push(cached);
+	                        } else {
+	                            elementMatchers.push(cached);
+	                        }
+	                    }
+
+	                    // Cache the compiled function
+	                    cached = compilerCache(selector, matcherFromGroupMatchers(elementMatchers, setMatchers));
+
+	                    // Save selector and tokenization
+	                    cached.selector = selector;
+	                }
+	                return cached;
+	            };
+
+	            /**
+	             * A low-level selection function that works with Sizzle's compiled
+	             *  selector functions
+	             * @param {String|Function} selector A selector or a pre-compiled
+	             *  selector function built with Sizzle.compile
+	             * @param {Element} context
+	             * @param {Array} [results]
+	             * @param {Array} [seed] A set of elements to match against
+	             */
+	            select = Sizzle.select = function (selector, context, results, seed) {
+	                var i, tokens, token, type, find,
+	                    compiled = typeof selector === "function" && selector,
+	                    match = !seed && tokenize((selector = compiled.selector || selector));
+
+	                results = results || [];
+
+	                // Try to minimize operations if there is only one selector in the list and no seed
+	                // (the latter of which guarantees us context)
+	                if (match.length === 1) {
+
+	                    // Reduce context if the leading compound selector is an ID
+	                    tokens = match[0] = match[0].slice(0);
+	                    if (tokens.length > 2 && (token = tokens[0]).type === "ID" &&
+	                        support.getById && context.nodeType === 9 && documentIsHTML &&
+	                        Expr.relative[tokens[1].type]) {
+
+	                        context = ( Expr.find["ID"](token.matches[0].replace(runescape, funescape), context) || [] )[0];
+	                        if (!context) {
+	                            return results;
+
+	                            // Precompiled matchers will still verify ancestry, so step up a level
+	                        } else if (compiled) {
+	                            context = context.parentNode;
+	                        }
+
+	                        selector = selector.slice(tokens.shift().value.length);
+	                    }
+
+	                    // Fetch a seed set for right-to-left matching
+	                    i = matchExpr["needsContext"].test(selector) ? 0 : tokens.length;
+	                    while (i--) {
+	                        token = tokens[i];
+
+	                        // Abort if we hit a combinator
+	                        if (Expr.relative[(type = token.type)]) {
+	                            break;
+	                        }
+	                        if ((find = Expr.find[type])) {
+	                            // Search, expanding context for leading sibling combinators
+	                            if ((seed = find(
+	                                    token.matches[0].replace(runescape, funescape),
+	                                    rsibling.test(tokens[0].type) && testContext(context.parentNode) || context
+	                                ))) {
+
+	                                // If seed is empty or no tokens remain, we can return early
+	                                tokens.splice(i, 1);
+	                                selector = seed.length && toSelector(tokens);
+	                                if (!selector) {
+	                                    push.apply(results, seed);
+	                                    return results;
+	                                }
+
+	                                break;
+	                            }
+	                        }
+	                    }
+	                }
+
+	                // Compile and execute a filtering function if one is not provided
+	                // Provide `match` to avoid retokenization if we modified the selector above
+	                ( compiled || compile(selector, match) )(
+	                    seed,
+	                    context,
+	                    !documentIsHTML,
+	                    results,
+	                    !context || rsibling.test(selector) && testContext(context.parentNode) || context
+	                );
+	                return results;
+	            };
+
+	// One-time assignments
+
+	// Sort stability
+	            support.sortStable = expando.split("").sort(sortOrder).join("") === expando;
+
+	// Support: Chrome 14-35+
+	// Always assume duplicates if they aren't passed to the comparison function
+	            support.detectDuplicates = !!hasDuplicate;
+
+	// Initialize against the default document
+	            setDocument();
+
+	// Support: Webkit<537.32 - Safari 6.0.3/Chrome 25 (fixed in Chrome 27)
+	// Detached nodes confoundingly follow *each other*
+	            support.sortDetached = assert(function (el) {
+	                // Should return 1, but returns 4 (following)
+	                return el.compareDocumentPosition(document.createElement("fieldset")) & 1;
+	            });
+
+	// Support: IE<8
+	// Prevent attribute/property "interpolation"
+	// https://msdn.microsoft.com/en-us/library/ms536429%28VS.85%29.aspx
+	            if (!assert(function (el) {
+	                    el.innerHTML = "<a href='#'></a>";
+	                    return el.firstChild.getAttribute("href") === "#";
+	                })) {
+	                addHandle("type|href|height|width", function (elem, name, isXML) {
+	                    if (!isXML) {
+	                        return elem.getAttribute(name, name.toLowerCase() === "type" ? 1 : 2);
+	                    }
+	                });
+	            }
+
+	// Support: IE<9
+	// Use defaultValue in place of getAttribute("value")
+	            if (!support.attributes || !assert(function (el) {
+	                    el.innerHTML = "<input/>";
+	                    el.firstChild.setAttribute("value", "");
+	                    return el.firstChild.getAttribute("value") === "";
+	                })) {
+	                addHandle("value", function (elem, name, isXML) {
+	                    if (!isXML && elem.nodeName.toLowerCase() === "input") {
+	                        return elem.defaultValue;
+	                    }
+	                });
+	            }
+
+	// Support: IE<9
+	// Use getAttributeNode to fetch booleans when getAttribute lies
+	            if (!assert(function (el) {
+	                    return el.getAttribute("disabled") == null;
+	                })) {
+	                addHandle(booleans, function (elem, name, isXML) {
+	                    var val;
+	                    if (!isXML) {
+	                        return elem[name] === true ? name.toLowerCase() :
+	                            (val = elem.getAttributeNode(name)) && val.specified ?
+	                                val.value :
+	                                null;
+	                    }
+	                });
+	            }
+
+	            return Sizzle;
+
+	        })(window);
+
+
+	    jQuery.find = Sizzle;
+	    jQuery.expr = Sizzle.selectors;
+
+	// Deprecated
+	    jQuery.expr[":"] = jQuery.expr.pseudos;
+	    jQuery.uniqueSort = jQuery.unique = Sizzle.uniqueSort;
+	    jQuery.text = Sizzle.getText;
+	    jQuery.isXMLDoc = Sizzle.isXML;
+	    jQuery.contains = Sizzle.contains;
+	    jQuery.escapeSelector = Sizzle.escape;
+
+
+	    var dir = function (elem, dir, until) {
+	        var matched = [],
+	            truncate = until !== undefined;
+
+	        while (( elem = elem[dir] ) && elem.nodeType !== 9) {
+	            if (elem.nodeType === 1) {
+	                if (truncate && jQuery(elem).is(until)) {
+	                    break;
+	                }
+	                matched.push(elem);
+	            }
+	        }
+	        return matched;
+	    };
+
+
+	    var siblings = function (n, elem) {
+	        var matched = [];
+
+	        for (; n; n = n.nextSibling) {
+	            if (n.nodeType === 1 && n !== elem) {
+	                matched.push(n);
+	            }
+	        }
+
+	        return matched;
+	    };
+
+
+	    var rneedsContext = jQuery.expr.match.needsContext;
+
+	    var rsingleTag = ( /^<([a-z][^\/\0>:\x20\t\r\n\f]*)[\x20\t\r\n\f]*\/?>(?:<\/\1>|)$/i );
+
+
+	    var risSimple = /^.[^:#\[\.,]*$/;
+
+	// Implement the identical functionality for filter and not
+	    function winnow(elements, qualifier, not) {
+	        if (jQuery.isFunction(qualifier)) {
+	            return jQuery.grep(elements, function (elem, i) {
+	                return !!qualifier.call(elem, i, elem) !== not;
+	            });
+
+	        }
+
+	        if (qualifier.nodeType) {
+	            return jQuery.grep(elements, function (elem) {
+	                return ( elem === qualifier ) !== not;
+	            });
+
+	        }
+
+	        if (typeof qualifier === "string") {
+	            if (risSimple.test(qualifier)) {
+	                return jQuery.filter(qualifier, elements, not);
+	            }
+
+	            qualifier = jQuery.filter(qualifier, elements);
+	        }
+
+	        return jQuery.grep(elements, function (elem) {
+	            return ( indexOf.call(qualifier, elem) > -1 ) !== not && elem.nodeType === 1;
+	        });
+	    }
+
+	    jQuery.filter = function (expr, elems, not) {
+	        var elem = elems[0];
+
+	        if (not) {
+	            expr = ":not(" + expr + ")";
+	        }
+
+	        return elems.length === 1 && elem.nodeType === 1 ?
+	            jQuery.find.matchesSelector(elem, expr) ? [elem] : [] :
+	            jQuery.find.matches(expr, jQuery.grep(elems, function (elem) {
+	                return elem.nodeType === 1;
+	            }));
+	    };
+
+	    jQuery.fn.extend({
+	        find: function (selector) {
+	            var i, ret,
+	                len = this.length,
+	                self = this;
+
+	            if (typeof selector !== "string") {
+	                return this.pushStack(jQuery(selector).filter(function () {
+	                    for (i = 0; i < len; i++) {
+	                        if (jQuery.contains(self[i], this)) {
+	                            return true;
+	                        }
+	                    }
+	                }));
+	            }
+
+	            ret = this.pushStack([]);
+
+	            for (i = 0; i < len; i++) {
+	                jQuery.find(selector, self[i], ret);
+	            }
+
+	            return len > 1 ? jQuery.uniqueSort(ret) : ret;
+	        },
+	        filter: function (selector) {
+	            return this.pushStack(winnow(this, selector || [], false));
+	        },
+	        not: function (selector) {
+	            return this.pushStack(winnow(this, selector || [], true));
+	        },
+	        is: function (selector) {
+	            return !!winnow(
+	                this,
+
+	                // If this is a positional/relative selector, check membership in the returned set
+	                // so $("p:first").is("p:last") won't return true for a doc with two "p".
+	                typeof selector === "string" && rneedsContext.test(selector) ?
+	                    jQuery(selector) :
+	                selector || [],
+	                false
+	            ).length;
+	        }
+	    });
+
+
+	// Initialize a jQuery object
+
+
+	// A central reference to the root jQuery(document)
+	    var rootjQuery,
+
+	    // A simple way to check for HTML strings
+	    // Prioritize #id over <tag> to avoid XSS via location.hash (#9521)
+	    // Strict HTML recognition (#11290: must start with <)
+	    // Shortcut simple #id case for speed
+	        rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]+))$/,
+
+	        init = jQuery.fn.init = function (selector, context, root) {
+	            var match, elem;
+
+	            // HANDLE: $(""), $(null), $(undefined), $(false)
+	            if (!selector) {
+	                return this;
+	            }
+
+	            // Method init() accepts an alternate rootjQuery
+	            // so migrate can support jQuery.sub (gh-2101)
+	            root = root || rootjQuery;
+
+	            // Handle HTML strings
+	            if (typeof selector === "string") {
+	                if (selector[0] === "<" &&
+	                    selector[selector.length - 1] === ">" &&
+	                    selector.length >= 3) {
+
+	                    // Assume that strings that start and end with <> are HTML and skip the regex check
+	                    match = [null, selector, null];
+
+	                } else {
+	                    match = rquickExpr.exec(selector);
+	                }
+
+	                // Match html or make sure no context is specified for #id
+	                if (match && ( match[1] || !context )) {
+
+	                    // HANDLE: $(html) -> $(array)
+	                    if (match[1]) {
+	                        context = context instanceof jQuery ? context[0] : context;
+
+	                        // Option to run scripts is true for back-compat
+	                        // Intentionally let the error be thrown if parseHTML is not present
+	                        jQuery.merge(this, jQuery.parseHTML(
+	                            match[1],
+	                            context && context.nodeType ? context.ownerDocument || context : document,
+	                            true
+	                        ));
+
+	                        // HANDLE: $(html, props)
+	                        if (rsingleTag.test(match[1]) && jQuery.isPlainObject(context)) {
+	                            for (match in context) {
+
+	                                // Properties of context are called as methods if possible
+	                                if (jQuery.isFunction(this[match])) {
+	                                    this[match](context[match]);
+
+	                                    // ...and otherwise set as attributes
+	                                } else {
+	                                    this.attr(match, context[match]);
+	                                }
+	                            }
+	                        }
+
+	                        return this;
+
+	                        // HANDLE: $(#id)
+	                    } else {
+	                        elem = document.getElementById(match[2]);
+
+	                        if (elem) {
+
+	                            // Inject the element directly into the jQuery object
+	                            this[0] = elem;
+	                            this.length = 1;
+	                        }
+	                        return this;
+	                    }
+
+	                    // HANDLE: $(expr, $(...))
+	                } else if (!context || context.jquery) {
+	                    return ( context || root ).find(selector);
+
+	                    // HANDLE: $(expr, context)
+	                    // (which is just equivalent to: $(context).find(expr)
+	                } else {
+	                    return this.constructor(context).find(selector);
+	                }
+
+	                // HANDLE: $(DOMElement)
+	            } else if (selector.nodeType) {
+	                this[0] = selector;
+	                this.length = 1;
+	                return this;
+
+	                // HANDLE: $(function)
+	                // Shortcut for document ready
+	            } else if (jQuery.isFunction(selector)) {
+	                return root.ready !== undefined ?
+	                    root.ready(selector) :
+
+	                    // Execute immediately if ready is not present
+	                    selector(jQuery);
+	            }
+
+	            return jQuery.makeArray(selector, this);
+	        };
+
+	// Give the init function the jQuery prototype for later instantiation
+	    init.prototype = jQuery.fn;
+
+	// Initialize central reference
+	    rootjQuery = jQuery(document);
+
+
+	    var rparentsprev = /^(?:parents|prev(?:Until|All))/,
+
+	    // Methods guaranteed to produce a unique set when starting from a unique set
+	        guaranteedUnique = {
+	            children: true,
+	            contents: true,
+	            next: true,
+	            prev: true
+	        };
+
+	    jQuery.fn.extend({
+	        has: function (target) {
+	            var targets = jQuery(target, this),
+	                l = targets.length;
+
+	            return this.filter(function () {
+	                var i = 0;
+	                for (; i < l; i++) {
+	                    if (jQuery.contains(this, targets[i])) {
+	                        return true;
+	                    }
+	                }
+	            });
+	        },
+
+	        closest: function (selectors, context) {
+	            var cur,
+	                i = 0,
+	                l = this.length,
+	                matched = [],
+	                targets = typeof selectors !== "string" && jQuery(selectors);
+
+	            // Positional selectors never match, since there's no _selection_ context
+	            if (!rneedsContext.test(selectors)) {
+	                for (; i < l; i++) {
+	                    for (cur = this[i]; cur && cur !== context; cur = cur.parentNode) {
+
+	                        // Always skip document fragments
+	                        if (cur.nodeType < 11 && ( targets ?
+	                            targets.index(cur) > -1 :
+
+	                                // Don't pass non-elements to Sizzle
+	                            cur.nodeType === 1 &&
+	                            jQuery.find.matchesSelector(cur, selectors) )) {
+
+	                            matched.push(cur);
+	                            break;
+	                        }
+	                    }
+	                }
+	            }
+
+	            return this.pushStack(matched.length > 1 ? jQuery.uniqueSort(matched) : matched);
+	        },
+
+	        // Determine the position of an element within the set
+	        index: function (elem) {
+
+	            // No argument, return index in parent
+	            if (!elem) {
+	                return ( this[0] && this[0].parentNode ) ? this.first().prevAll().length : -1;
+	            }
+
+	            // Index in selector
+	            if (typeof elem === "string") {
+	                return indexOf.call(jQuery(elem), this[0]);
+	            }
+
+	            // Locate the position of the desired element
+	            return indexOf.call(this,
+
+	                // If it receives a jQuery object, the first element is used
+	                elem.jquery ? elem[0] : elem
+	            );
+	        },
+
+	        add: function (selector, context) {
+	            return this.pushStack(
+	                jQuery.uniqueSort(
+	                    jQuery.merge(this.get(), jQuery(selector, context))
+	                )
+	            );
+	        },
+
+	        addBack: function (selector) {
+	            return this.add(selector == null ?
+	                    this.prevObject : this.prevObject.filter(selector)
+	            );
+	        }
+	    });
+
+	    function sibling(cur, dir) {
+	        while (( cur = cur[dir] ) && cur.nodeType !== 1) {
+	        }
+	        return cur;
+	    }
+
+	    jQuery.each({
+	        parent: function (elem) {
+	            var parent = elem.parentNode;
+	            return parent && parent.nodeType !== 11 ? parent : null;
+	        },
+	        parents: function (elem) {
+	            return dir(elem, "parentNode");
+	        },
+	        parentsUntil: function (elem, i, until) {
+	            return dir(elem, "parentNode", until);
+	        },
+	        next: function (elem) {
+	            return sibling(elem, "nextSibling");
+	        },
+	        prev: function (elem) {
+	            return sibling(elem, "previousSibling");
+	        },
+	        nextAll: function (elem) {
+	            return dir(elem, "nextSibling");
+	        },
+	        prevAll: function (elem) {
+	            return dir(elem, "previousSibling");
+	        },
+	        nextUntil: function (elem, i, until) {
+	            return dir(elem, "nextSibling", until);
+	        },
+	        prevUntil: function (elem, i, until) {
+	            return dir(elem, "previousSibling", until);
+	        },
+	        siblings: function (elem) {
+	            return siblings(( elem.parentNode || {} ).firstChild, elem);
+	        },
+	        children: function (elem) {
+	            return siblings(elem.firstChild);
+	        },
+	        contents: function (elem) {
+	            return elem.contentDocument || jQuery.merge([], elem.childNodes);
+	        }
+	    }, function (name, fn) {
+	        jQuery.fn[name] = function (until, selector) {
+	            var matched = jQuery.map(this, fn, until);
+
+	            if (name.slice(-5) !== "Until") {
+	                selector = until;
+	            }
+
+	            if (selector && typeof selector === "string") {
+	                matched = jQuery.filter(selector, matched);
+	            }
+
+	            if (this.length > 1) {
+
+	                // Remove duplicates
+	                if (!guaranteedUnique[name]) {
+	                    jQuery.uniqueSort(matched);
+	                }
+
+	                // Reverse order for parents* and prev-derivatives
+	                if (rparentsprev.test(name)) {
+	                    matched.reverse();
+	                }
+	            }
+
+	            return this.pushStack(matched);
+	        };
+	    });
+	    var rnotwhite = ( /\S+/g );
+
+
+	// Convert String-formatted options into Object-formatted ones
+	    function createOptions(options) {
+	        var object = {};
+	        jQuery.each(options.match(rnotwhite) || [], function (_, flag) {
+	            object[flag] = true;
+	        });
+	        return object;
+	    }
+
+	    /*
+	     * Create a callback list using the following parameters:
+	     *
+	     *	options: an optional list of space-separated options that will change how
+	     *			the callback list behaves or a more traditional option object
+	     *
+	     * By default a callback list will act like an event callback list and can be
+	     * "fired" multiple times.
+	     *
+	     * Possible options:
+	     *
+	     *	once:			will ensure the callback list can only be fired once (like a Deferred)
+	     *
+	     *	memory:			will keep track of previous values and will call any callback added
+	     *					after the list has been fired right away with the latest "memorized"
+	     *					values (like a Deferred)
+	     *
+	     *	unique:			will ensure a callback can only be added once (no duplicate in the list)
+	     *
+	     *	stopOnFalse:	interrupt callings when a callback returns false
+	     *
+	     */
+	    jQuery.Callbacks = function (options) {
+
+	        // Convert options from String-formatted to Object-formatted if needed
+	        // (we check in cache first)
+	        options = typeof options === "string" ?
+	            createOptions(options) :
+	            jQuery.extend({}, options);
+
+	        var // Flag to know if list is currently firing
+	            firing,
+
+	        // Last fire value for non-forgettable lists
+	            memory,
+
+	        // Flag to know if list was already fired
+	            fired,
+
+	        // Flag to prevent firing
+	            locked,
+
+	        // Actual callback list
+	            list = [],
+
+	        // Queue of execution data for repeatable lists
+	            queue = [],
+
+	        // Index of currently firing callback (modified by add/remove as needed)
+	            firingIndex = -1,
+
+	        // Fire callbacks
+	            fire = function () {
+
+	                // Enforce single-firing
+	                locked = options.once;
+
+	                // Execute callbacks for all pending executions,
+	                // respecting firingIndex overrides and runtime changes
+	                fired = firing = true;
+	                for (; queue.length; firingIndex = -1) {
+	                    memory = queue.shift();
+	                    while (++firingIndex < list.length) {
+
+	                        // Run callback and check for early termination
+	                        if (list[firingIndex].apply(memory[0], memory[1]) === false &&
+	                            options.stopOnFalse) {
+
+	                            // Jump to end and forget the data so .add doesn't re-fire
+	                            firingIndex = list.length;
+	                            memory = false;
+	                        }
+	                    }
+	                }
+
+	                // Forget the data if we're done with it
+	                if (!options.memory) {
+	                    memory = false;
+	                }
+
+	                firing = false;
+
+	                // Clean up if we're done firing for good
+	                if (locked) {
+
+	                    // Keep an empty list if we have data for future add calls
+	                    if (memory) {
+	                        list = [];
+
+	                        // Otherwise, this object is spent
+	                    } else {
+	                        list = "";
+	                    }
+	                }
+	            },
+
+	        // Actual Callbacks object
+	            self = {
+
+	                // Add a callback or a collection of callbacks to the list
+	                add: function () {
+	                    if (list) {
+
+	                        // If we have memory from a past run, we should fire after adding
+	                        if (memory && !firing) {
+	                            firingIndex = list.length - 1;
+	                            queue.push(memory);
+	                        }
+
+	                        (function add(args) {
+	                            jQuery.each(args, function (_, arg) {
+	                                if (jQuery.isFunction(arg)) {
+	                                    if (!options.unique || !self.has(arg)) {
+	                                        list.push(arg);
+	                                    }
+	                                } else if (arg && arg.length && jQuery.type(arg) !== "string") {
+
+	                                    // Inspect recursively
+	                                    add(arg);
+	                                }
+	                            });
+	                        })(arguments);
+
+	                        if (memory && !firing) {
+	                            fire();
+	                        }
+	                    }
+	                    return this;
+	                },
+
+	                // Remove a callback from the list
+	                remove: function () {
+	                    jQuery.each(arguments, function (_, arg) {
+	                        var index;
+	                        while (( index = jQuery.inArray(arg, list, index) ) > -1) {
+	                            list.splice(index, 1);
+
+	                            // Handle firing indexes
+	                            if (index <= firingIndex) {
+	                                firingIndex--;
+	                            }
+	                        }
+	                    });
+	                    return this;
+	                },
+
+	                // Check if a given callback is in the list.
+	                // If no argument is given, return whether or not list has callbacks attached.
+	                has: function (fn) {
+	                    return fn ?
+	                    jQuery.inArray(fn, list) > -1 :
+	                    list.length > 0;
+	                },
+
+	                // Remove all callbacks from the list
+	                empty: function () {
+	                    if (list) {
+	                        list = [];
+	                    }
+	                    return this;
+	                },
+
+	                // Disable .fire and .add
+	                // Abort any current/pending executions
+	                // Clear all callbacks and values
+	                disable: function () {
+	                    locked = queue = [];
+	                    list = memory = "";
+	                    return this;
+	                },
+	                disabled: function () {
+	                    return !list;
+	                },
+
+	                // Disable .fire
+	                // Also disable .add unless we have memory (since it would have no effect)
+	                // Abort any pending executions
+	                lock: function () {
+	                    locked = queue = [];
+	                    if (!memory && !firing) {
+	                        list = memory = "";
+	                    }
+	                    return this;
+	                },
+	                locked: function () {
+	                    return !!locked;
+	                },
+
+	                // Call all callbacks with the given context and arguments
+	                fireWith: function (context, args) {
+	                    if (!locked) {
+	                        args = args || [];
+	                        args = [context, args.slice ? args.slice() : args];
+	                        queue.push(args);
+	                        if (!firing) {
+	                            fire();
+	                        }
+	                    }
+	                    return this;
+	                },
+
+	                // Call all the callbacks with the given arguments
+	                fire: function () {
+	                    self.fireWith(this, arguments);
+	                    return this;
+	                },
+
+	                // To know if the callbacks have already been called at least once
+	                fired: function () {
+	                    return !!fired;
+	                }
+	            };
+
+	        return self;
+	    };
+
+
+	    function Identity(v) {
+	        return v;
+	    }
+
+	    function Thrower(ex) {
+	        throw ex;
+	    }
+
+	    function adoptValue(value, resolve, reject) {
+	        var method;
+
+	        try {
+
+	            // Check for promise aspect first to privilege synchronous behavior
+	            if (value && jQuery.isFunction(( method = value.promise ))) {
+	                method.call(value).done(resolve).fail(reject);
+
+	                // Other thenables
+	            } else if (value && jQuery.isFunction(( method = value.then ))) {
+	                method.call(value, resolve, reject);
+
+	                // Other non-thenables
+	            } else {
+
+	                // Support: Android 4.0 only
+	                // Strict mode functions invoked without .call/.apply get global-object context
+	                resolve.call(undefined, value);
+	            }
+
+	            // For Promises/A+, convert exceptions into rejections
+	            // Since jQuery.when doesn't unwrap thenables, we can skip the extra checks appearing in
+	            // Deferred#then to conditionally suppress rejection.
+	        } catch (value) {
+
+	            // Support: Android 4.0 only
+	            // Strict mode functions invoked without .call/.apply get global-object context
+	            reject.call(undefined, value);
+	        }
+	    }
+
+	    jQuery.extend({
+
+	        Deferred: function (func) {
+	            var tuples = [
+
+	                    // action, add listener, callbacks,
+	                    // ... .then handlers, argument index, [final state]
+	                    ["notify", "progress", jQuery.Callbacks("memory"),
+	                        jQuery.Callbacks("memory"), 2],
+	                    ["resolve", "done", jQuery.Callbacks("once memory"),
+	                        jQuery.Callbacks("once memory"), 0, "resolved"],
+	                    ["reject", "fail", jQuery.Callbacks("once memory"),
+	                        jQuery.Callbacks("once memory"), 1, "rejected"]
+	                ],
+	                state = "pending",
+	                promise = {
+	                    state: function () {
+	                        return state;
+	                    },
+	                    always: function () {
+	                        deferred.done(arguments).fail(arguments);
+	                        return this;
+	                    },
+	                    "catch": function (fn) {
+	                        return promise.then(null, fn);
+	                    },
+
+	                    // Keep pipe for back-compat
+	                    pipe: function (/* fnDone, fnFail, fnProgress */) {
+	                        var fns = arguments;
+
+	                        return jQuery.Deferred(function (newDefer) {
+	                            jQuery.each(tuples, function (i, tuple) {
+
+	                                // Map tuples (progress, done, fail) to arguments (done, fail, progress)
+	                                var fn = jQuery.isFunction(fns[tuple[4]]) && fns[tuple[4]];
+
+	                                // deferred.progress(function() { bind to newDefer or newDefer.notify })
+	                                // deferred.done(function() { bind to newDefer or newDefer.resolve })
+	                                // deferred.fail(function() { bind to newDefer or newDefer.reject })
+	                                deferred[tuple[1]](function () {
+	                                    var returned = fn && fn.apply(this, arguments);
+	                                    if (returned && jQuery.isFunction(returned.promise)) {
+	                                        returned.promise()
+	                                            .progress(newDefer.notify)
+	                                            .done(newDefer.resolve)
+	                                            .fail(newDefer.reject);
+	                                    } else {
+	                                        newDefer[tuple[0] + "With"](
+	                                            this,
+	                                            fn ? [returned] : arguments
+	                                        );
+	                                    }
+	                                });
+	                            });
+	                            fns = null;
+	                        }).promise();
+	                    },
+	                    then: function (onFulfilled, onRejected, onProgress) {
+	                        var maxDepth = 0;
+
+	                        function resolve(depth, deferred, handler, special) {
+	                            return function () {
+	                                var that = this,
+	                                    args = arguments,
+	                                    mightThrow = function () {
+	                                        var returned, then;
+
+	                                        // Support: Promises/A+ section 2.3.3.3.3
+	                                        // https://promisesaplus.com/#point-59
+	                                        // Ignore double-resolution attempts
+	                                        if (depth < maxDepth) {
+	                                            return;
+	                                        }
+
+	                                        returned = handler.apply(that, args);
+
+	                                        // Support: Promises/A+ section 2.3.1
+	                                        // https://promisesaplus.com/#point-48
+	                                        if (returned === deferred.promise()) {
+	                                            throw new TypeError("Thenable self-resolution");
+	                                        }
+
+	                                        // Support: Promises/A+ sections 2.3.3.1, 3.5
+	                                        // https://promisesaplus.com/#point-54
+	                                        // https://promisesaplus.com/#point-75
+	                                        // Retrieve `then` only once
+	                                        then = returned &&
+
+	                                            // Support: Promises/A+ section 2.3.4
+	                                            // https://promisesaplus.com/#point-64
+	                                            // Only check objects and functions for thenability
+	                                        ( typeof returned === "object" ||
+	                                        typeof returned === "function" ) &&
+	                                        returned.then;
+
+	                                        // Handle a returned thenable
+	                                        if (jQuery.isFunction(then)) {
+
+	                                            // Special processors (notify) just wait for resolution
+	                                            if (special) {
+	                                                then.call(
+	                                                    returned,
+	                                                    resolve(maxDepth, deferred, Identity, special),
+	                                                    resolve(maxDepth, deferred, Thrower, special)
+	                                                );
+
+	                                                // Normal processors (resolve) also hook into progress
+	                                            } else {
+
+	                                                // ...and disregard older resolution values
+	                                                maxDepth++;
+
+	                                                then.call(
+	                                                    returned,
+	                                                    resolve(maxDepth, deferred, Identity, special),
+	                                                    resolve(maxDepth, deferred, Thrower, special),
+	                                                    resolve(maxDepth, deferred, Identity,
+	                                                        deferred.notifyWith)
+	                                                );
+	                                            }
+
+	                                            // Handle all other returned values
+	                                        } else {
+
+	                                            // Only substitute handlers pass on context
+	                                            // and multiple values (non-spec behavior)
+	                                            if (handler !== Identity) {
+	                                                that = undefined;
+	                                                args = [returned];
+	                                            }
+
+	                                            // Process the value(s)
+	                                            // Default process is resolve
+	                                            ( special || deferred.resolveWith )(that, args);
+	                                        }
+	                                    },
+
+	                                // Only normal processors (resolve) catch and reject exceptions
+	                                    process = special ?
+	                                        mightThrow :
+	                                        function () {
+	                                            try {
+	                                                mightThrow();
+	                                            } catch (e) {
+
+	                                                if (jQuery.Deferred.exceptionHook) {
+	                                                    jQuery.Deferred.exceptionHook(e,
+	                                                        process.stackTrace);
+	                                                }
+
+	                                                // Support: Promises/A+ section 2.3.3.3.4.1
+	                                                // https://promisesaplus.com/#point-61
+	                                                // Ignore post-resolution exceptions
+	                                                if (depth + 1 >= maxDepth) {
+
+	                                                    // Only substitute handlers pass on context
+	                                                    // and multiple values (non-spec behavior)
+	                                                    if (handler !== Thrower) {
+	                                                        that = undefined;
+	                                                        args = [e];
+	                                                    }
+
+	                                                    deferred.rejectWith(that, args);
+	                                                }
+	                                            }
+	                                        };
+
+	                                // Support: Promises/A+ section 2.3.3.3.1
+	                                // https://promisesaplus.com/#point-57
+	                                // Re-resolve promises immediately to dodge false rejection from
+	                                // subsequent errors
+	                                if (depth) {
+	                                    process();
+	                                } else {
+
+	                                    // Call an optional hook to record the stack, in case of exception
+	                                    // since it's otherwise lost when execution goes async
+	                                    if (jQuery.Deferred.getStackHook) {
+	                                        process.stackTrace = jQuery.Deferred.getStackHook();
+	                                    }
+	                                    window.setTimeout(process);
+	                                }
+	                            };
+	                        }
+
+	                        return jQuery.Deferred(function (newDefer) {
+
+	                            // progress_handlers.add( ... )
+	                            tuples[0][3].add(
+	                                resolve(
+	                                    0,
+	                                    newDefer,
+	                                    jQuery.isFunction(onProgress) ?
+	                                        onProgress :
+	                                        Identity,
+	                                    newDefer.notifyWith
+	                                )
+	                            );
+
+	                            // fulfilled_handlers.add( ... )
+	                            tuples[1][3].add(
+	                                resolve(
+	                                    0,
+	                                    newDefer,
+	                                    jQuery.isFunction(onFulfilled) ?
+	                                        onFulfilled :
+	                                        Identity
+	                                )
+	                            );
+
+	                            // rejected_handlers.add( ... )
+	                            tuples[2][3].add(
+	                                resolve(
+	                                    0,
+	                                    newDefer,
+	                                    jQuery.isFunction(onRejected) ?
+	                                        onRejected :
+	                                        Thrower
+	                                )
+	                            );
+	                        }).promise();
+	                    },
+
+	                    // Get a promise for this deferred
+	                    // If obj is provided, the promise aspect is added to the object
+	                    promise: function (obj) {
+	                        return obj != null ? jQuery.extend(obj, promise) : promise;
+	                    }
+	                },
+	                deferred = {};
+
+	            // Add list-specific methods
+	            jQuery.each(tuples, function (i, tuple) {
+	                var list = tuple[2],
+	                    stateString = tuple[5];
+
+	                // promise.progress = list.add
+	                // promise.done = list.add
+	                // promise.fail = list.add
+	                promise[tuple[1]] = list.add;
+
+	                // Handle state
+	                if (stateString) {
+	                    list.add(
+	                        function () {
+
+	                            // state = "resolved" (i.e., fulfilled)
+	                            // state = "rejected"
+	                            state = stateString;
+	                        },
+
+	                        // rejected_callbacks.disable
+	                        // fulfilled_callbacks.disable
+	                        tuples[3 - i][2].disable,
+
+	                        // progress_callbacks.lock
+	                        tuples[0][2].lock
+	                    );
+	                }
+
+	                // progress_handlers.fire
+	                // fulfilled_handlers.fire
+	                // rejected_handlers.fire
+	                list.add(tuple[3].fire);
+
+	                // deferred.notify = function() { deferred.notifyWith(...) }
+	                // deferred.resolve = function() { deferred.resolveWith(...) }
+	                // deferred.reject = function() { deferred.rejectWith(...) }
+	                deferred[tuple[0]] = function () {
+	                    deferred[tuple[0] + "With"](this === deferred ? undefined : this, arguments);
+	                    return this;
+	                };
+
+	                // deferred.notifyWith = list.fireWith
+	                // deferred.resolveWith = list.fireWith
+	                // deferred.rejectWith = list.fireWith
+	                deferred[tuple[0] + "With"] = list.fireWith;
+	            });
+
+	            // Make the deferred a promise
+	            promise.promise(deferred);
+
+	            // Call given func if any
+	            if (func) {
+	                func.call(deferred, deferred);
+	            }
+
+	            // All done!
+	            return deferred;
+	        },
+
+	        // Deferred helper
+	        when: function (singleValue) {
+	            var
+
+	            // count of uncompleted subordinates
+	                remaining = arguments.length,
+
+	            // count of unprocessed arguments
+	                i = remaining,
+
+	            // subordinate fulfillment data
+	                resolveContexts = Array(i),
+	                resolveValues = slice.call(arguments),
+
+	            // the master Deferred
+	                master = jQuery.Deferred(),
+
+	            // subordinate callback factory
+	                updateFunc = function (i) {
+	                    return function (value) {
+	                        resolveContexts[i] = this;
+	                        resolveValues[i] = arguments.length > 1 ? slice.call(arguments) : value;
+	                        if (!( --remaining )) {
+	                            master.resolveWith(resolveContexts, resolveValues);
+	                        }
+	                    };
+	                };
+
+	            // Single- and empty arguments are adopted like Promise.resolve
+	            if (remaining <= 1) {
+	                adoptValue(singleValue, master.done(updateFunc(i)).resolve, master.reject);
+
+	                // Use .then() to unwrap secondary thenables (cf. gh-3000)
+	                if (master.state() === "pending" ||
+	                    jQuery.isFunction(resolveValues[i] && resolveValues[i].then)) {
+
+	                    return master.then();
+	                }
+	            }
+
+	            // Multiple arguments are aggregated like Promise.all array elements
+	            while (i--) {
+	                adoptValue(resolveValues[i], updateFunc(i), master.reject);
+	            }
+
+	            return master.promise();
+	        }
+	    });
+
+
+	// These usually indicate a programmer mistake during development,
+	// warn about them ASAP rather than swallowing them by default.
+	    var rerrorNames = /^(Eval|Internal|Range|Reference|Syntax|Type|URI)Error$/;
+
+	    jQuery.Deferred.exceptionHook = function (error, stack) {
+
+	        // Support: IE 8 - 9 only
+	        // Console exists when dev tools are open, which can happen at any time
+	        if (window.console && window.console.warn && error && rerrorNames.test(error.name)) {
+	            window.console.warn("jQuery.Deferred exception: " + error.message, error.stack, stack);
+	        }
+	    };
+
+
+	    jQuery.readyException = function (error) {
+	        window.setTimeout(function () {
+	            throw error;
+	        });
+	    };
+
+
+	// The deferred used on DOM ready
+	    var readyList = jQuery.Deferred();
+
+	    jQuery.fn.ready = function (fn) {
+
+	        readyList
+	            .then(fn)
+
+	            // Wrap jQuery.readyException in a function so that the lookup
+	            // happens at the time of error handling instead of callback
+	            // registration.
+	            .catch(function (error) {
+	                jQuery.readyException(error);
+	            });
+
+	        return this;
+	    };
+
+	    jQuery.extend({
+
+	        // Is the DOM ready to be used? Set to true once it occurs.
+	        isReady: false,
+
+	        // A counter to track how many items to wait for before
+	        // the ready event fires. See #6781
+	        readyWait: 1,
+
+	        // Hold (or release) the ready event
+	        holdReady: function (hold) {
+	            if (hold) {
+	                jQuery.readyWait++;
+	            } else {
+	                jQuery.ready(true);
+	            }
+	        },
+
+	        // Handle when the DOM is ready
+	        ready: function (wait) {
+
+	            // Abort if there are pending holds or we're already ready
+	            if (wait === true ? --jQuery.readyWait : jQuery.isReady) {
+	                return;
+	            }
+
+	            // Remember that the DOM is ready
+	            jQuery.isReady = true;
+
+	            // If a normal DOM Ready event fired, decrement, and wait if need be
+	            if (wait !== true && --jQuery.readyWait > 0) {
+	                return;
+	            }
+
+	            // If there are functions bound, to execute
+	            readyList.resolveWith(document, [jQuery]);
+	        }
+	    });
+
+	    jQuery.ready.then = readyList.then;
+
+	// The ready event handler and self cleanup method
+	    function completed() {
+	        document.removeEventListener("DOMContentLoaded", completed);
+	        window.removeEventListener("load", completed);
+	        jQuery.ready();
+	    }
+
+	// Catch cases where $(document).ready() is called
+	// after the browser event has already occurred.
+	// Support: IE <=9 - 10 only
+	// Older IE sometimes signals "interactive" too soon
+	    if (document.readyState === "complete" ||
+	        ( document.readyState !== "loading" && !document.documentElement.doScroll )) {
+
+	        // Handle it asynchronously to allow scripts the opportunity to delay ready
+	        window.setTimeout(jQuery.ready);
+
+	    } else {
+
+	        // Use the handy event callback
+	        document.addEventListener("DOMContentLoaded", completed);
+
+	        // A fallback to window.onload, that will always work
+	        window.addEventListener("load", completed);
+	    }
+
+
+	// Multifunctional method to get and set values of a collection
+	// The value/s can optionally be executed if it's a function
+	    var access = function (elems, fn, key, value, chainable, emptyGet, raw) {
+	        var i = 0,
+	            len = elems.length,
+	            bulk = key == null;
+
+	        // Sets many values
+	        if (jQuery.type(key) === "object") {
+	            chainable = true;
+	            for (i in key) {
+	                access(elems, fn, i, key[i], true, emptyGet, raw);
+	            }
+
+	            // Sets one value
+	        } else if (value !== undefined) {
+	            chainable = true;
+
+	            if (!jQuery.isFunction(value)) {
+	                raw = true;
+	            }
+
+	            if (bulk) {
+
+	                // Bulk operations run against the entire set
+	                if (raw) {
+	                    fn.call(elems, value);
+	                    fn = null;
+
+	                    // ...except when executing function values
+	                } else {
+	                    bulk = fn;
+	                    fn = function (elem, key, value) {
+	                        return bulk.call(jQuery(elem), value);
+	                    };
+	                }
+	            }
+
+	            if (fn) {
+	                for (; i < len; i++) {
+	                    fn(
+	                        elems[i], key, raw ?
+	                            value :
+	                            value.call(elems[i], i, fn(elems[i], key))
+	                    );
+	                }
+	            }
+	        }
+
+	        return chainable ?
+	            elems :
+
+	            // Gets
+	            bulk ?
+	                fn.call(elems) :
+	                len ? fn(elems[0], key) : emptyGet;
+	    };
+	    var acceptData = function (owner) {
+
+	        // Accepts only:
+	        //  - Node
+	        //    - Node.ELEMENT_NODE
+	        //    - Node.DOCUMENT_NODE
+	        //  - Object
+	        //    - Any
+	        return owner.nodeType === 1 || owner.nodeType === 9 || !( +owner.nodeType );
+	    };
+
+
+	    function Data() {
+	        this.expando = jQuery.expando + Data.uid++;
+	    }
+
+	    Data.uid = 1;
+
+	    Data.prototype = {
+
+	        cache: function (owner) {
+
+	            // Check if the owner object already has a cache
+	            var value = owner[this.expando];
+
+	            // If not, create one
+	            if (!value) {
+	                value = {};
+
+	                // We can accept data for non-element nodes in modern browsers,
+	                // but we should not, see #8335.
+	                // Always return an empty object.
+	                if (acceptData(owner)) {
+
+	                    // If it is a node unlikely to be stringify-ed or looped over
+	                    // use plain assignment
+	                    if (owner.nodeType) {
+	                        owner[this.expando] = value;
+
+	                        // Otherwise secure it in a non-enumerable property
+	                        // configurable must be true to allow the property to be
+	                        // deleted when data is removed
+	                    } else {
+	                        Object.defineProperty(owner, this.expando, {
+	                            value: value,
+	                            configurable: true
+	                        });
+	                    }
+	                }
+	            }
+
+	            return value;
+	        },
+	        set: function (owner, data, value) {
+	            var prop,
+	                cache = this.cache(owner);
+
+	            // Handle: [ owner, key, value ] args
+	            // Always use camelCase key (gh-2257)
+	            if (typeof data === "string") {
+	                cache[jQuery.camelCase(data)] = value;
+
+	                // Handle: [ owner, { properties } ] args
+	            } else {
+
+	                // Copy the properties one-by-one to the cache object
+	                for (prop in data) {
+	                    cache[jQuery.camelCase(prop)] = data[prop];
+	                }
+	            }
+	            return cache;
+	        },
+	        get: function (owner, key) {
+	            return key === undefined ?
+	                this.cache(owner) :
+
+	                // Always use camelCase key (gh-2257)
+	            owner[this.expando] && owner[this.expando][jQuery.camelCase(key)];
+	        },
+	        access: function (owner, key, value) {
+
+	            // In cases where either:
+	            //
+	            //   1. No key was specified
+	            //   2. A string key was specified, but no value provided
+	            //
+	            // Take the "read" path and allow the get method to determine
+	            // which value to return, respectively either:
+	            //
+	            //   1. The entire cache object
+	            //   2. The data stored at the key
+	            //
+	            if (key === undefined ||
+	                ( ( key && typeof key === "string" ) && value === undefined )) {
+
+	                return this.get(owner, key);
+	            }
+
+	            // When the key is not a string, or both a key and value
+	            // are specified, set or extend (existing objects) with either:
+	            //
+	            //   1. An object of properties
+	            //   2. A key and value
+	            //
+	            this.set(owner, key, value);
+
+	            // Since the "set" path can have two possible entry points
+	            // return the expected data based on which path was taken[*]
+	            return value !== undefined ? value : key;
+	        },
+	        remove: function (owner, key) {
+	            var i,
+	                cache = owner[this.expando];
+
+	            if (cache === undefined) {
+	                return;
+	            }
+
+	            if (key !== undefined) {
+
+	                // Support array or space separated string of keys
+	                if (jQuery.isArray(key)) {
+
+	                    // If key is an array of keys...
+	                    // We always set camelCase keys, so remove that.
+	                    key = key.map(jQuery.camelCase);
+	                } else {
+	                    key = jQuery.camelCase(key);
+
+	                    // If a key with the spaces exists, use it.
+	                    // Otherwise, create an array by matching non-whitespace
+	                    key = key in cache ?
+	                        [key] :
+	                        ( key.match(rnotwhite) || [] );
+	                }
+
+	                i = key.length;
+
+	                while (i--) {
+	                    delete cache[key[i]];
+	                }
+	            }
+
+	            // Remove the expando if there's no more data
+	            if (key === undefined || jQuery.isEmptyObject(cache)) {
+
+	                // Support: Chrome <=35 - 45
+	                // Webkit & Blink performance suffers when deleting properties
+	                // from DOM nodes, so set to undefined instead
+	                // https://bugs.chromium.org/p/chromium/issues/detail?id=378607 (bug restricted)
+	                if (owner.nodeType) {
+	                    owner[this.expando] = undefined;
+	                } else {
+	                    delete owner[this.expando];
+	                }
+	            }
+	        },
+	        hasData: function (owner) {
+	            var cache = owner[this.expando];
+	            return cache !== undefined && !jQuery.isEmptyObject(cache);
+	        }
+	    };
+	    var dataPriv = new Data();
+
+	    var dataUser = new Data();
+
+
+	//	Implementation Summary
+	//
+	//	1. Enforce API surface and semantic compatibility with 1.9.x branch
+	//	2. Improve the module's maintainability by reducing the storage
+	//		paths to a single mechanism.
+	//	3. Use the same single mechanism to support "private" and "user" data.
+	//	4. _Never_ expose "private" data to user code (TODO: Drop _data, _removeData)
+	//	5. Avoid exposing implementation details on user objects (eg. expando properties)
+	//	6. Provide a clear path for implementation upgrade to WeakMap in 2014
+
+	    var rbrace = /^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,
+	        rmultiDash = /[A-Z]/g;
+
+	    function dataAttr(elem, key, data) {
+	        var name;
+
+	        // If nothing was found internally, try to fetch any
+	        // data from the HTML5 data-* attribute
+	        if (data === undefined && elem.nodeType === 1) {
+	            name = "data-" + key.replace(rmultiDash, "-$&").toLowerCase();
+	            data = elem.getAttribute(name);
+
+	            if (typeof data === "string") {
+	                try {
+	                    data = data === "true" ? true :
+	                        data === "false" ? false :
+	                            data === "null" ? null :
+
+	                                // Only convert to a number if it doesn't change the string
+	                                +data + "" === data ? +data :
+	                                    rbrace.test(data) ? JSON.parse(data) :
+	                                        data;
+	                } catch (e) {
+	                }
+
+	                // Make sure we set the data so it isn't changed later
+	                dataUser.set(elem, key, data);
+	            } else {
+	                data = undefined;
+	            }
+	        }
+	        return data;
+	    }
+
+	    jQuery.extend({
+	        hasData: function (elem) {
+	            return dataUser.hasData(elem) || dataPriv.hasData(elem);
+	        },
+
+	        data: function (elem, name, data) {
+	            return dataUser.access(elem, name, data);
+	        },
+
+	        removeData: function (elem, name) {
+	            dataUser.remove(elem, name);
+	        },
+
+	        // TODO: Now that all calls to _data and _removeData have been replaced
+	        // with direct calls to dataPriv methods, these can be deprecated.
+	        _data: function (elem, name, data) {
+	            return dataPriv.access(elem, name, data);
+	        },
+
+	        _removeData: function (elem, name) {
+	            dataPriv.remove(elem, name);
+	        }
+	    });
+
+	    jQuery.fn.extend({
+	        data: function (key, value) {
+	            var i, name, data,
+	                elem = this[0],
+	                attrs = elem && elem.attributes;
+
+	            // Gets all values
+	            if (key === undefined) {
+	                if (this.length) {
+	                    data = dataUser.get(elem);
+
+	                    if (elem.nodeType === 1 && !dataPriv.get(elem, "hasDataAttrs")) {
+	                        i = attrs.length;
+	                        while (i--) {
+
+	                            // Support: IE 11 only
+	                            // The attrs elements can be null (#14894)
+	                            if (attrs[i]) {
+	                                name = attrs[i].name;
+	                                if (name.indexOf("data-") === 0) {
+	                                    name = jQuery.camelCase(name.slice(5));
+	                                    dataAttr(elem, name, data[name]);
+	                                }
+	                            }
+	                        }
+	                        dataPriv.set(elem, "hasDataAttrs", true);
+	                    }
+	                }
+
+	                return data;
+	            }
+
+	            // Sets multiple values
+	            if (typeof key === "object") {
+	                return this.each(function () {
+	                    dataUser.set(this, key);
+	                });
+	            }
+
+	            return access(this, function (value) {
+	                var data;
+
+	                // The calling jQuery object (element matches) is not empty
+	                // (and therefore has an element appears at this[ 0 ]) and the
+	                // `value` parameter was not undefined. An empty jQuery object
+	                // will result in `undefined` for elem = this[ 0 ] which will
+	                // throw an exception if an attempt to read a data cache is made.
+	                if (elem && value === undefined) {
+
+	                    // Attempt to get data from the cache
+	                    // The key will always be camelCased in Data
+	                    data = dataUser.get(elem, key);
+	                    if (data !== undefined) {
+	                        return data;
+	                    }
+
+	                    // Attempt to "discover" the data in
+	                    // HTML5 custom data-* attrs
+	                    data = dataAttr(elem, key);
+	                    if (data !== undefined) {
+	                        return data;
+	                    }
+
+	                    // We tried really hard, but the data doesn't exist.
+	                    return;
+	                }
+
+	                // Set the data...
+	                this.each(function () {
+
+	                    // We always store the camelCased key
+	                    dataUser.set(this, key, value);
+	                });
+	            }, null, value, arguments.length > 1, null, true);
+	        },
+
+	        removeData: function (key) {
+	            return this.each(function () {
+	                dataUser.remove(this, key);
+	            });
+	        }
+	    });
+
+
+	    jQuery.extend({
+	        queue: function (elem, type, data) {
+	            var queue;
+
+	            if (elem) {
+	                type = ( type || "fx" ) + "queue";
+	                queue = dataPriv.get(elem, type);
+
+	                // Speed up dequeue by getting out quickly if this is just a lookup
+	                if (data) {
+	                    if (!queue || jQuery.isArray(data)) {
+	                        queue = dataPriv.access(elem, type, jQuery.makeArray(data));
+	                    } else {
+	                        queue.push(data);
+	                    }
+	                }
+	                return queue || [];
+	            }
+	        },
+
+	        dequeue: function (elem, type) {
+	            type = type || "fx";
+
+	            var queue = jQuery.queue(elem, type),
+	                startLength = queue.length,
+	                fn = queue.shift(),
+	                hooks = jQuery._queueHooks(elem, type),
+	                next = function () {
+	                    jQuery.dequeue(elem, type);
+	                };
+
+	            // If the fx queue is dequeued, always remove the progress sentinel
+	            if (fn === "inprogress") {
+	                fn = queue.shift();
+	                startLength--;
+	            }
+
+	            if (fn) {
+
+	                // Add a progress sentinel to prevent the fx queue from being
+	                // automatically dequeued
+	                if (type === "fx") {
+	                    queue.unshift("inprogress");
+	                }
+
+	                // Clear up the last queue stop function
+	                delete hooks.stop;
+	                fn.call(elem, next, hooks);
+	            }
+
+	            if (!startLength && hooks) {
+	                hooks.empty.fire();
+	            }
+	        },
+
+	        // Not public - generate a queueHooks object, or return the current one
+	        _queueHooks: function (elem, type) {
+	            var key = type + "queueHooks";
+	            return dataPriv.get(elem, key) || dataPriv.access(elem, key, {
+	                empty: jQuery.Callbacks("once memory").add(function () {
+	                    dataPriv.remove(elem, [type + "queue", key]);
+	                })
+	            });
+	        }
+	    });
+
+	    jQuery.fn.extend({
+	        queue: function (type, data) {
+	            var setter = 2;
+
+	            if (typeof type !== "string") {
+	                data = type;
+	                type = "fx";
+	                setter--;
+	            }
+
+	            if (arguments.length < setter) {
+	                return jQuery.queue(this[0], type);
+	            }
+
+	            return data === undefined ?
+	                this :
+	                this.each(function () {
+	                    var queue = jQuery.queue(this, type, data);
+
+	                    // Ensure a hooks for this queue
+	                    jQuery._queueHooks(this, type);
+
+	                    if (type === "fx" && queue[0] !== "inprogress") {
+	                        jQuery.dequeue(this, type);
+	                    }
+	                });
+	        },
+	        dequeue: function (type) {
+	            return this.each(function () {
+	                jQuery.dequeue(this, type);
+	            });
+	        },
+	        clearQueue: function (type) {
+	            return this.queue(type || "fx", []);
+	        },
+
+	        // Get a promise resolved when queues of a certain type
+	        // are emptied (fx is the type by default)
+	        promise: function (type, obj) {
+	            var tmp,
+	                count = 1,
+	                defer = jQuery.Deferred(),
+	                elements = this,
+	                i = this.length,
+	                resolve = function () {
+	                    if (!( --count )) {
+	                        defer.resolveWith(elements, [elements]);
+	                    }
+	                };
+
+	            if (typeof type !== "string") {
+	                obj = type;
+	                type = undefined;
+	            }
+	            type = type || "fx";
+
+	            while (i--) {
+	                tmp = dataPriv.get(elements[i], type + "queueHooks");
+	                if (tmp && tmp.empty) {
+	                    count++;
+	                    tmp.empty.add(resolve);
+	                }
+	            }
+	            resolve();
+	            return defer.promise(obj);
+	        }
+	    });
+	    var pnum = ( /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/ ).source;
+
+	    var rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
+
+
+	    var cssExpand = ["Top", "Right", "Bottom", "Left"];
+
+	    var isHiddenWithinTree = function (elem, el) {
+
+	        // isHiddenWithinTree might be called from jQuery#filter function;
+	        // in that case, element will be second argument
+	        elem = el || elem;
+
+	        // Inline style trumps all
+	        return elem.style.display === "none" ||
+	        elem.style.display === "" &&
+
+	            // Otherwise, check computed style
+	            // Support: Firefox <=43 - 45
+	            // Disconnected elements can have computed display: none, so first confirm that elem is
+	            // in the document.
+	        jQuery.contains(elem.ownerDocument, elem) &&
+
+	        jQuery.css(elem, "display") === "none";
+	    };
+
+	    var swap = function (elem, options, callback, args) {
+	        var ret, name,
+	            old = {};
+
+	        // Remember the old values, and insert the new ones
+	        for (name in options) {
+	            old[name] = elem.style[name];
+	            elem.style[name] = options[name];
+	        }
+
+	        ret = callback.apply(elem, args || []);
+
+	        // Revert the old values
+	        for (name in options) {
+	            elem.style[name] = old[name];
+	        }
+
+	        return ret;
+	    };
+
+
+	    function adjustCSS(elem, prop, valueParts, tween) {
+	        var adjusted,
+	            scale = 1,
+	            maxIterations = 20,
+	            currentValue = tween ?
+	                function () {
+	                    return tween.cur();
+	                } :
+	                function () {
+	                    return jQuery.css(elem, prop, "");
+	                },
+	            initial = currentValue(),
+	            unit = valueParts && valueParts[3] || ( jQuery.cssNumber[prop] ? "" : "px" ),
+
+	        // Starting value computation is required for potential unit mismatches
+	            initialInUnit = ( jQuery.cssNumber[prop] || unit !== "px" && +initial ) &&
+	                rcssNum.exec(jQuery.css(elem, prop));
+
+	        if (initialInUnit && initialInUnit[3] !== unit) {
+
+	            // Trust units reported by jQuery.css
+	            unit = unit || initialInUnit[3];
+
+	            // Make sure we update the tween properties later on
+	            valueParts = valueParts || [];
+
+	            // Iteratively approximate from a nonzero starting point
+	            initialInUnit = +initial || 1;
+
+	            do {
+
+	                // If previous iteration zeroed out, double until we get *something*.
+	                // Use string for doubling so we don't accidentally see scale as unchanged below
+	                scale = scale || ".5";
+
+	                // Adjust and apply
+	                initialInUnit = initialInUnit / scale;
+	                jQuery.style(elem, prop, initialInUnit + unit);
+
+	                // Update scale, tolerating zero or NaN from tween.cur()
+	                // Break the loop if scale is unchanged or perfect, or if we've just had enough.
+	            } while (
+	            scale !== ( scale = currentValue() / initial ) && scale !== 1 && --maxIterations
+	                );
+	        }
+
+	        if (valueParts) {
+	            initialInUnit = +initialInUnit || +initial || 0;
+
+	            // Apply relative offset (+=/-=) if specified
+	            adjusted = valueParts[1] ?
+	            initialInUnit + ( valueParts[1] + 1 ) * valueParts[2] :
+	                +valueParts[2];
+	            if (tween) {
+	                tween.unit = unit;
+	                tween.start = initialInUnit;
+	                tween.end = adjusted;
+	            }
+	        }
+	        return adjusted;
+	    }
+
+
+	    var defaultDisplayMap = {};
+
+	    function getDefaultDisplay(elem) {
+	        var temp,
+	            doc = elem.ownerDocument,
+	            nodeName = elem.nodeName,
+	            display = defaultDisplayMap[nodeName];
+
+	        if (display) {
+	            return display;
+	        }
+
+	        temp = doc.body.appendChild(doc.createElement(nodeName)),
+	            display = jQuery.css(temp, "display");
+
+	        temp.parentNode.removeChild(temp);
+
+	        if (display === "none") {
+	            display = "block";
+	        }
+	        defaultDisplayMap[nodeName] = display;
+
+	        return display;
+	    }
+
+	    function showHide(elements, show) {
+	        var display, elem,
+	            values = [],
+	            index = 0,
+	            length = elements.length;
+
+	        // Determine new display value for elements that need to change
+	        for (; index < length; index++) {
+	            elem = elements[index];
+	            if (!elem.style) {
+	                continue;
+	            }
+
+	            display = elem.style.display;
+	            if (show) {
+
+	                // Since we force visibility upon cascade-hidden elements, an immediate (and slow)
+	                // check is required in this first loop unless we have a nonempty display value (either
+	                // inline or about-to-be-restored)
+	                if (display === "none") {
+	                    values[index] = dataPriv.get(elem, "display") || null;
+	                    if (!values[index]) {
+	                        elem.style.display = "";
+	                    }
+	                }
+	                if (elem.style.display === "" && isHiddenWithinTree(elem)) {
+	                    values[index] = getDefaultDisplay(elem);
+	                }
+	            } else {
+	                if (display !== "none") {
+	                    values[index] = "none";
+
+	                    // Remember what we're overwriting
+	                    dataPriv.set(elem, "display", display);
+	                }
+	            }
+	        }
+
+	        // Set the display of the elements in a second loop to avoid constant reflow
+	        for (index = 0; index < length; index++) {
+	            if (values[index] != null) {
+	                elements[index].style.display = values[index];
+	            }
+	        }
+
+	        return elements;
+	    }
+
+	    jQuery.fn.extend({
+	        show: function () {
+	            return showHide(this, true);
+	        },
+	        hide: function () {
+	            return showHide(this);
+	        },
+	        toggle: function (state) {
+	            if (typeof state === "boolean") {
+	                return state ? this.show() : this.hide();
+	            }
+
+	            return this.each(function () {
+	                if (isHiddenWithinTree(this)) {
+	                    jQuery(this).show();
+	                } else {
+	                    jQuery(this).hide();
+	                }
+	            });
+	        }
+	    });
+	    var rcheckableType = ( /^(?:checkbox|radio)$/i );
+
+	    var rtagName = ( /<([a-z][^\/\0>\x20\t\r\n\f]+)/i );
+
+	    var rscriptType = ( /^$|\/(?:java|ecma)script/i );
+
+
+	// We have to close these tags to support XHTML (#13200)
+	    var wrapMap = {
+
+	        // Support: IE <=9 only
+	        option: [1, "<select multiple='multiple'>", "</select>"],
+
+	        // XHTML parsers do not magically insert elements in the
+	        // same way that tag soup parsers do. So we cannot shorten
+	        // this by omitting <tbody> or other required elements.
+	        thead: [1, "<table>", "</table>"],
+	        col: [2, "<table><colgroup>", "</colgroup></table>"],
+	        tr: [2, "<table><tbody>", "</tbody></table>"],
+	        td: [3, "<table><tbody><tr>", "</tr></tbody></table>"],
+
+	        _default: [0, "", ""]
+	    };
+
+	// Support: IE <=9 only
+	    wrapMap.optgroup = wrapMap.option;
+
+	    wrapMap.tbody = wrapMap.tfoot = wrapMap.colgroup = wrapMap.caption = wrapMap.thead;
+	    wrapMap.th = wrapMap.td;
+
+
+	    function getAll(context, tag) {
+
+	        // Support: IE <=9 - 11 only
+	        // Use typeof to avoid zero-argument method invocation on host objects (#15151)
+	        var ret = typeof context.getElementsByTagName !== "undefined" ?
+	            context.getElementsByTagName(tag || "*") :
+	            typeof context.querySelectorAll !== "undefined" ?
+	                context.querySelectorAll(tag || "*") :
+	                [];
+
+	        return tag === undefined || tag && jQuery.nodeName(context, tag) ?
+	            jQuery.merge([context], ret) :
+	            ret;
+	    }
+
+
+	// Mark scripts as having already been evaluated
+	    function setGlobalEval(elems, refElements) {
+	        var i = 0,
+	            l = elems.length;
+
+	        for (; i < l; i++) {
+	            dataPriv.set(
+	                elems[i],
+	                "globalEval",
+	                !refElements || dataPriv.get(refElements[i], "globalEval")
+	            );
+	        }
+	    }
+
+
+	    var rhtml = /<|&#?\w+;/;
+
+	    function buildFragment(elems, context, scripts, selection, ignored) {
+	        var elem, tmp, tag, wrap, contains, j,
+	            fragment = context.createDocumentFragment(),
+	            nodes = [],
+	            i = 0,
+	            l = elems.length;
+
+	        for (; i < l; i++) {
+	            elem = elems[i];
+
+	            if (elem || elem === 0) {
+
+	                // Add nodes directly
+	                if (jQuery.type(elem) === "object") {
+
+	                    // Support: Android <=4.0 only, PhantomJS 1 only
+	                    // push.apply(_, arraylike) throws on ancient WebKit
+	                    jQuery.merge(nodes, elem.nodeType ? [elem] : elem);
+
+	                    // Convert non-html into a text node
+	                } else if (!rhtml.test(elem)) {
+	                    nodes.push(context.createTextNode(elem));
+
+	                    // Convert html into DOM nodes
+	                } else {
+	                    tmp = tmp || fragment.appendChild(context.createElement("div"));
+
+	                    // Deserialize a standard representation
+	                    tag = ( rtagName.exec(elem) || ["", ""] )[1].toLowerCase();
+	                    wrap = wrapMap[tag] || wrapMap._default;
+	                    tmp.innerHTML = wrap[1] + jQuery.htmlPrefilter(elem) + wrap[2];
+
+	                    // Descend through wrappers to the right content
+	                    j = wrap[0];
+	                    while (j--) {
+	                        tmp = tmp.lastChild;
+	                    }
+
+	                    // Support: Android <=4.0 only, PhantomJS 1 only
+	                    // push.apply(_, arraylike) throws on ancient WebKit
+	                    jQuery.merge(nodes, tmp.childNodes);
+
+	                    // Remember the top-level container
+	                    tmp = fragment.firstChild;
+
+	                    // Ensure the created nodes are orphaned (#12392)
+	                    tmp.textContent = "";
+	                }
+	            }
+	        }
+
+	        // Remove wrapper from fragment
+	        fragment.textContent = "";
+
+	        i = 0;
+	        while (( elem = nodes[i++] )) {
+
+	            // Skip elements already in the context collection (trac-4087)
+	            if (selection && jQuery.inArray(elem, selection) > -1) {
+	                if (ignored) {
+	                    ignored.push(elem);
+	                }
+	                continue;
+	            }
+
+	            contains = jQuery.contains(elem.ownerDocument, elem);
+
+	            // Append to fragment
+	            tmp = getAll(fragment.appendChild(elem), "script");
+
+	            // Preserve script evaluation history
+	            if (contains) {
+	                setGlobalEval(tmp);
+	            }
+
+	            // Capture executables
+	            if (scripts) {
+	                j = 0;
+	                while (( elem = tmp[j++] )) {
+	                    if (rscriptType.test(elem.type || "")) {
+	                        scripts.push(elem);
+	                    }
+	                }
+	            }
+	        }
+
+	        return fragment;
+	    }
+
+
+	    (function () {
+	        var fragment = document.createDocumentFragment(),
+	            div = fragment.appendChild(document.createElement("div")),
+	            input = document.createElement("input");
+
+	        // Support: Android 4.0 - 4.3 only
+	        // Check state lost if the name is set (#11217)
+	        // Support: Windows Web Apps (WWA)
+	        // `name` and `type` must use .setAttribute for WWA (#14901)
+	        input.setAttribute("type", "radio");
+	        input.setAttribute("checked", "checked");
+	        input.setAttribute("name", "t");
+
+	        div.appendChild(input);
+
+	        // Support: Android <=4.1 only
+	        // Older WebKit doesn't clone checked state correctly in fragments
+	        support.checkClone = div.cloneNode(true).cloneNode(true).lastChild.checked;
+
+	        // Support: IE <=11 only
+	        // Make sure textarea (and checkbox) defaultValue is properly cloned
+	        div.innerHTML = "<textarea>x</textarea>";
+	        support.noCloneChecked = !!div.cloneNode(true).lastChild.defaultValue;
+	    })();
+	    var documentElement = document.documentElement;
+
+
+	    var
+	        rkeyEvent = /^key/,
+	        rmouseEvent = /^(?:mouse|pointer|contextmenu|drag|drop)|click/,
+	        rtypenamespace = /^([^.]*)(?:\.(.+)|)/;
+
+	    function returnTrue() {
+	        return true;
+	    }
+
+	    function returnFalse() {
+	        return false;
+	    }
+
+	// Support: IE <=9 only
+	// See #13393 for more info
+	    function safeActiveElement() {
+	        try {
+	            return document.activeElement;
+	        } catch (err) {
+	        }
+	    }
+
+	    function on(elem, types, selector, data, fn, one) {
+	        var origFn, type;
+
+	        // Types can be a map of types/handlers
+	        if (typeof types === "object") {
+
+	            // ( types-Object, selector, data )
+	            if (typeof selector !== "string") {
+
+	                // ( types-Object, data )
+	                data = data || selector;
+	                selector = undefined;
+	            }
+	            for (type in types) {
+	                on(elem, type, selector, data, types[type], one);
+	            }
+	            return elem;
+	        }
+
+	        if (data == null && fn == null) {
+
+	            // ( types, fn )
+	            fn = selector;
+	            data = selector = undefined;
+	        } else if (fn == null) {
+	            if (typeof selector === "string") {
+
+	                // ( types, selector, fn )
+	                fn = data;
+	                data = undefined;
+	            } else {
+
+	                // ( types, data, fn )
+	                fn = data;
+	                data = selector;
+	                selector = undefined;
+	            }
+	        }
+	        if (fn === false) {
+	            fn = returnFalse;
+	        } else if (!fn) {
+	            return elem;
+	        }
+
+	        if (one === 1) {
+	            origFn = fn;
+	            fn = function (event) {
+
+	                // Can use an empty set, since event contains the info
+	                jQuery().off(event);
+	                return origFn.apply(this, arguments);
+	            };
+
+	            // Use same guid so caller can remove using origFn
+	            fn.guid = origFn.guid || ( origFn.guid = jQuery.guid++ );
+	        }
+	        return elem.each(function () {
+	            jQuery.event.add(this, types, fn, data, selector);
+	        });
+	    }
+
+	    /*
+	     * Helper functions for managing events -- not part of the public interface.
+	     * Props to Dean Edwards' addEvent library for many of the ideas.
+	     */
+	    jQuery.event = {
+
+	        global: {},
+
+	        add: function (elem, types, handler, data, selector) {
+
+	            var handleObjIn, eventHandle, tmp,
+	                events, t, handleObj,
+	                special, handlers, type, namespaces, origType,
+	                elemData = dataPriv.get(elem);
+
+	            // Don't attach events to noData or text/comment nodes (but allow plain objects)
+	            if (!elemData) {
+	                return;
+	            }
+
+	            // Caller can pass in an object of custom data in lieu of the handler
+	            if (handler.handler) {
+	                handleObjIn = handler;
+	                handler = handleObjIn.handler;
+	                selector = handleObjIn.selector;
+	            }
+
+	            // Ensure that invalid selectors throw exceptions at attach time
+	            // Evaluate against documentElement in case elem is a non-element node (e.g., document)
+	            if (selector) {
+	                jQuery.find.matchesSelector(documentElement, selector);
+	            }
+
+	            // Make sure that the handler has a unique ID, used to find/remove it later
+	            if (!handler.guid) {
+	                handler.guid = jQuery.guid++;
+	            }
+
+	            // Init the element's event structure and main handler, if this is the first
+	            if (!( events = elemData.events )) {
+	                events = elemData.events = {};
+	            }
+	            if (!( eventHandle = elemData.handle )) {
+	                eventHandle = elemData.handle = function (e) {
+
+	                    // Discard the second event of a jQuery.event.trigger() and
+	                    // when an event is called after a page has unloaded
+	                    return typeof jQuery !== "undefined" && jQuery.event.triggered !== e.type ?
+	                        jQuery.event.dispatch.apply(elem, arguments) : undefined;
+	                };
+	            }
+
+	            // Handle multiple events separated by a space
+	            types = ( types || "" ).match(rnotwhite) || [""];
+	            t = types.length;
+	            while (t--) {
+	                tmp = rtypenamespace.exec(types[t]) || [];
+	                type = origType = tmp[1];
+	                namespaces = ( tmp[2] || "" ).split(".").sort();
+
+	                // There *must* be a type, no attaching namespace-only handlers
+	                if (!type) {
+	                    continue;
+	                }
+
+	                // If event changes its type, use the special event handlers for the changed type
+	                special = jQuery.event.special[type] || {};
+
+	                // If selector defined, determine special event api type, otherwise given type
+	                type = ( selector ? special.delegateType : special.bindType ) || type;
+
+	                // Update special based on newly reset type
+	                special = jQuery.event.special[type] || {};
+
+	                // handleObj is passed to all event handlers
+	                handleObj = jQuery.extend({
+	                    type: type,
+	                    origType: origType,
+	                    data: data,
+	                    handler: handler,
+	                    guid: handler.guid,
+	                    selector: selector,
+	                    needsContext: selector && jQuery.expr.match.needsContext.test(selector),
+	                    namespace: namespaces.join(".")
+	                }, handleObjIn);
+
+	                // Init the event handler queue if we're the first
+	                if (!( handlers = events[type] )) {
+	                    handlers = events[type] = [];
+	                    handlers.delegateCount = 0;
+
+	                    // Only use addEventListener if the special events handler returns false
+	                    if (!special.setup ||
+	                        special.setup.call(elem, data, namespaces, eventHandle) === false) {
+
+	                        if (elem.addEventListener) {
+	                            elem.addEventListener(type, eventHandle);
+	                        }
+	                    }
+	                }
+
+	                if (special.add) {
+	                    special.add.call(elem, handleObj);
+
+	                    if (!handleObj.handler.guid) {
+	                        handleObj.handler.guid = handler.guid;
+	                    }
+	                }
+
+	                // Add to the element's handler list, delegates in front
+	                if (selector) {
+	                    handlers.splice(handlers.delegateCount++, 0, handleObj);
+	                } else {
+	                    handlers.push(handleObj);
+	                }
+
+	                // Keep track of which events have ever been used, for event optimization
+	                jQuery.event.global[type] = true;
+	            }
+
+	        },
+
+	        // Detach an event or set of events from an element
+	        remove: function (elem, types, handler, selector, mappedTypes) {
+
+	            var j, origCount, tmp,
+	                events, t, handleObj,
+	                special, handlers, type, namespaces, origType,
+	                elemData = dataPriv.hasData(elem) && dataPriv.get(elem);
+
+	            if (!elemData || !( events = elemData.events )) {
+	                return;
+	            }
+
+	            // Once for each type.namespace in types; type may be omitted
+	            types = ( types || "" ).match(rnotwhite) || [""];
+	            t = types.length;
+	            while (t--) {
+	                tmp = rtypenamespace.exec(types[t]) || [];
+	                type = origType = tmp[1];
+	                namespaces = ( tmp[2] || "" ).split(".").sort();
+
+	                // Unbind all events (on this namespace, if provided) for the element
+	                if (!type) {
+	                    for (type in events) {
+	                        jQuery.event.remove(elem, type + types[t], handler, selector, true);
+	                    }
+	                    continue;
+	                }
+
+	                special = jQuery.event.special[type] || {};
+	                type = ( selector ? special.delegateType : special.bindType ) || type;
+	                handlers = events[type] || [];
+	                tmp = tmp[2] &&
+	                new RegExp("(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)");
+
+	                // Remove matching events
+	                origCount = j = handlers.length;
+	                while (j--) {
+	                    handleObj = handlers[j];
+
+	                    if (( mappedTypes || origType === handleObj.origType ) &&
+	                        ( !handler || handler.guid === handleObj.guid ) &&
+	                        ( !tmp || tmp.test(handleObj.namespace) ) &&
+	                        ( !selector || selector === handleObj.selector ||
+	                        selector === "**" && handleObj.selector )) {
+	                        handlers.splice(j, 1);
+
+	                        if (handleObj.selector) {
+	                            handlers.delegateCount--;
+	                        }
+	                        if (special.remove) {
+	                            special.remove.call(elem, handleObj);
+	                        }
+	                    }
+	                }
+
+	                // Remove generic event handler if we removed something and no more handlers exist
+	                // (avoids potential for endless recursion during removal of special event handlers)
+	                if (origCount && !handlers.length) {
+	                    if (!special.teardown ||
+	                        special.teardown.call(elem, namespaces, elemData.handle) === false) {
+
+	                        jQuery.removeEvent(elem, type, elemData.handle);
+	                    }
+
+	                    delete events[type];
+	                }
+	            }
+
+	            // Remove data and the expando if it's no longer used
+	            if (jQuery.isEmptyObject(events)) {
+	                dataPriv.remove(elem, "handle events");
+	            }
+	        },
+
+	        dispatch: function (nativeEvent) {
+
+	            // Make a writable jQuery.Event from the native event object
+	            var event = jQuery.event.fix(nativeEvent);
+
+	            var i, j, ret, matched, handleObj, handlerQueue,
+	                args = new Array(arguments.length),
+	                handlers = ( dataPriv.get(this, "events") || {} )[event.type] || [],
+	                special = jQuery.event.special[event.type] || {};
+
+	            // Use the fix-ed jQuery.Event rather than the (read-only) native event
+	            args[0] = event;
+
+	            for (i = 1; i < arguments.length; i++) {
+	                args[i] = arguments[i];
+	            }
+
+	            event.delegateTarget = this;
+
+	            // Call the preDispatch hook for the mapped type, and let it bail if desired
+	            if (special.preDispatch && special.preDispatch.call(this, event) === false) {
+	                return;
+	            }
+
+	            // Determine handlers
+	            handlerQueue = jQuery.event.handlers.call(this, event, handlers);
+
+	            // Run delegates first; they may want to stop propagation beneath us
+	            i = 0;
+	            while (( matched = handlerQueue[i++] ) && !event.isPropagationStopped()) {
+	                event.currentTarget = matched.elem;
+
+	                j = 0;
+	                while (( handleObj = matched.handlers[j++] ) && !event.isImmediatePropagationStopped()) {
+
+	                    // Triggered event must either 1) have no namespace, or 2) have namespace(s)
+	                    // a subset or equal to those in the bound event (both can have no namespace).
+	                    if (!event.rnamespace || event.rnamespace.test(handleObj.namespace)) {
+
+	                        event.handleObj = handleObj;
+	                        event.data = handleObj.data;
+
+	                        ret = ( ( jQuery.event.special[handleObj.origType] || {} ).handle ||
+	                        handleObj.handler ).apply(matched.elem, args);
+
+	                        if (ret !== undefined) {
+	                            if (( event.result = ret ) === false) {
+	                                event.preventDefault();
+	                                event.stopPropagation();
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+
+	            // Call the postDispatch hook for the mapped type
+	            if (special.postDispatch) {
+	                special.postDispatch.call(this, event);
+	            }
+
+	            return event.result;
+	        },
+
+	        handlers: function (event, handlers) {
+	            var i, matches, sel, handleObj,
+	                handlerQueue = [],
+	                delegateCount = handlers.delegateCount,
+	                cur = event.target;
+
+	            // Support: IE <=9
+	            // Find delegate handlers
+	            // Black-hole SVG <use> instance trees (#13180)
+	            //
+	            // Support: Firefox <=42
+	            // Avoid non-left-click in FF but don't block IE radio events (#3861, gh-2343)
+	            if (delegateCount && cur.nodeType &&
+	                ( event.type !== "click" || isNaN(event.button) || event.button < 1 )) {
+
+	                for (; cur !== this; cur = cur.parentNode || this) {
+
+	                    // Don't check non-elements (#13208)
+	                    // Don't process clicks on disabled elements (#6911, #8165, #11382, #11764)
+	                    if (cur.nodeType === 1 && ( cur.disabled !== true || event.type !== "click" )) {
+	                        matches = [];
+	                        for (i = 0; i < delegateCount; i++) {
+	                            handleObj = handlers[i];
+
+	                            // Don't conflict with Object.prototype properties (#13203)
+	                            sel = handleObj.selector + " ";
+
+	                            if (matches[sel] === undefined) {
+	                                matches[sel] = handleObj.needsContext ?
+	                                jQuery(sel, this).index(cur) > -1 :
+	                                    jQuery.find(sel, this, null, [cur]).length;
+	                            }
+	                            if (matches[sel]) {
+	                                matches.push(handleObj);
+	                            }
+	                        }
+	                        if (matches.length) {
+	                            handlerQueue.push({elem: cur, handlers: matches});
+	                        }
+	                    }
+	                }
+	            }
+
+	            // Add the remaining (directly-bound) handlers
+	            if (delegateCount < handlers.length) {
+	                handlerQueue.push({elem: this, handlers: handlers.slice(delegateCount)});
+	            }
+
+	            return handlerQueue;
+	        },
+
+	        addProp: function (name, hook) {
+	            Object.defineProperty(jQuery.Event.prototype, name, {
+	                enumerable: true,
+	                configurable: true,
+
+	                get: jQuery.isFunction(hook) ?
+	                    function () {
+	                        if (this.originalEvent) {
+	                            return hook(this.originalEvent);
+	                        }
+	                    } :
+	                    function () {
+	                        if (this.originalEvent) {
+	                            return this.originalEvent[name];
+	                        }
+	                    },
+
+	                set: function (value) {
+	                    Object.defineProperty(this, name, {
+	                        enumerable: true,
+	                        configurable: true,
+	                        writable: true,
+	                        value: value
+	                    });
+	                }
+	            });
+	        },
+
+	        fix: function (originalEvent) {
+	            return originalEvent[jQuery.expando] ?
+	                originalEvent :
+	                new jQuery.Event(originalEvent);
+	        },
+
+	        special: {
+	            load: {
+
+	                // Prevent triggered image.load events from bubbling to window.load
+	                noBubble: true
+	            },
+	            focus: {
+
+	                // Fire native event if possible so blur/focus sequence is correct
+	                trigger: function () {
+	                    if (this !== safeActiveElement() && this.focus) {
+	                        this.focus();
+	                        return false;
+	                    }
+	                },
+	                delegateType: "focusin"
+	            },
+	            blur: {
+	                trigger: function () {
+	                    if (this === safeActiveElement() && this.blur) {
+	                        this.blur();
+	                        return false;
+	                    }
+	                },
+	                delegateType: "focusout"
+	            },
+	            click: {
+
+	                // For checkbox, fire native event so checked state will be right
+	                trigger: function () {
+	                    if (this.type === "checkbox" && this.click && jQuery.nodeName(this, "input")) {
+	                        this.click();
+	                        return false;
+	                    }
+	                },
+
+	                // For cross-browser consistency, don't fire native .click() on links
+	                _default: function (event) {
+	                    return jQuery.nodeName(event.target, "a");
+	                }
+	            },
+
+	            beforeunload: {
+	                postDispatch: function (event) {
+
+	                    // Support: Firefox 20+
+	                    // Firefox doesn't alert if the returnValue field is not set.
+	                    if (event.result !== undefined && event.originalEvent) {
+	                        event.originalEvent.returnValue = event.result;
+	                    }
+	                }
+	            }
+	        }
+	    };
+
+	    jQuery.removeEvent = function (elem, type, handle) {
+
+	        // This "if" is needed for plain objects
+	        if (elem.removeEventListener) {
+	            elem.removeEventListener(type, handle);
+	        }
+	    };
+
+	    jQuery.Event = function (src, props) {
+
+	        // Allow instantiation without the 'new' keyword
+	        if (!( this instanceof jQuery.Event )) {
+	            return new jQuery.Event(src, props);
+	        }
+
+	        // Event object
+	        if (src && src.type) {
+	            this.originalEvent = src;
+	            this.type = src.type;
+
+	            // Events bubbling up the document may have been marked as prevented
+	            // by a handler lower down the tree; reflect the correct value.
+	            this.isDefaultPrevented = src.defaultPrevented ||
+	            src.defaultPrevented === undefined &&
+
+	                // Support: Android <=2.3 only
+	            src.returnValue === false ?
+	                returnTrue :
+	                returnFalse;
+
+	            // Create target properties
+	            // Support: Safari <=6 - 7 only
+	            // Target should not be a text node (#504, #13143)
+	            this.target = ( src.target && src.target.nodeType === 3 ) ?
+	                src.target.parentNode :
+	                src.target;
+
+	            this.currentTarget = src.currentTarget;
+	            this.relatedTarget = src.relatedTarget;
+
+	            // Event type
+	        } else {
+	            this.type = src;
+	        }
+
+	        // Put explicitly provided properties onto the event object
+	        if (props) {
+	            jQuery.extend(this, props);
+	        }
+
+	        // Create a timestamp if incoming event doesn't have one
+	        this.timeStamp = src && src.timeStamp || jQuery.now();
+
+	        // Mark it as fixed
+	        this[jQuery.expando] = true;
+	    };
+
+	// jQuery.Event is based on DOM3 Events as specified by the ECMAScript Language Binding
+	// https://www.w3.org/TR/2003/WD-DOM-Level-3-Events-20030331/ecma-script-binding.html
+	    jQuery.Event.prototype = {
+	        constructor: jQuery.Event,
+	        isDefaultPrevented: returnFalse,
+	        isPropagationStopped: returnFalse,
+	        isImmediatePropagationStopped: returnFalse,
+	        isSimulated: false,
+
+	        preventDefault: function () {
+	            var e = this.originalEvent;
+
+	            this.isDefaultPrevented = returnTrue;
+
+	            if (e && !this.isSimulated) {
+	                e.preventDefault();
+	            }
+	        },
+	        stopPropagation: function () {
+	            var e = this.originalEvent;
+
+	            this.isPropagationStopped = returnTrue;
+
+	            if (e && !this.isSimulated) {
+	                e.stopPropagation();
+	            }
+	        },
+	        stopImmediatePropagation: function () {
+	            var e = this.originalEvent;
+
+	            this.isImmediatePropagationStopped = returnTrue;
+
+	            if (e && !this.isSimulated) {
+	                e.stopImmediatePropagation();
+	            }
+
+	            this.stopPropagation();
+	        }
+	    };
+
+	// Includes all common event props including KeyEvent and MouseEvent specific props
+	    jQuery.each({
+	        altKey: true,
+	        bubbles: true,
+	        cancelable: true,
+	        changedTouches: true,
+	        ctrlKey: true,
+	        detail: true,
+	        eventPhase: true,
+	        metaKey: true,
+	        pageX: true,
+	        pageY: true,
+	        shiftKey: true,
+	        view: true,
+	        "char": true,
+	        charCode: true,
+	        key: true,
+	        keyCode: true,
+	        button: true,
+	        buttons: true,
+	        clientX: true,
+	        clientY: true,
+	        offsetX: true,
+	        offsetY: true,
+	        pointerId: true,
+	        pointerType: true,
+	        screenX: true,
+	        screenY: true,
+	        targetTouches: true,
+	        toElement: true,
+	        touches: true,
+
+	        which: function (event) {
+	            var button = event.button;
+
+	            // Add which for key events
+	            if (event.which == null && rkeyEvent.test(event.type)) {
+	                return event.charCode != null ? event.charCode : event.keyCode;
+	            }
+
+	            // Add which for click: 1 === left; 2 === middle; 3 === right
+	            if (!event.which && button !== undefined && rmouseEvent.test(event.type)) {
+	                return ( button & 1 ? 1 : ( button & 2 ? 3 : ( button & 4 ? 2 : 0 ) ) );
+	            }
+
+	            return event.which;
+	        }
+	    }, jQuery.event.addProp);
+
+	// Create mouseenter/leave events using mouseover/out and event-time checks
+	// so that event delegation works in jQuery.
+	// Do the same for pointerenter/pointerleave and pointerover/pointerout
+	//
+	// Support: Safari 7 only
+	// Safari sends mouseenter too often; see:
+	// https://bugs.chromium.org/p/chromium/issues/detail?id=470258
+	// for the description of the bug (it existed in older Chrome versions as well).
+	    jQuery.each({
+	        mouseenter: "mouseover",
+	        mouseleave: "mouseout",
+	        pointerenter: "pointerover",
+	        pointerleave: "pointerout"
+	    }, function (orig, fix) {
+	        jQuery.event.special[orig] = {
+	            delegateType: fix,
+	            bindType: fix,
+
+	            handle: function (event) {
+	                var ret,
+	                    target = this,
+	                    related = event.relatedTarget,
+	                    handleObj = event.handleObj;
+
+	                // For mouseenter/leave call the handler if related is outside the target.
+	                // NB: No relatedTarget if the mouse left/entered the browser window
+	                if (!related || ( related !== target && !jQuery.contains(target, related) )) {
+	                    event.type = handleObj.origType;
+	                    ret = handleObj.handler.apply(this, arguments);
+	                    event.type = fix;
+	                }
+	                return ret;
+	            }
+	        };
+	    });
+
+	    jQuery.fn.extend({
+
+	        on: function (types, selector, data, fn) {
+	            return on(this, types, selector, data, fn);
+	        },
+	        one: function (types, selector, data, fn) {
+	            return on(this, types, selector, data, fn, 1);
+	        },
+	        off: function (types, selector, fn) {
+	            var handleObj, type;
+	            if (types && types.preventDefault && types.handleObj) {
+
+	                // ( event )  dispatched jQuery.Event
+	                handleObj = types.handleObj;
+	                jQuery(types.delegateTarget).off(
+	                    handleObj.namespace ?
+	                    handleObj.origType + "." + handleObj.namespace :
+	                        handleObj.origType,
+	                    handleObj.selector,
+	                    handleObj.handler
+	                );
+	                return this;
+	            }
+	            if (typeof types === "object") {
+
+	                // ( types-object [, selector] )
+	                for (type in types) {
+	                    this.off(type, selector, types[type]);
+	                }
+	                return this;
+	            }
+	            if (selector === false || typeof selector === "function") {
+
+	                // ( types [, fn] )
+	                fn = selector;
+	                selector = undefined;
+	            }
+	            if (fn === false) {
+	                fn = returnFalse;
+	            }
+	            return this.each(function () {
+	                jQuery.event.remove(this, types, fn, selector);
+	            });
+	        }
+	    });
+
+
+	    var
+
+	    /* eslint-disable max-len */
+
+	    // See https://github.com/eslint/eslint/issues/3229
+	        rxhtmlTag = /<(?!area|br|col|embed|hr|img|input|link|meta|param)(([a-z][^\/\0>\x20\t\r\n\f]*)[^>]*)\/>/gi,
+
+	    /* eslint-enable */
+
+	    // Support: IE <=10 - 11, Edge 12 - 13
+	    // In IE/Edge using regex groups here causes severe slowdowns.
+	    // See https://connect.microsoft.com/IE/feedback/details/1736512/
+	        rnoInnerhtml = /<script|<style|<link/i,
+
+	    // checked="checked" or checked
+	        rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
+	        rscriptTypeMasked = /^true\/(.*)/,
+	        rcleanScript = /^\s*<!(?:\[CDATA\[|--)|(?:\]\]|--)>\s*$/g;
+
+	    function manipulationTarget(elem, content) {
+	        if (jQuery.nodeName(elem, "table") &&
+	            jQuery.nodeName(content.nodeType !== 11 ? content : content.firstChild, "tr")) {
+
+	            return elem.getElementsByTagName("tbody")[0] || elem;
+	        }
+
+	        return elem;
+	    }
+
+	// Replace/restore the type attribute of script elements for safe DOM manipulation
+	    function disableScript(elem) {
+	        elem.type = ( elem.getAttribute("type") !== null ) + "/" + elem.type;
+	        return elem;
+	    }
+
+	    function restoreScript(elem) {
+	        var match = rscriptTypeMasked.exec(elem.type);
+
+	        if (match) {
+	            elem.type = match[1];
+	        } else {
+	            elem.removeAttribute("type");
+	        }
+
+	        return elem;
+	    }
+
+	    function cloneCopyEvent(src, dest) {
+	        var i, l, type, pdataOld, pdataCur, udataOld, udataCur, events;
+
+	        if (dest.nodeType !== 1) {
+	            return;
+	        }
+
+	        // 1. Copy private data: events, handlers, etc.
+	        if (dataPriv.hasData(src)) {
+	            pdataOld = dataPriv.access(src);
+	            pdataCur = dataPriv.set(dest, pdataOld);
+	            events = pdataOld.events;
+
+	            if (events) {
+	                delete pdataCur.handle;
+	                pdataCur.events = {};
+
+	                for (type in events) {
+	                    for (i = 0, l = events[type].length; i < l; i++) {
+	                        jQuery.event.add(dest, type, events[type][i]);
+	                    }
+	                }
+	            }
+	        }
+
+	        // 2. Copy user data
+	        if (dataUser.hasData(src)) {
+	            udataOld = dataUser.access(src);
+	            udataCur = jQuery.extend({}, udataOld);
+
+	            dataUser.set(dest, udataCur);
+	        }
+	    }
+
+	// Fix IE bugs, see support tests
+	    function fixInput(src, dest) {
+	        var nodeName = dest.nodeName.toLowerCase();
+
+	        // Fails to persist the checked state of a cloned checkbox or radio button.
+	        if (nodeName === "input" && rcheckableType.test(src.type)) {
+	            dest.checked = src.checked;
+
+	            // Fails to return the selected option to the default selected state when cloning options
+	        } else if (nodeName === "input" || nodeName === "textarea") {
+	            dest.defaultValue = src.defaultValue;
+	        }
+	    }
+
+	    function domManip(collection, args, callback, ignored) {
+
+	        // Flatten any nested arrays
+	        args = concat.apply([], args);
+
+	        var fragment, first, scripts, hasScripts, node, doc,
+	            i = 0,
+	            l = collection.length,
+	            iNoClone = l - 1,
+	            value = args[0],
+	            isFunction = jQuery.isFunction(value);
+
+	        // We can't cloneNode fragments that contain checked, in WebKit
+	        if (isFunction ||
+	            ( l > 1 && typeof value === "string" && !support.checkClone && rchecked.test(value) )) {
+	            return collection.each(function (index) {
+	                var self = collection.eq(index);
+	                if (isFunction) {
+	                    args[0] = value.call(this, index, self.html());
+	                }
+	                domManip(self, args, callback, ignored);
+	            });
+	        }
+
+	        if (l) {
+	            fragment = buildFragment(args, collection[0].ownerDocument, false, collection, ignored);
+	            first = fragment.firstChild;
+
+	            if (fragment.childNodes.length === 1) {
+	                fragment = first;
+	            }
+
+	            // Require either new content or an interest in ignored elements to invoke the callback
+	            if (first || ignored) {
+	                scripts = jQuery.map(getAll(fragment, "script"), disableScript);
+	                hasScripts = scripts.length;
+
+	                // Use the original fragment for the last item
+	                // instead of the first because it can end up
+	                // being emptied incorrectly in certain situations (#8070).
+	                for (; i < l; i++) {
+	                    node = fragment;
+
+	                    if (i !== iNoClone) {
+	                        node = jQuery.clone(node, true, true);
+
+	                        // Keep references to cloned scripts for later restoration
+	                        if (hasScripts) {
+
+	                            // Support: Android <=4.0 only, PhantomJS 1 only
+	                            // push.apply(_, arraylike) throws on ancient WebKit
+	                            jQuery.merge(scripts, getAll(node, "script"));
+	                        }
+	                    }
+
+	                    callback.call(collection[i], node, i);
+	                }
+
+	                if (hasScripts) {
+	                    doc = scripts[scripts.length - 1].ownerDocument;
+
+	                    // Reenable scripts
+	                    jQuery.map(scripts, restoreScript);
+
+	                    // Evaluate executable scripts on first document insertion
+	                    for (i = 0; i < hasScripts; i++) {
+	                        node = scripts[i];
+	                        if (rscriptType.test(node.type || "") && !dataPriv.access(node, "globalEval") &&
+	                            jQuery.contains(doc, node)) {
+
+	                            if (node.src) {
+
+	                                // Optional AJAX dependency, but won't run scripts if not present
+	                                if (jQuery._evalUrl) {
+	                                    jQuery._evalUrl(node.src);
+	                                }
+	                            } else {
+	                                DOMEval(node.textContent.replace(rcleanScript, ""), doc);
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+
+	        return collection;
+	    }
+
+	    function remove(elem, selector, keepData) {
+	        var node,
+	            nodes = selector ? jQuery.filter(selector, elem) : elem,
+	            i = 0;
+
+	        for (; ( node = nodes[i] ) != null; i++) {
+	            if (!keepData && node.nodeType === 1) {
+	                jQuery.cleanData(getAll(node));
+	            }
+
+	            if (node.parentNode) {
+	                if (keepData && jQuery.contains(node.ownerDocument, node)) {
+	                    setGlobalEval(getAll(node, "script"));
+	                }
+	                node.parentNode.removeChild(node);
+	            }
+	        }
+
+	        return elem;
+	    }
+
+	    jQuery.extend({
+	        htmlPrefilter: function (html) {
+	            return html.replace(rxhtmlTag, "<$1></$2>");
+	        },
+
+	        clone: function (elem, dataAndEvents, deepDataAndEvents) {
+	            var i, l, srcElements, destElements,
+	                clone = elem.cloneNode(true),
+	                inPage = jQuery.contains(elem.ownerDocument, elem);
+
+	            // Fix IE cloning issues
+	            if (!support.noCloneChecked && ( elem.nodeType === 1 || elem.nodeType === 11 ) && !jQuery.isXMLDoc(elem)) {
+
+	                // We eschew Sizzle here for performance reasons: https://jsperf.com/getall-vs-sizzle/2
+	                destElements = getAll(clone);
+	                srcElements = getAll(elem);
+
+	                for (i = 0, l = srcElements.length; i < l; i++) {
+	                    fixInput(srcElements[i], destElements[i]);
+	                }
+	            }
+
+	            // Copy the events from the original to the clone
+	            if (dataAndEvents) {
+	                if (deepDataAndEvents) {
+	                    srcElements = srcElements || getAll(elem);
+	                    destElements = destElements || getAll(clone);
+
+	                    for (i = 0, l = srcElements.length; i < l; i++) {
+	                        cloneCopyEvent(srcElements[i], destElements[i]);
+	                    }
+	                } else {
+	                    cloneCopyEvent(elem, clone);
+	                }
+	            }
+
+	            // Preserve script evaluation history
+	            destElements = getAll(clone, "script");
+	            if (destElements.length > 0) {
+	                setGlobalEval(destElements, !inPage && getAll(elem, "script"));
+	            }
+
+	            // Return the cloned set
+	            return clone;
+	        },
+
+	        cleanData: function (elems) {
+	            var data, elem, type,
+	                special = jQuery.event.special,
+	                i = 0;
+
+	            for (; ( elem = elems[i] ) !== undefined; i++) {
+	                if (acceptData(elem)) {
+	                    if (( data = elem[dataPriv.expando] )) {
+	                        if (data.events) {
+	                            for (type in data.events) {
+	                                if (special[type]) {
+	                                    jQuery.event.remove(elem, type);
+
+	                                    // This is a shortcut to avoid jQuery.event.remove's overhead
+	                                } else {
+	                                    jQuery.removeEvent(elem, type, data.handle);
+	                                }
+	                            }
+	                        }
+
+	                        // Support: Chrome <=35 - 45+
+	                        // Assign undefined instead of using delete, see Data#remove
+	                        elem[dataPriv.expando] = undefined;
+	                    }
+	                    if (elem[dataUser.expando]) {
+
+	                        // Support: Chrome <=35 - 45+
+	                        // Assign undefined instead of using delete, see Data#remove
+	                        elem[dataUser.expando] = undefined;
+	                    }
+	                }
+	            }
+	        }
+	    });
+
+	    jQuery.fn.extend({
+	        detach: function (selector) {
+	            return remove(this, selector, true);
+	        },
+
+	        remove: function (selector) {
+	            return remove(this, selector);
+	        },
+
+	        text: function (value) {
+	            return access(this, function (value) {
+	                return value === undefined ?
+	                    jQuery.text(this) :
+	                    this.empty().each(function () {
+	                        if (this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9) {
+	                            this.textContent = value;
+	                        }
+	                    });
+	            }, null, value, arguments.length);
+	        },
+
+	        append: function () {
+	            return domManip(this, arguments, function (elem) {
+	                if (this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9) {
+	                    var target = manipulationTarget(this, elem);
+	                    target.appendChild(elem);
+	                }
+	            });
+	        },
+
+	        prepend: function () {
+	            return domManip(this, arguments, function (elem) {
+	                if (this.nodeType === 1 || this.nodeType === 11 || this.nodeType === 9) {
+	                    var target = manipulationTarget(this, elem);
+	                    target.insertBefore(elem, target.firstChild);
+	                }
+	            });
+	        },
+
+	        before: function () {
+	            return domManip(this, arguments, function (elem) {
+	                if (this.parentNode) {
+	                    this.parentNode.insertBefore(elem, this);
+	                }
+	            });
+	        },
+
+	        after: function () {
+	            return domManip(this, arguments, function (elem) {
+	                if (this.parentNode) {
+	                    this.parentNode.insertBefore(elem, this.nextSibling);
+	                }
+	            });
+	        },
+
+	        empty: function () {
+	            var elem,
+	                i = 0;
+
+	            for (; ( elem = this[i] ) != null; i++) {
+	                if (elem.nodeType === 1) {
+
+	                    // Prevent memory leaks
+	                    jQuery.cleanData(getAll(elem, false));
+
+	                    // Remove any remaining nodes
+	                    elem.textContent = "";
+	                }
+	            }
+
+	            return this;
+	        },
+
+	        clone: function (dataAndEvents, deepDataAndEvents) {
+	            dataAndEvents = dataAndEvents == null ? false : dataAndEvents;
+	            deepDataAndEvents = deepDataAndEvents == null ? dataAndEvents : deepDataAndEvents;
+
+	            return this.map(function () {
+	                return jQuery.clone(this, dataAndEvents, deepDataAndEvents);
+	            });
+	        },
+
+	        html: function (value) {
+	            return access(this, function (value) {
+	                var elem = this[0] || {},
+	                    i = 0,
+	                    l = this.length;
+
+	                if (value === undefined && elem.nodeType === 1) {
+	                    return elem.innerHTML;
+	                }
+
+	                // See if we can take a shortcut and just use innerHTML
+	                if (typeof value === "string" && !rnoInnerhtml.test(value) && !wrapMap[( rtagName.exec(value) || ["", ""] )[1].toLowerCase()]) {
+
+	                    value = jQuery.htmlPrefilter(value);
+
+	                    try {
+	                        for (; i < l; i++) {
+	                            elem = this[i] || {};
+
+	                            // Remove element nodes and prevent memory leaks
+	                            if (elem.nodeType === 1) {
+	                                jQuery.cleanData(getAll(elem, false));
+	                                elem.innerHTML = value;
+	                            }
+	                        }
+
+	                        elem = 0;
+
+	                        // If using innerHTML throws an exception, use the fallback method
+	                    } catch (e) {
+	                    }
+	                }
+
+	                if (elem) {
+	                    this.empty().append(value);
+	                }
+	            }, null, value, arguments.length);
+	        },
+
+	        replaceWith: function () {
+	            var ignored = [];
+
+	            // Make the changes, replacing each non-ignored context element with the new content
+	            return domManip(this, arguments, function (elem) {
+	                var parent = this.parentNode;
+
+	                if (jQuery.inArray(this, ignored) < 0) {
+	                    jQuery.cleanData(getAll(this));
+	                    if (parent) {
+	                        parent.replaceChild(elem, this);
+	                    }
+	                }
+
+	                // Force callback invocation
+	            }, ignored);
+	        }
+	    });
+
+	    jQuery.each({
+	        appendTo: "append",
+	        prependTo: "prepend",
+	        insertBefore: "before",
+	        insertAfter: "after",
+	        replaceAll: "replaceWith"
+	    }, function (name, original) {
+	        jQuery.fn[name] = function (selector) {
+	            var elems,
+	                ret = [],
+	                insert = jQuery(selector),
+	                last = insert.length - 1,
+	                i = 0;
+
+	            for (; i <= last; i++) {
+	                elems = i === last ? this : this.clone(true);
+	                jQuery(insert[i])[original](elems);
+
+	                // Support: Android <=4.0 only, PhantomJS 1 only
+	                // .get() because push.apply(_, arraylike) throws on ancient WebKit
+	                push.apply(ret, elems.get());
+	            }
+
+	            return this.pushStack(ret);
+	        };
+	    });
+	    var rmargin = ( /^margin/ );
+
+	    var rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i");
+
+	    var getStyles = function (elem) {
+
+	        // Support: IE <=11 only, Firefox <=30 (#15098, #14150)
+	        // IE throws on elements created in popups
+	        // FF meanwhile throws on frame elements through "defaultView.getComputedStyle"
+	        var view = elem.ownerDocument.defaultView;
+
+	        if (!view || !view.opener) {
+	            view = window;
+	        }
+
+	        return view.getComputedStyle(elem);
+	    };
+
+
+	    (function () {
+
+	        // Executing both pixelPosition & boxSizingReliable tests require only one layout
+	        // so they're executed at the same time to save the second computation.
+	        function computeStyleTests() {
+
+	            // This is a singleton, we need to execute it only once
+	            if (!div) {
+	                return;
+	            }
+
+	            div.style.cssText =
+	                "box-sizing:border-box;" +
+	                "position:relative;display:block;" +
+	                "margin:auto;border:1px;padding:1px;" +
+	                "top:1%;width:50%";
+	            div.innerHTML = "";
+	            documentElement.appendChild(container);
+
+	            var divStyle = window.getComputedStyle(div);
+	            pixelPositionVal = divStyle.top !== "1%";
+
+	            // Support: Android 4.0 - 4.3 only, Firefox <=3 - 44
+	            reliableMarginLeftVal = divStyle.marginLeft === "2px";
+	            boxSizingReliableVal = divStyle.width === "4px";
+
+	            // Support: Android 4.0 - 4.3 only
+	            // Some styles come back with percentage values, even though they shouldn't
+	            div.style.marginRight = "50%";
+	            pixelMarginRightVal = divStyle.marginRight === "4px";
+
+	            documentElement.removeChild(container);
+
+	            // Nullify the div so it wouldn't be stored in the memory and
+	            // it will also be a sign that checks already performed
+	            div = null;
+	        }
+
+	        var pixelPositionVal, boxSizingReliableVal, pixelMarginRightVal, reliableMarginLeftVal,
+	            container = document.createElement("div"),
+	            div = document.createElement("div");
+
+	        // Finish early in limited (non-browser) environments
+	        if (!div.style) {
+	            return;
+	        }
+
+	        // Support: IE <=9 - 11 only
+	        // Style of cloned element affects source element cloned (#8908)
+	        div.style.backgroundClip = "content-box";
+	        div.cloneNode(true).style.backgroundClip = "";
+	        support.clearCloneStyle = div.style.backgroundClip === "content-box";
+
+	        container.style.cssText = "border:0;width:8px;height:0;top:0;left:-9999px;" +
+	        "padding:0;margin-top:1px;position:absolute";
+	        container.appendChild(div);
+
+	        jQuery.extend(support, {
+	            pixelPosition: function () {
+	                computeStyleTests();
+	                return pixelPositionVal;
+	            },
+	            boxSizingReliable: function () {
+	                computeStyleTests();
+	                return boxSizingReliableVal;
+	            },
+	            pixelMarginRight: function () {
+	                computeStyleTests();
+	                return pixelMarginRightVal;
+	            },
+	            reliableMarginLeft: function () {
+	                computeStyleTests();
+	                return reliableMarginLeftVal;
+	            }
+	        });
+	    })();
+
+
+	    function curCSS(elem, name, computed) {
+	        var width, minWidth, maxWidth, ret,
+	            style = elem.style;
+
+	        computed = computed || getStyles(elem);
+
+	        // Support: IE <=9 only
+	        // getPropertyValue is only needed for .css('filter') (#12537)
+	        if (computed) {
+	            ret = computed.getPropertyValue(name) || computed[name];
+
+	            if (ret === "" && !jQuery.contains(elem.ownerDocument, elem)) {
+	                ret = jQuery.style(elem, name);
+	            }
+
+	            // A tribute to the "awesome hack by Dean Edwards"
+	            // Android Browser returns percentage for some values,
+	            // but width seems to be reliably pixels.
+	            // This is against the CSSOM draft spec:
+	            // https://drafts.csswg.org/cssom/#resolved-values
+	            if (!support.pixelMarginRight() && rnumnonpx.test(ret) && rmargin.test(name)) {
+
+	                // Remember the original values
+	                width = style.width;
+	                minWidth = style.minWidth;
+	                maxWidth = style.maxWidth;
+
+	                // Put in the new values to get a computed value out
+	                style.minWidth = style.maxWidth = style.width = ret;
+	                ret = computed.width;
+
+	                // Revert the changed values
+	                style.width = width;
+	                style.minWidth = minWidth;
+	                style.maxWidth = maxWidth;
+	            }
+	        }
+
+	        return ret !== undefined ?
+
+	            // Support: IE <=9 - 11 only
+	            // IE returns zIndex value as an integer.
+	        ret + "" :
+	            ret;
+	    }
+
+
+	    function addGetHookIf(conditionFn, hookFn) {
+
+	        // Define the hook, we'll check on the first run if it's really needed.
+	        return {
+	            get: function () {
+	                if (conditionFn()) {
+
+	                    // Hook not needed (or it's not possible to use it due
+	                    // to missing dependency), remove it.
+	                    delete this.get;
+	                    return;
+	                }
+
+	                // Hook needed; redefine it so that the support test is not executed again.
+	                return ( this.get = hookFn ).apply(this, arguments);
+	            }
+	        };
+	    }
+
+
+	    var
+
+	    // Swappable if display is none or starts with table
+	    // except "table", "table-cell", or "table-caption"
+	    // See here for display values: https://developer.mozilla.org/en-US/docs/CSS/display
+	        rdisplayswap = /^(none|table(?!-c[ea]).+)/,
+	        cssShow = {position: "absolute", visibility: "hidden", display: "block"},
+	        cssNormalTransform = {
+	            letterSpacing: "0",
+	            fontWeight: "400"
+	        },
+
+	        cssPrefixes = ["Webkit", "Moz", "ms"],
+	        emptyStyle = document.createElement("div").style;
+
+	// Return a css property mapped to a potentially vendor prefixed property
+	    function vendorPropName(name) {
+
+	        // Shortcut for names that are not vendor prefixed
+	        if (name in emptyStyle) {
+	            return name;
+	        }
+
+	        // Check for vendor prefixed names
+	        var capName = name[0].toUpperCase() + name.slice(1),
+	            i = cssPrefixes.length;
+
+	        while (i--) {
+	            name = cssPrefixes[i] + capName;
+	            if (name in emptyStyle) {
+	                return name;
+	            }
+	        }
+	    }
+
+	    function setPositiveNumber(elem, value, subtract) {
+
+	        // Any relative (+/-) values have already been
+	        // normalized at this point
+	        var matches = rcssNum.exec(value);
+	        return matches ?
+
+	            // Guard against undefined "subtract", e.g., when used as in cssHooks
+	        Math.max(0, matches[2] - ( subtract || 0 )) + ( matches[3] || "px" ) :
+	            value;
+	    }
+
+	    function augmentWidthOrHeight(elem, name, extra, isBorderBox, styles) {
+	        var i = extra === ( isBorderBox ? "border" : "content" ) ?
+
+	                // If we already have the right measurement, avoid augmentation
+	                4 :
+
+	                // Otherwise initialize for horizontal or vertical properties
+	                name === "width" ? 1 : 0,
+
+	            val = 0;
+
+	        for (; i < 4; i += 2) {
+
+	            // Both box models exclude margin, so add it if we want it
+	            if (extra === "margin") {
+	                val += jQuery.css(elem, extra + cssExpand[i], true, styles);
+	            }
+
+	            if (isBorderBox) {
+
+	                // border-box includes padding, so remove it if we want content
+	                if (extra === "content") {
+	                    val -= jQuery.css(elem, "padding" + cssExpand[i], true, styles);
+	                }
+
+	                // At this point, extra isn't border nor margin, so remove border
+	                if (extra !== "margin") {
+	                    val -= jQuery.css(elem, "border" + cssExpand[i] + "Width", true, styles);
+	                }
+	            } else {
+
+	                // At this point, extra isn't content, so add padding
+	                val += jQuery.css(elem, "padding" + cssExpand[i], true, styles);
+
+	                // At this point, extra isn't content nor padding, so add border
+	                if (extra !== "padding") {
+	                    val += jQuery.css(elem, "border" + cssExpand[i] + "Width", true, styles);
+	                }
+	            }
+	        }
+
+	        return val;
+	    }
+
+	    function getWidthOrHeight(elem, name, extra) {
+
+	        // Start with offset property, which is equivalent to the border-box value
+	        var val,
+	            valueIsBorderBox = true,
+	            styles = getStyles(elem),
+	            isBorderBox = jQuery.css(elem, "boxSizing", false, styles) === "border-box";
+
+	        // Support: IE <=11 only
+	        // Running getBoundingClientRect on a disconnected node
+	        // in IE throws an error.
+	        if (elem.getClientRects().length) {
+	            val = elem.getBoundingClientRect()[name];
+	        }
+
+	        // Some non-html elements return undefined for offsetWidth, so check for null/undefined
+	        // svg - https://bugzilla.mozilla.org/show_bug.cgi?id=649285
+	        // MathML - https://bugzilla.mozilla.org/show_bug.cgi?id=491668
+	        if (val <= 0 || val == null) {
+
+	            // Fall back to computed then uncomputed css if necessary
+	            val = curCSS(elem, name, styles);
+	            if (val < 0 || val == null) {
+	                val = elem.style[name];
+	            }
+
+	            // Computed unit is not pixels. Stop here and return.
+	            if (rnumnonpx.test(val)) {
+	                return val;
+	            }
+
+	            // Check for style in case a browser which returns unreliable values
+	            // for getComputedStyle silently falls back to the reliable elem.style
+	            valueIsBorderBox = isBorderBox &&
+	            ( support.boxSizingReliable() || val === elem.style[name] );
+
+	            // Normalize "", auto, and prepare for extra
+	            val = parseFloat(val) || 0;
+	        }
+
+	        // Use the active box-sizing model to add/subtract irrelevant styles
+	        return ( val +
+	        augmentWidthOrHeight(
+	            elem,
+	            name,
+	            extra || ( isBorderBox ? "border" : "content" ),
+	            valueIsBorderBox,
+	            styles
+	        )
+	        ) + "px";
+	    }
+
+	    jQuery.extend({
+
+	        // Add in style property hooks for overriding the default
+	        // behavior of getting and setting a style property
+	        cssHooks: {
+	            opacity: {
+	                get: function (elem, computed) {
+	                    if (computed) {
+
+	                        // We should always get a number back from opacity
+	                        var ret = curCSS(elem, "opacity");
+	                        return ret === "" ? "1" : ret;
+	                    }
+	                }
+	            }
+	        },
+
+	        // Don't automatically add "px" to these possibly-unitless properties
+	        cssNumber: {
+	            "animationIterationCount": true,
+	            "columnCount": true,
+	            "fillOpacity": true,
+	            "flexGrow": true,
+	            "flexShrink": true,
+	            "fontWeight": true,
+	            "lineHeight": true,
+	            "opacity": true,
+	            "order": true,
+	            "orphans": true,
+	            "widows": true,
+	            "zIndex": true,
+	            "zoom": true
+	        },
+
+	        // Add in properties whose names you wish to fix before
+	        // setting or getting the value
+	        cssProps: {
+	            "float": "cssFloat"
+	        },
+
+	        // Get and set the style property on a DOM Node
+	        style: function (elem, name, value, extra) {
+
+	            // Don't set styles on text and comment nodes
+	            if (!elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style) {
+	                return;
+	            }
+
+	            // Make sure that we're working with the right name
+	            var ret, type, hooks,
+	                origName = jQuery.camelCase(name),
+	                style = elem.style;
+
+	            name = jQuery.cssProps[origName] ||
+	            ( jQuery.cssProps[origName] = vendorPropName(origName) || origName );
+
+	            // Gets hook for the prefixed version, then unprefixed version
+	            hooks = jQuery.cssHooks[name] || jQuery.cssHooks[origName];
+
+	            // Check if we're setting a value
+	            if (value !== undefined) {
+	                type = typeof value;
+
+	                // Convert "+=" or "-=" to relative numbers (#7345)
+	                if (type === "string" && ( ret = rcssNum.exec(value) ) && ret[1]) {
+	                    value = adjustCSS(elem, name, ret);
+
+	                    // Fixes bug #9237
+	                    type = "number";
+	                }
+
+	                // Make sure that null and NaN values aren't set (#7116)
+	                if (value == null || value !== value) {
+	                    return;
+	                }
+
+	                // If a number was passed in, add the unit (except for certain CSS properties)
+	                if (type === "number") {
+	                    value += ret && ret[3] || ( jQuery.cssNumber[origName] ? "" : "px" );
+	                }
+
+	                // background-* props affect original clone's values
+	                if (!support.clearCloneStyle && value === "" && name.indexOf("background") === 0) {
+	                    style[name] = "inherit";
+	                }
+
+	                // If a hook was provided, use that value, otherwise just set the specified value
+	                if (!hooks || !( "set" in hooks ) ||
+	                    ( value = hooks.set(elem, value, extra) ) !== undefined) {
+
+	                    style[name] = value;
+	                }
+
+	            } else {
+
+	                // If a hook was provided get the non-computed value from there
+	                if (hooks && "get" in hooks &&
+	                    ( ret = hooks.get(elem, false, extra) ) !== undefined) {
+
+	                    return ret;
+	                }
+
+	                // Otherwise just get the value from the style object
+	                return style[name];
+	            }
+	        },
+
+	        css: function (elem, name, extra, styles) {
+	            var val, num, hooks,
+	                origName = jQuery.camelCase(name);
+
+	            // Make sure that we're working with the right name
+	            name = jQuery.cssProps[origName] ||
+	            ( jQuery.cssProps[origName] = vendorPropName(origName) || origName );
+
+	            // Try prefixed name followed by the unprefixed name
+	            hooks = jQuery.cssHooks[name] || jQuery.cssHooks[origName];
+
+	            // If a hook was provided get the computed value from there
+	            if (hooks && "get" in hooks) {
+	                val = hooks.get(elem, true, extra);
+	            }
+
+	            // Otherwise, if a way to get the computed value exists, use that
+	            if (val === undefined) {
+	                val = curCSS(elem, name, styles);
+	            }
+
+	            // Convert "normal" to computed value
+	            if (val === "normal" && name in cssNormalTransform) {
+	                val = cssNormalTransform[name];
+	            }
+
+	            // Make numeric if forced or a qualifier was provided and val looks numeric
+	            if (extra === "" || extra) {
+	                num = parseFloat(val);
+	                return extra === true || isFinite(num) ? num || 0 : val;
+	            }
+	            return val;
+	        }
+	    });
+
+	    jQuery.each(["height", "width"], function (i, name) {
+	        jQuery.cssHooks[name] = {
+	            get: function (elem, computed, extra) {
+	                if (computed) {
+
+	                    // Certain elements can have dimension info if we invisibly show them
+	                    // but it must have a current display style that would benefit
+	                    return rdisplayswap.test(jQuery.css(elem, "display")) &&
+
+	                        // Support: Safari 8+
+	                        // Table columns in Safari have non-zero offsetWidth & zero
+	                        // getBoundingClientRect().width unless display is changed.
+	                        // Support: IE <=11 only
+	                        // Running getBoundingClientRect on a disconnected node
+	                        // in IE throws an error.
+	                    ( !elem.getClientRects().length || !elem.getBoundingClientRect().width ) ?
+	                        swap(elem, cssShow, function () {
+	                            return getWidthOrHeight(elem, name, extra);
+	                        }) :
+	                        getWidthOrHeight(elem, name, extra);
+	                }
+	            },
+
+	            set: function (elem, value, extra) {
+	                var matches,
+	                    styles = extra && getStyles(elem),
+	                    subtract = extra && augmentWidthOrHeight(
+	                            elem,
+	                            name,
+	                            extra,
+	                            jQuery.css(elem, "boxSizing", false, styles) === "border-box",
+	                            styles
+	                        );
+
+	                // Convert to pixels if value adjustment is needed
+	                if (subtract && ( matches = rcssNum.exec(value) ) &&
+	                    ( matches[3] || "px" ) !== "px") {
+
+	                    elem.style[name] = value;
+	                    value = jQuery.css(elem, name);
+	                }
+
+	                return setPositiveNumber(elem, value, subtract);
+	            }
+	        };
+	    });
+
+	    jQuery.cssHooks.marginLeft = addGetHookIf(support.reliableMarginLeft,
+	        function (elem, computed) {
+	            if (computed) {
+	                return ( parseFloat(curCSS(elem, "marginLeft")) ||
+	                elem.getBoundingClientRect().left -
+	                swap(elem, {marginLeft: 0}, function () {
+	                    return elem.getBoundingClientRect().left;
+	                })
+	                ) + "px";
+	            }
+	        }
+	    );
+
+	// These hooks are used by animate to expand properties
+	    jQuery.each({
+	        margin: "",
+	        padding: "",
+	        border: "Width"
+	    }, function (prefix, suffix) {
+	        jQuery.cssHooks[prefix + suffix] = {
+	            expand: function (value) {
+	                var i = 0,
+	                    expanded = {},
+
+	                // Assumes a single number if not a string
+	                    parts = typeof value === "string" ? value.split(" ") : [value];
+
+	                for (; i < 4; i++) {
+	                    expanded[prefix + cssExpand[i] + suffix] =
+	                        parts[i] || parts[i - 2] || parts[0];
+	                }
+
+	                return expanded;
+	            }
+	        };
+
+	        if (!rmargin.test(prefix)) {
+	            jQuery.cssHooks[prefix + suffix].set = setPositiveNumber;
+	        }
+	    });
+
+	    jQuery.fn.extend({
+	        css: function (name, value) {
+	            return access(this, function (elem, name, value) {
+	                var styles, len,
+	                    map = {},
+	                    i = 0;
+
+	                if (jQuery.isArray(name)) {
+	                    styles = getStyles(elem);
+	                    len = name.length;
+
+	                    for (; i < len; i++) {
+	                        map[name[i]] = jQuery.css(elem, name[i], false, styles);
+	                    }
+
+	                    return map;
+	                }
+
+	                return value !== undefined ?
+	                    jQuery.style(elem, name, value) :
+	                    jQuery.css(elem, name);
+	            }, name, value, arguments.length > 1);
+	        }
+	    });
+
+
+	    function Tween(elem, options, prop, end, easing) {
+	        return new Tween.prototype.init(elem, options, prop, end, easing);
+	    }
+
+	    jQuery.Tween = Tween;
+
+	    Tween.prototype = {
+	        constructor: Tween,
+	        init: function (elem, options, prop, end, easing, unit) {
+	            this.elem = elem;
+	            this.prop = prop;
+	            this.easing = easing || jQuery.easing._default;
+	            this.options = options;
+	            this.start = this.now = this.cur();
+	            this.end = end;
+	            this.unit = unit || ( jQuery.cssNumber[prop] ? "" : "px" );
+	        },
+	        cur: function () {
+	            var hooks = Tween.propHooks[this.prop];
+
+	            return hooks && hooks.get ?
+	                hooks.get(this) :
+	                Tween.propHooks._default.get(this);
+	        },
+	        run: function (percent) {
+	            var eased,
+	                hooks = Tween.propHooks[this.prop];
+
+	            if (this.options.duration) {
+	                this.pos = eased = jQuery.easing[this.easing](
+	                    percent, this.options.duration * percent, 0, 1, this.options.duration
+	                );
+	            } else {
+	                this.pos = eased = percent;
+	            }
+	            this.now = ( this.end - this.start ) * eased + this.start;
+
+	            if (this.options.step) {
+	                this.options.step.call(this.elem, this.now, this);
+	            }
+
+	            if (hooks && hooks.set) {
+	                hooks.set(this);
+	            } else {
+	                Tween.propHooks._default.set(this);
+	            }
+	            return this;
+	        }
+	    };
+
+	    Tween.prototype.init.prototype = Tween.prototype;
+
+	    Tween.propHooks = {
+	        _default: {
+	            get: function (tween) {
+	                var result;
+
+	                // Use a property on the element directly when it is not a DOM element,
+	                // or when there is no matching style property that exists.
+	                if (tween.elem.nodeType !== 1 ||
+	                    tween.elem[tween.prop] != null && tween.elem.style[tween.prop] == null) {
+	                    return tween.elem[tween.prop];
+	                }
+
+	                // Passing an empty string as a 3rd parameter to .css will automatically
+	                // attempt a parseFloat and fallback to a string if the parse fails.
+	                // Simple values such as "10px" are parsed to Float;
+	                // complex values such as "rotate(1rad)" are returned as-is.
+	                result = jQuery.css(tween.elem, tween.prop, "");
+
+	                // Empty strings, null, undefined and "auto" are converted to 0.
+	                return !result || result === "auto" ? 0 : result;
+	            },
+	            set: function (tween) {
+
+	                // Use step hook for back compat.
+	                // Use cssHook if its there.
+	                // Use .style if available and use plain properties where available.
+	                if (jQuery.fx.step[tween.prop]) {
+	                    jQuery.fx.step[tween.prop](tween);
+	                } else if (tween.elem.nodeType === 1 &&
+	                    ( tween.elem.style[jQuery.cssProps[tween.prop]] != null ||
+	                    jQuery.cssHooks[tween.prop] )) {
+	                    jQuery.style(tween.elem, tween.prop, tween.now + tween.unit);
+	                } else {
+	                    tween.elem[tween.prop] = tween.now;
+	                }
+	            }
+	        }
+	    };
+
+	// Support: IE <=9 only
+	// Panic based approach to setting things on disconnected nodes
+	    Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
+	        set: function (tween) {
+	            if (tween.elem.nodeType && tween.elem.parentNode) {
+	                tween.elem[tween.prop] = tween.now;
+	            }
+	        }
+	    };
+
+	    jQuery.easing = {
+	        linear: function (p) {
+	            return p;
+	        },
+	        swing: function (p) {
+	            return 0.5 - Math.cos(p * Math.PI) / 2;
+	        },
+	        _default: "swing"
+	    };
+
+	    jQuery.fx = Tween.prototype.init;
+
+	// Back compat <1.8 extension point
+	    jQuery.fx.step = {};
+
+
+	    var
+	        fxNow, timerId,
+	        rfxtypes = /^(?:toggle|show|hide)$/,
+	        rrun = /queueHooks$/;
+
+	    function raf() {
+	        if (timerId) {
+	            window.requestAnimationFrame(raf);
+	            jQuery.fx.tick();
+	        }
+	    }
+
+	// Animations created synchronously will run synchronously
+	    function createFxNow() {
+	        window.setTimeout(function () {
+	            fxNow = undefined;
+	        });
+	        return ( fxNow = jQuery.now() );
+	    }
+
+	// Generate parameters to create a standard animation
+	    function genFx(type, includeWidth) {
+	        var which,
+	            i = 0,
+	            attrs = {height: type};
+
+	        // If we include width, step value is 1 to do all cssExpand values,
+	        // otherwise step value is 2 to skip over Left and Right
+	        includeWidth = includeWidth ? 1 : 0;
+	        for (; i < 4; i += 2 - includeWidth) {
+	            which = cssExpand[i];
+	            attrs["margin" + which] = attrs["padding" + which] = type;
+	        }
+
+	        if (includeWidth) {
+	            attrs.opacity = attrs.width = type;
+	        }
+
+	        return attrs;
+	    }
+
+	    function createTween(value, prop, animation) {
+	        var tween,
+	            collection = ( Animation.tweeners[prop] || [] ).concat(Animation.tweeners["*"]),
+	            index = 0,
+	            length = collection.length;
+	        for (; index < length; index++) {
+	            if (( tween = collection[index].call(animation, prop, value) )) {
+
+	                // We're done with this property
+	                return tween;
+	            }
+	        }
+	    }
+
+	    function defaultPrefilter(elem, props, opts) {
+	        var prop, value, toggle, hooks, oldfire, propTween, restoreDisplay, display,
+	            isBox = "width" in props || "height" in props,
+	            anim = this,
+	            orig = {},
+	            style = elem.style,
+	            hidden = elem.nodeType && isHiddenWithinTree(elem),
+	            dataShow = dataPriv.get(elem, "fxshow");
+
+	        // Queue-skipping animations hijack the fx hooks
+	        if (!opts.queue) {
+	            hooks = jQuery._queueHooks(elem, "fx");
+	            if (hooks.unqueued == null) {
+	                hooks.unqueued = 0;
+	                oldfire = hooks.empty.fire;
+	                hooks.empty.fire = function () {
+	                    if (!hooks.unqueued) {
+	                        oldfire();
+	                    }
+	                };
+	            }
+	            hooks.unqueued++;
+
+	            anim.always(function () {
+
+	                // Ensure the complete handler is called before this completes
+	                anim.always(function () {
+	                    hooks.unqueued--;
+	                    if (!jQuery.queue(elem, "fx").length) {
+	                        hooks.empty.fire();
+	                    }
+	                });
+	            });
+	        }
+
+	        // Detect show/hide animations
+	        for (prop in props) {
+	            value = props[prop];
+	            if (rfxtypes.test(value)) {
+	                delete props[prop];
+	                toggle = toggle || value === "toggle";
+	                if (value === ( hidden ? "hide" : "show" )) {
+
+	                    // Pretend to be hidden if this is a "show" and
+	                    // there is still data from a stopped show/hide
+	                    if (value === "show" && dataShow && dataShow[prop] !== undefined) {
+	                        hidden = true;
+
+	                        // Ignore all other no-op show/hide data
+	                    } else {
+	                        continue;
+	                    }
+	                }
+	                orig[prop] = dataShow && dataShow[prop] || jQuery.style(elem, prop);
+	            }
+	        }
+
+	        // Bail out if this is a no-op like .hide().hide()
+	        propTween = !jQuery.isEmptyObject(props);
+	        if (!propTween && jQuery.isEmptyObject(orig)) {
+	            return;
+	        }
+
+	        // Restrict "overflow" and "display" styles during box animations
+	        if (isBox && elem.nodeType === 1) {
+
+	            // Support: IE <=9 - 11, Edge 12 - 13
+	            // Record all 3 overflow attributes because IE does not infer the shorthand
+	            // from identically-valued overflowX and overflowY
+	            opts.overflow = [style.overflow, style.overflowX, style.overflowY];
+
+	            // Identify a display type, preferring old show/hide data over the CSS cascade
+	            restoreDisplay = dataShow && dataShow.display;
+	            if (restoreDisplay == null) {
+	                restoreDisplay = dataPriv.get(elem, "display");
+	            }
+	            display = jQuery.css(elem, "display");
+	            if (display === "none") {
+	                if (restoreDisplay) {
+	                    display = restoreDisplay;
+	                } else {
+
+	                    // Get nonempty value(s) by temporarily forcing visibility
+	                    showHide([elem], true);
+	                    restoreDisplay = elem.style.display || restoreDisplay;
+	                    display = jQuery.css(elem, "display");
+	                    showHide([elem]);
+	                }
+	            }
+
+	            // Animate inline elements as inline-block
+	            if (display === "inline" || display === "inline-block" && restoreDisplay != null) {
+	                if (jQuery.css(elem, "float") === "none") {
+
+	                    // Restore the original display value at the end of pure show/hide animations
+	                    if (!propTween) {
+	                        anim.done(function () {
+	                            style.display = restoreDisplay;
+	                        });
+	                        if (restoreDisplay == null) {
+	                            display = style.display;
+	                            restoreDisplay = display === "none" ? "" : display;
+	                        }
+	                    }
+	                    style.display = "inline-block";
+	                }
+	            }
+	        }
+
+	        if (opts.overflow) {
+	            style.overflow = "hidden";
+	            anim.always(function () {
+	                style.overflow = opts.overflow[0];
+	                style.overflowX = opts.overflow[1];
+	                style.overflowY = opts.overflow[2];
+	            });
+	        }
+
+	        // Implement show/hide animations
+	        propTween = false;
+	        for (prop in orig) {
+
+	            // General show/hide setup for this element animation
+	            if (!propTween) {
+	                if (dataShow) {
+	                    if ("hidden" in dataShow) {
+	                        hidden = dataShow.hidden;
+	                    }
+	                } else {
+	                    dataShow = dataPriv.access(elem, "fxshow", {display: restoreDisplay});
+	                }
+
+	                // Store hidden/visible for toggle so `.stop().toggle()` "reverses"
+	                if (toggle) {
+	                    dataShow.hidden = !hidden;
+	                }
+
+	                // Show elements before animating them
+	                if (hidden) {
+	                    showHide([elem], true);
+	                }
+
+	                /* eslint-disable no-loop-func */
+
+	                anim.done(function () {
+
+	                    /* eslint-enable no-loop-func */
+
+	                    // The final step of a "hide" animation is actually hiding the element
+	                    if (!hidden) {
+	                        showHide([elem]);
+	                    }
+	                    dataPriv.remove(elem, "fxshow");
+	                    for (prop in orig) {
+	                        jQuery.style(elem, prop, orig[prop]);
+	                    }
+	                });
+	            }
+
+	            // Per-property setup
+	            propTween = createTween(hidden ? dataShow[prop] : 0, prop, anim);
+	            if (!( prop in dataShow )) {
+	                dataShow[prop] = propTween.start;
+	                if (hidden) {
+	                    propTween.end = propTween.start;
+	                    propTween.start = 0;
+	                }
+	            }
+	        }
+	    }
+
+	    function propFilter(props, specialEasing) {
+	        var index, name, easing, value, hooks;
+
+	        // camelCase, specialEasing and expand cssHook pass
+	        for (index in props) {
+	            name = jQuery.camelCase(index);
+	            easing = specialEasing[name];
+	            value = props[index];
+	            if (jQuery.isArray(value)) {
+	                easing = value[1];
+	                value = props[index] = value[0];
+	            }
+
+	            if (index !== name) {
+	                props[name] = value;
+	                delete props[index];
+	            }
+
+	            hooks = jQuery.cssHooks[name];
+	            if (hooks && "expand" in hooks) {
+	                value = hooks.expand(value);
+	                delete props[name];
+
+	                // Not quite $.extend, this won't overwrite existing keys.
+	                // Reusing 'index' because we have the correct "name"
+	                for (index in value) {
+	                    if (!( index in props )) {
+	                        props[index] = value[index];
+	                        specialEasing[index] = easing;
+	                    }
+	                }
+	            } else {
+	                specialEasing[name] = easing;
+	            }
+	        }
+	    }
+
+	    function Animation(elem, properties, options) {
+	        var result,
+	            stopped,
+	            index = 0,
+	            length = Animation.prefilters.length,
+	            deferred = jQuery.Deferred().always(function () {
+
+	                // Don't match elem in the :animated selector
+	                delete tick.elem;
+	            }),
+	            tick = function () {
+	                if (stopped) {
+	                    return false;
+	                }
+	                var currentTime = fxNow || createFxNow(),
+	                    remaining = Math.max(0, animation.startTime + animation.duration - currentTime),
+
+	                // Support: Android 2.3 only
+	                // Archaic crash bug won't allow us to use `1 - ( 0.5 || 0 )` (#12497)
+	                    temp = remaining / animation.duration || 0,
+	                    percent = 1 - temp,
+	                    index = 0,
+	                    length = animation.tweens.length;
+
+	                for (; index < length; index++) {
+	                    animation.tweens[index].run(percent);
+	                }
+
+	                deferred.notifyWith(elem, [animation, percent, remaining]);
+
+	                if (percent < 1 && length) {
+	                    return remaining;
+	                } else {
+	                    deferred.resolveWith(elem, [animation]);
+	                    return false;
+	                }
+	            },
+	            animation = deferred.promise({
+	                elem: elem,
+	                props: jQuery.extend({}, properties),
+	                opts: jQuery.extend(true, {
+	                    specialEasing: {},
+	                    easing: jQuery.easing._default
+	                }, options),
+	                originalProperties: properties,
+	                originalOptions: options,
+	                startTime: fxNow || createFxNow(),
+	                duration: options.duration,
+	                tweens: [],
+	                createTween: function (prop, end) {
+	                    var tween = jQuery.Tween(elem, animation.opts, prop, end,
+	                        animation.opts.specialEasing[prop] || animation.opts.easing);
+	                    animation.tweens.push(tween);
+	                    return tween;
+	                },
+	                stop: function (gotoEnd) {
+	                    var index = 0,
+
+	                    // If we are going to the end, we want to run all the tweens
+	                    // otherwise we skip this part
+	                        length = gotoEnd ? animation.tweens.length : 0;
+	                    if (stopped) {
+	                        return this;
+	                    }
+	                    stopped = true;
+	                    for (; index < length; index++) {
+	                        animation.tweens[index].run(1);
+	                    }
+
+	                    // Resolve when we played the last frame; otherwise, reject
+	                    if (gotoEnd) {
+	                        deferred.notifyWith(elem, [animation, 1, 0]);
+	                        deferred.resolveWith(elem, [animation, gotoEnd]);
+	                    } else {
+	                        deferred.rejectWith(elem, [animation, gotoEnd]);
+	                    }
+	                    return this;
+	                }
+	            }),
+	            props = animation.props;
+
+	        propFilter(props, animation.opts.specialEasing);
+
+	        for (; index < length; index++) {
+	            result = Animation.prefilters[index].call(animation, elem, props, animation.opts);
+	            if (result) {
+	                if (jQuery.isFunction(result.stop)) {
+	                    jQuery._queueHooks(animation.elem, animation.opts.queue).stop =
+	                        jQuery.proxy(result.stop, result);
+	                }
+	                return result;
+	            }
+	        }
+
+	        jQuery.map(props, createTween, animation);
+
+	        if (jQuery.isFunction(animation.opts.start)) {
+	            animation.opts.start.call(elem, animation);
+	        }
+
+	        jQuery.fx.timer(
+	            jQuery.extend(tick, {
+	                elem: elem,
+	                anim: animation,
+	                queue: animation.opts.queue
+	            })
+	        );
+
+	        // attach callbacks from options
+	        return animation.progress(animation.opts.progress)
+	            .done(animation.opts.done, animation.opts.complete)
+	            .fail(animation.opts.fail)
+	            .always(animation.opts.always);
+	    }
+
+	    jQuery.Animation = jQuery.extend(Animation, {
+
+	        tweeners: {
+	            "*": [function (prop, value) {
+	                var tween = this.createTween(prop, value);
+	                adjustCSS(tween.elem, prop, rcssNum.exec(value), tween);
+	                return tween;
+	            }]
+	        },
+
+	        tweener: function (props, callback) {
+	            if (jQuery.isFunction(props)) {
+	                callback = props;
+	                props = ["*"];
+	            } else {
+	                props = props.match(rnotwhite);
+	            }
+
+	            var prop,
+	                index = 0,
+	                length = props.length;
+
+	            for (; index < length; index++) {
+	                prop = props[index];
+	                Animation.tweeners[prop] = Animation.tweeners[prop] || [];
+	                Animation.tweeners[prop].unshift(callback);
+	            }
+	        },
+
+	        prefilters: [defaultPrefilter],
+
+	        prefilter: function (callback, prepend) {
+	            if (prepend) {
+	                Animation.prefilters.unshift(callback);
+	            } else {
+	                Animation.prefilters.push(callback);
+	            }
+	        }
+	    });
+
+	    jQuery.speed = function (speed, easing, fn) {
+	        var opt = speed && typeof speed === "object" ? jQuery.extend({}, speed) : {
+	            complete: fn || !fn && easing ||
+	            jQuery.isFunction(speed) && speed,
+	            duration: speed,
+	            easing: fn && easing || easing && !jQuery.isFunction(easing) && easing
+	        };
+
+	        // Go to the end state if fx are off or if document is hidden
+	        if (jQuery.fx.off || document.hidden) {
+	            opt.duration = 0;
+
+	        } else {
+	            opt.duration = typeof opt.duration === "number" ?
+	                opt.duration : opt.duration in jQuery.fx.speeds ?
+	                jQuery.fx.speeds[opt.duration] : jQuery.fx.speeds._default;
+	        }
+
+	        // Normalize opt.queue - true/undefined/null -> "fx"
+	        if (opt.queue == null || opt.queue === true) {
+	            opt.queue = "fx";
+	        }
+
+	        // Queueing
+	        opt.old = opt.complete;
+
+	        opt.complete = function () {
+	            if (jQuery.isFunction(opt.old)) {
+	                opt.old.call(this);
+	            }
+
+	            if (opt.queue) {
+	                jQuery.dequeue(this, opt.queue);
+	            }
+	        };
+
+	        return opt;
+	    };
+
+	    jQuery.fn.extend({
+	        fadeTo: function (speed, to, easing, callback) {
+
+	            // Show any hidden elements after setting opacity to 0
+	            return this.filter(isHiddenWithinTree).css("opacity", 0).show()
+
+	                // Animate to the value specified
+	                .end().animate({opacity: to}, speed, easing, callback);
+	        },
+	        animate: function (prop, speed, easing, callback) {
+	            var empty = jQuery.isEmptyObject(prop),
+	                optall = jQuery.speed(speed, easing, callback),
+	                doAnimation = function () {
+
+	                    // Operate on a copy of prop so per-property easing won't be lost
+	                    var anim = Animation(this, jQuery.extend({}, prop), optall);
+
+	                    // Empty animations, or finishing resolves immediately
+	                    if (empty || dataPriv.get(this, "finish")) {
+	                        anim.stop(true);
+	                    }
+	                };
+	            doAnimation.finish = doAnimation;
+
+	            return empty || optall.queue === false ?
+	                this.each(doAnimation) :
+	                this.queue(optall.queue, doAnimation);
+	        },
+	        stop: function (type, clearQueue, gotoEnd) {
+	            var stopQueue = function (hooks) {
+	                var stop = hooks.stop;
+	                delete hooks.stop;
+	                stop(gotoEnd);
+	            };
+
+	            if (typeof type !== "string") {
+	                gotoEnd = clearQueue;
+	                clearQueue = type;
+	                type = undefined;
+	            }
+	            if (clearQueue && type !== false) {
+	                this.queue(type || "fx", []);
+	            }
+
+	            return this.each(function () {
+	                var dequeue = true,
+	                    index = type != null && type + "queueHooks",
+	                    timers = jQuery.timers,
+	                    data = dataPriv.get(this);
+
+	                if (index) {
+	                    if (data[index] && data[index].stop) {
+	                        stopQueue(data[index]);
+	                    }
+	                } else {
+	                    for (index in data) {
+	                        if (data[index] && data[index].stop && rrun.test(index)) {
+	                            stopQueue(data[index]);
+	                        }
+	                    }
+	                }
+
+	                for (index = timers.length; index--;) {
+	                    if (timers[index].elem === this &&
+	                        ( type == null || timers[index].queue === type )) {
+
+	                        timers[index].anim.stop(gotoEnd);
+	                        dequeue = false;
+	                        timers.splice(index, 1);
+	                    }
+	                }
+
+	                // Start the next in the queue if the last step wasn't forced.
+	                // Timers currently will call their complete callbacks, which
+	                // will dequeue but only if they were gotoEnd.
+	                if (dequeue || !gotoEnd) {
+	                    jQuery.dequeue(this, type);
+	                }
+	            });
+	        },
+	        finish: function (type) {
+	            if (type !== false) {
+	                type = type || "fx";
+	            }
+	            return this.each(function () {
+	                var index,
+	                    data = dataPriv.get(this),
+	                    queue = data[type + "queue"],
+	                    hooks = data[type + "queueHooks"],
+	                    timers = jQuery.timers,
+	                    length = queue ? queue.length : 0;
+
+	                // Enable finishing flag on private data
+	                data.finish = true;
+
+	                // Empty the queue first
+	                jQuery.queue(this, type, []);
+
+	                if (hooks && hooks.stop) {
+	                    hooks.stop.call(this, true);
+	                }
+
+	                // Look for any active animations, and finish them
+	                for (index = timers.length; index--;) {
+	                    if (timers[index].elem === this && timers[index].queue === type) {
+	                        timers[index].anim.stop(true);
+	                        timers.splice(index, 1);
+	                    }
+	                }
+
+	                // Look for any animations in the old queue and finish them
+	                for (index = 0; index < length; index++) {
+	                    if (queue[index] && queue[index].finish) {
+	                        queue[index].finish.call(this);
+	                    }
+	                }
+
+	                // Turn off finishing flag
+	                delete data.finish;
+	            });
+	        }
+	    });
+
+	    jQuery.each(["toggle", "show", "hide"], function (i, name) {
+	        var cssFn = jQuery.fn[name];
+	        jQuery.fn[name] = function (speed, easing, callback) {
+	            return speed == null || typeof speed === "boolean" ?
+	                cssFn.apply(this, arguments) :
+	                this.animate(genFx(name, true), speed, easing, callback);
+	        };
+	    });
+
+	// Generate shortcuts for custom animations
+	    jQuery.each({
+	        slideDown: genFx("show"),
+	        slideUp: genFx("hide"),
+	        slideToggle: genFx("toggle"),
+	        fadeIn: {opacity: "show"},
+	        fadeOut: {opacity: "hide"},
+	        fadeToggle: {opacity: "toggle"}
+	    }, function (name, props) {
+	        jQuery.fn[name] = function (speed, easing, callback) {
+	            return this.animate(props, speed, easing, callback);
+	        };
+	    });
+
+	    jQuery.timers = [];
+	    jQuery.fx.tick = function () {
+	        var timer,
+	            i = 0,
+	            timers = jQuery.timers;
+
+	        fxNow = jQuery.now();
+
+	        for (; i < timers.length; i++) {
+	            timer = timers[i];
+
+	            // Checks the timer has not already been removed
+	            if (!timer() && timers[i] === timer) {
+	                timers.splice(i--, 1);
+	            }
+	        }
+
+	        if (!timers.length) {
+	            jQuery.fx.stop();
+	        }
+	        fxNow = undefined;
+	    };
+
+	    jQuery.fx.timer = function (timer) {
+	        jQuery.timers.push(timer);
+	        if (timer()) {
+	            jQuery.fx.start();
+	        } else {
+	            jQuery.timers.pop();
+	        }
+	    };
+
+	    jQuery.fx.interval = 13;
+	    jQuery.fx.start = function () {
+	        if (!timerId) {
+	            timerId = window.requestAnimationFrame ?
+	                window.requestAnimationFrame(raf) :
+	                window.setInterval(jQuery.fx.tick, jQuery.fx.interval);
+	        }
+	    };
+
+	    jQuery.fx.stop = function () {
+	        if (window.cancelAnimationFrame) {
+	            window.cancelAnimationFrame(timerId);
+	        } else {
+	            window.clearInterval(timerId);
+	        }
+
+	        timerId = null;
+	    };
+
+	    jQuery.fx.speeds = {
+	        slow: 600,
+	        fast: 200,
+
+	        // Default speed
+	        _default: 400
+	    };
+
+
+	// Based off of the plugin by Clint Helfers, with permission.
+	// https://web.archive.org/web/20100324014747/http://blindsignals.com/index.php/2009/07/jquery-delay/
+	    jQuery.fn.delay = function (time, type) {
+	        time = jQuery.fx ? jQuery.fx.speeds[time] || time : time;
+	        type = type || "fx";
+
+	        return this.queue(type, function (next, hooks) {
+	            var timeout = window.setTimeout(next, time);
+	            hooks.stop = function () {
+	                window.clearTimeout(timeout);
+	            };
+	        });
+	    };
+
+
+	    (function () {
+	        var input = document.createElement("input"),
+	            select = document.createElement("select"),
+	            opt = select.appendChild(document.createElement("option"));
+
+	        input.type = "checkbox";
+
+	        // Support: Android <=4.3 only
+	        // Default value for a checkbox should be "on"
+	        support.checkOn = input.value !== "";
+
+	        // Support: IE <=11 only
+	        // Must access selectedIndex to make default options select
+	        support.optSelected = opt.selected;
+
+	        // Support: IE <=11 only
+	        // An input loses its value after becoming a radio
+	        input = document.createElement("input");
+	        input.value = "t";
+	        input.type = "radio";
+	        support.radioValue = input.value === "t";
+	    })();
+
+
+	    var boolHook,
+	        attrHandle = jQuery.expr.attrHandle;
+
+	    jQuery.fn.extend({
+	        attr: function (name, value) {
+	            return access(this, jQuery.attr, name, value, arguments.length > 1);
+	        },
+
+	        removeAttr: function (name) {
+	            return this.each(function () {
+	                jQuery.removeAttr(this, name);
+	            });
+	        }
+	    });
+
+	    jQuery.extend({
+	        attr: function (elem, name, value) {
+	            var ret, hooks,
+	                nType = elem.nodeType;
+
+	            // Don't get/set attributes on text, comment and attribute nodes
+	            if (nType === 3 || nType === 8 || nType === 2) {
+	                return;
+	            }
+
+	            // Fallback to prop when attributes are not supported
+	            if (typeof elem.getAttribute === "undefined") {
+	                return jQuery.prop(elem, name, value);
+	            }
+
+	            // Attribute hooks are determined by the lowercase version
+	            // Grab necessary hook if one is defined
+	            if (nType !== 1 || !jQuery.isXMLDoc(elem)) {
+	                hooks = jQuery.attrHooks[name.toLowerCase()] ||
+	                ( jQuery.expr.match.bool.test(name) ? boolHook : undefined );
+	            }
+
+	            if (value !== undefined) {
+	                if (value === null) {
+	                    jQuery.removeAttr(elem, name);
+	                    return;
+	                }
+
+	                if (hooks && "set" in hooks &&
+	                    ( ret = hooks.set(elem, value, name) ) !== undefined) {
+	                    return ret;
+	                }
+
+	                elem.setAttribute(name, value + "");
+	                return value;
+	            }
+
+	            if (hooks && "get" in hooks && ( ret = hooks.get(elem, name) ) !== null) {
+	                return ret;
+	            }
+
+	            ret = jQuery.find.attr(elem, name);
+
+	            // Non-existent attributes return null, we normalize to undefined
+	            return ret == null ? undefined : ret;
+	        },
+
+	        attrHooks: {
+	            type: {
+	                set: function (elem, value) {
+	                    if (!support.radioValue && value === "radio" &&
+	                        jQuery.nodeName(elem, "input")) {
+	                        var val = elem.value;
+	                        elem.setAttribute("type", value);
+	                        if (val) {
+	                            elem.value = val;
+	                        }
+	                        return value;
+	                    }
+	                }
+	            }
+	        },
+
+	        removeAttr: function (elem, value) {
+	            var name,
+	                i = 0,
+	                attrNames = value && value.match(rnotwhite);
+
+	            if (attrNames && elem.nodeType === 1) {
+	                while (( name = attrNames[i++] )) {
+	                    elem.removeAttribute(name);
+	                }
+	            }
+	        }
+	    });
+
+	// Hooks for boolean attributes
+	    boolHook = {
+	        set: function (elem, value, name) {
+	            if (value === false) {
+
+	                // Remove boolean attributes when set to false
+	                jQuery.removeAttr(elem, name);
+	            } else {
+	                elem.setAttribute(name, name);
+	            }
+	            return name;
+	        }
+	    };
+
+	    jQuery.each(jQuery.expr.match.bool.source.match(/\w+/g), function (i, name) {
+	        var getter = attrHandle[name] || jQuery.find.attr;
+
+	        attrHandle[name] = function (elem, name, isXML) {
+	            var ret, handle,
+	                lowercaseName = name.toLowerCase();
+
+	            if (!isXML) {
+
+	                // Avoid an infinite loop by temporarily removing this function from the getter
+	                handle = attrHandle[lowercaseName];
+	                attrHandle[lowercaseName] = ret;
+	                ret = getter(elem, name, isXML) != null ?
+	                    lowercaseName :
+	                    null;
+	                attrHandle[lowercaseName] = handle;
+	            }
+	            return ret;
+	        };
+	    });
+
+
+	    var rfocusable = /^(?:input|select|textarea|button)$/i,
+	        rclickable = /^(?:a|area)$/i;
+
+	    jQuery.fn.extend({
+	        prop: function (name, value) {
+	            return access(this, jQuery.prop, name, value, arguments.length > 1);
+	        },
+
+	        removeProp: function (name) {
+	            return this.each(function () {
+	                delete this[jQuery.propFix[name] || name];
+	            });
+	        }
+	    });
+
+	    jQuery.extend({
+	        prop: function (elem, name, value) {
+	            var ret, hooks,
+	                nType = elem.nodeType;
+
+	            // Don't get/set properties on text, comment and attribute nodes
+	            if (nType === 3 || nType === 8 || nType === 2) {
+	                return;
+	            }
+
+	            if (nType !== 1 || !jQuery.isXMLDoc(elem)) {
+
+	                // Fix name and attach hooks
+	                name = jQuery.propFix[name] || name;
+	                hooks = jQuery.propHooks[name];
+	            }
+
+	            if (value !== undefined) {
+	                if (hooks && "set" in hooks &&
+	                    ( ret = hooks.set(elem, value, name) ) !== undefined) {
+	                    return ret;
+	                }
+
+	                return ( elem[name] = value );
+	            }
+
+	            if (hooks && "get" in hooks && ( ret = hooks.get(elem, name) ) !== null) {
+	                return ret;
+	            }
+
+	            return elem[name];
+	        },
+
+	        propHooks: {
+	            tabIndex: {
+	                get: function (elem) {
+
+	                    // Support: IE <=9 - 11 only
+	                    // elem.tabIndex doesn't always return the
+	                    // correct value when it hasn't been explicitly set
+	                    // https://web.archive.org/web/20141116233347/http://fluidproject.org/blog/2008/01/09/getting-setting-and-removing-tabindex-values-with-javascript/
+	                    // Use proper attribute retrieval(#12072)
+	                    var tabindex = jQuery.find.attr(elem, "tabindex");
+
+	                    return tabindex ?
+	                        parseInt(tabindex, 10) :
+	                        rfocusable.test(elem.nodeName) ||
+	                        rclickable.test(elem.nodeName) && elem.href ?
+	                            0 :
+	                            -1;
+	                }
+	            }
+	        },
+
+	        propFix: {
+	            "for": "htmlFor",
+	            "class": "className"
+	        }
+	    });
+
+	// Support: IE <=11 only
+	// Accessing the selectedIndex property
+	// forces the browser to respect setting selected
+	// on the option
+	// The getter ensures a default option is selected
+	// when in an optgroup
+	    if (!support.optSelected) {
+	        jQuery.propHooks.selected = {
+	            get: function (elem) {
+	                var parent = elem.parentNode;
+	                if (parent && parent.parentNode) {
+	                    parent.parentNode.selectedIndex;
+	                }
+	                return null;
+	            },
+	            set: function (elem) {
+	                var parent = elem.parentNode;
+	                if (parent) {
+	                    parent.selectedIndex;
+
+	                    if (parent.parentNode) {
+	                        parent.parentNode.selectedIndex;
+	                    }
+	                }
+	            }
+	        };
+	    }
+
+	    jQuery.each([
+	        "tabIndex",
+	        "readOnly",
+	        "maxLength",
+	        "cellSpacing",
+	        "cellPadding",
+	        "rowSpan",
+	        "colSpan",
+	        "useMap",
+	        "frameBorder",
+	        "contentEditable"
+	    ], function () {
+	        jQuery.propFix[this.toLowerCase()] = this;
+	    });
+
+
+	    var rclass = /[\t\r\n\f]/g;
+
+	    function getClass(elem) {
+	        return elem.getAttribute && elem.getAttribute("class") || "";
+	    }
+
+	    jQuery.fn.extend({
+	        addClass: function (value) {
+	            var classes, elem, cur, curValue, clazz, j, finalValue,
+	                i = 0;
+
+	            if (jQuery.isFunction(value)) {
+	                return this.each(function (j) {
+	                    jQuery(this).addClass(value.call(this, j, getClass(this)));
+	                });
+	            }
+
+	            if (typeof value === "string" && value) {
+	                classes = value.match(rnotwhite) || [];
+
+	                while (( elem = this[i++] )) {
+	                    curValue = getClass(elem);
+	                    cur = elem.nodeType === 1 &&
+	                    ( " " + curValue + " " ).replace(rclass, " ");
+
+	                    if (cur) {
+	                        j = 0;
+	                        while (( clazz = classes[j++] )) {
+	                            if (cur.indexOf(" " + clazz + " ") < 0) {
+	                                cur += clazz + " ";
+	                            }
+	                        }
+
+	                        // Only assign if different to avoid unneeded rendering.
+	                        finalValue = jQuery.trim(cur);
+	                        if (curValue !== finalValue) {
+	                            elem.setAttribute("class", finalValue);
+	                        }
+	                    }
+	                }
+	            }
+
+	            return this;
+	        },
+
+	        removeClass: function (value) {
+	            var classes, elem, cur, curValue, clazz, j, finalValue,
+	                i = 0;
+
+	            if (jQuery.isFunction(value)) {
+	                return this.each(function (j) {
+	                    jQuery(this).removeClass(value.call(this, j, getClass(this)));
+	                });
+	            }
+
+	            if (!arguments.length) {
+	                return this.attr("class", "");
+	            }
+
+	            if (typeof value === "string" && value) {
+	                classes = value.match(rnotwhite) || [];
+
+	                while (( elem = this[i++] )) {
+	                    curValue = getClass(elem);
+
+	                    // This expression is here for better compressibility (see addClass)
+	                    cur = elem.nodeType === 1 &&
+	                    ( " " + curValue + " " ).replace(rclass, " ");
+
+	                    if (cur) {
+	                        j = 0;
+	                        while (( clazz = classes[j++] )) {
+
+	                            // Remove *all* instances
+	                            while (cur.indexOf(" " + clazz + " ") > -1) {
+	                                cur = cur.replace(" " + clazz + " ", " ");
+	                            }
+	                        }
+
+	                        // Only assign if different to avoid unneeded rendering.
+	                        finalValue = jQuery.trim(cur);
+	                        if (curValue !== finalValue) {
+	                            elem.setAttribute("class", finalValue);
+	                        }
+	                    }
+	                }
+	            }
+
+	            return this;
+	        },
+
+	        toggleClass: function (value, stateVal) {
+	            var type = typeof value;
+
+	            if (typeof stateVal === "boolean" && type === "string") {
+	                return stateVal ? this.addClass(value) : this.removeClass(value);
+	            }
+
+	            if (jQuery.isFunction(value)) {
+	                return this.each(function (i) {
+	                    jQuery(this).toggleClass(
+	                        value.call(this, i, getClass(this), stateVal),
+	                        stateVal
+	                    );
+	                });
+	            }
+
+	            return this.each(function () {
+	                var className, i, self, classNames;
+
+	                if (type === "string") {
+
+	                    // Toggle individual class names
+	                    i = 0;
+	                    self = jQuery(this);
+	                    classNames = value.match(rnotwhite) || [];
+
+	                    while (( className = classNames[i++] )) {
+
+	                        // Check each className given, space separated list
+	                        if (self.hasClass(className)) {
+	                            self.removeClass(className);
+	                        } else {
+	                            self.addClass(className);
+	                        }
+	                    }
+
+	                    // Toggle whole class name
+	                } else if (value === undefined || type === "boolean") {
+	                    className = getClass(this);
+	                    if (className) {
+
+	                        // Store className if set
+	                        dataPriv.set(this, "__className__", className);
+	                    }
+
+	                    // If the element has a class name or if we're passed `false`,
+	                    // then remove the whole classname (if there was one, the above saved it).
+	                    // Otherwise bring back whatever was previously saved (if anything),
+	                    // falling back to the empty string if nothing was stored.
+	                    if (this.setAttribute) {
+	                        this.setAttribute("class",
+	                            className || value === false ?
+	                                "" :
+	                            dataPriv.get(this, "__className__") || ""
+	                        );
+	                    }
+	                }
+	            });
+	        },
+
+	        hasClass: function (selector) {
+	            var className, elem,
+	                i = 0;
+
+	            className = " " + selector + " ";
+	            while (( elem = this[i++] )) {
+	                if (elem.nodeType === 1 &&
+	                    ( " " + getClass(elem) + " " ).replace(rclass, " ")
+	                        .indexOf(className) > -1
+	                ) {
+	                    return true;
+	                }
+	            }
+
+	            return false;
+	        }
+	    });
+
+
+	    var rreturn = /\r/g,
+	        rspaces = /[\x20\t\r\n\f]+/g;
+
+	    jQuery.fn.extend({
+	        val: function (value) {
+	            var hooks, ret, isFunction,
+	                elem = this[0];
+
+	            if (!arguments.length) {
+	                if (elem) {
+	                    hooks = jQuery.valHooks[elem.type] ||
+	                    jQuery.valHooks[elem.nodeName.toLowerCase()];
+
+	                    if (hooks &&
+	                        "get" in hooks &&
+	                        ( ret = hooks.get(elem, "value") ) !== undefined
+	                    ) {
+	                        return ret;
+	                    }
+
+	                    ret = elem.value;
+
+	                    return typeof ret === "string" ?
+
+	                        // Handle most common string cases
+	                        ret.replace(rreturn, "") :
+
+	                        // Handle cases where value is null/undef or number
+	                        ret == null ? "" : ret;
+	                }
+
+	                return;
+	            }
+
+	            isFunction = jQuery.isFunction(value);
+
+	            return this.each(function (i) {
+	                var val;
+
+	                if (this.nodeType !== 1) {
+	                    return;
+	                }
+
+	                if (isFunction) {
+	                    val = value.call(this, i, jQuery(this).val());
+	                } else {
+	                    val = value;
+	                }
+
+	                // Treat null/undefined as ""; convert numbers to string
+	                if (val == null) {
+	                    val = "";
+
+	                } else if (typeof val === "number") {
+	                    val += "";
+
+	                } else if (jQuery.isArray(val)) {
+	                    val = jQuery.map(val, function (value) {
+	                        return value == null ? "" : value + "";
+	                    });
+	                }
+
+	                hooks = jQuery.valHooks[this.type] || jQuery.valHooks[this.nodeName.toLowerCase()];
+
+	                // If set returns undefined, fall back to normal setting
+	                if (!hooks || !( "set" in hooks ) || hooks.set(this, val, "value") === undefined) {
+	                    this.value = val;
+	                }
+	            });
+	        }
+	    });
+
+	    jQuery.extend({
+	        valHooks: {
+	            option: {
+	                get: function (elem) {
+
+	                    var val = jQuery.find.attr(elem, "value");
+	                    return val != null ?
+	                        val :
+
+	                        // Support: IE <=10 - 11 only
+	                        // option.text throws exceptions (#14686, #14858)
+	                        // Strip and collapse whitespace
+	                        // https://html.spec.whatwg.org/#strip-and-collapse-whitespace
+	                        jQuery.trim(jQuery.text(elem)).replace(rspaces, " ");
+	                }
+	            },
+	            select: {
+	                get: function (elem) {
+	                    var value, option,
+	                        options = elem.options,
+	                        index = elem.selectedIndex,
+	                        one = elem.type === "select-one",
+	                        values = one ? null : [],
+	                        max = one ? index + 1 : options.length,
+	                        i = index < 0 ?
+	                            max :
+	                            one ? index : 0;
+
+	                    // Loop through all the selected options
+	                    for (; i < max; i++) {
+	                        option = options[i];
+
+	                        // Support: IE <=9 only
+	                        // IE8-9 doesn't update selected after form reset (#2551)
+	                        if (( option.selected || i === index ) &&
+
+	                                // Don't return options that are disabled or in a disabled optgroup
+	                            !option.disabled &&
+	                            ( !option.parentNode.disabled || !jQuery.nodeName(option.parentNode, "optgroup") )) {
+
+	                            // Get the specific value for the option
+	                            value = jQuery(option).val();
+
+	                            // We don't need an array for one selects
+	                            if (one) {
+	                                return value;
+	                            }
+
+	                            // Multi-Selects return an array
+	                            values.push(value);
+	                        }
+	                    }
+
+	                    return values;
+	                },
+
+	                set: function (elem, value) {
+	                    var optionSet, option,
+	                        options = elem.options,
+	                        values = jQuery.makeArray(value),
+	                        i = options.length;
+
+	                    while (i--) {
+	                        option = options[i];
+
+	                        /* eslint-disable no-cond-assign */
+
+	                        if (option.selected =
+	                                jQuery.inArray(jQuery.valHooks.option.get(option), values) > -1
+	                        ) {
+	                            optionSet = true;
+	                        }
+
+	                        /* eslint-enable no-cond-assign */
+	                    }
+
+	                    // Force browsers to behave consistently when non-matching value is set
+	                    if (!optionSet) {
+	                        elem.selectedIndex = -1;
+	                    }
+	                    return values;
+	                }
+	            }
+	        }
+	    });
+
+	// Radios and checkboxes getter/setter
+	    jQuery.each(["radio", "checkbox"], function () {
+	        jQuery.valHooks[this] = {
+	            set: function (elem, value) {
+	                if (jQuery.isArray(value)) {
+	                    return ( elem.checked = jQuery.inArray(jQuery(elem).val(), value) > -1 );
+	                }
+	            }
+	        };
+	        if (!support.checkOn) {
+	            jQuery.valHooks[this].get = function (elem) {
+	                return elem.getAttribute("value") === null ? "on" : elem.value;
+	            };
+	        }
+	    });
+
+
+	// Return jQuery for attributes-only inclusion
+
+
+	    var rfocusMorph = /^(?:focusinfocus|focusoutblur)$/;
+
+	    jQuery.extend(jQuery.event, {
+
+	        trigger: function (event, data, elem, onlyHandlers) {
+
+	            var i, cur, tmp, bubbleType, ontype, handle, special,
+	                eventPath = [elem || document],
+	                type = hasOwn.call(event, "type") ? event.type : event,
+	                namespaces = hasOwn.call(event, "namespace") ? event.namespace.split(".") : [];
+
+	            cur = tmp = elem = elem || document;
+
+	            // Don't do events on text and comment nodes
+	            if (elem.nodeType === 3 || elem.nodeType === 8) {
+	                return;
+	            }
+
+	            // focus/blur morphs to focusin/out; ensure we're not firing them right now
+	            if (rfocusMorph.test(type + jQuery.event.triggered)) {
+	                return;
+	            }
+
+	            if (type.indexOf(".") > -1) {
+
+	                // Namespaced trigger; create a regexp to match event type in handle()
+	                namespaces = type.split(".");
+	                type = namespaces.shift();
+	                namespaces.sort();
+	            }
+	            ontype = type.indexOf(":") < 0 && "on" + type;
+
+	            // Caller can pass in a jQuery.Event object, Object, or just an event type string
+	            event = event[jQuery.expando] ?
+	                event :
+	                new jQuery.Event(type, typeof event === "object" && event);
+
+	            // Trigger bitmask: & 1 for native handlers; & 2 for jQuery (always true)
+	            event.isTrigger = onlyHandlers ? 2 : 3;
+	            event.namespace = namespaces.join(".");
+	            event.rnamespace = event.namespace ?
+	                new RegExp("(^|\\.)" + namespaces.join("\\.(?:.*\\.|)") + "(\\.|$)") :
+	                null;
+
+	            // Clean up the event in case it is being reused
+	            event.result = undefined;
+	            if (!event.target) {
+	                event.target = elem;
+	            }
+
+	            // Clone any incoming data and prepend the event, creating the handler arg list
+	            data = data == null ?
+	                [event] :
+	                jQuery.makeArray(data, [event]);
+
+	            // Allow special events to draw outside the lines
+	            special = jQuery.event.special[type] || {};
+	            if (!onlyHandlers && special.trigger && special.trigger.apply(elem, data) === false) {
+	                return;
+	            }
+
+	            // Determine event propagation path in advance, per W3C events spec (#9951)
+	            // Bubble up to document, then to window; watch for a global ownerDocument var (#9724)
+	            if (!onlyHandlers && !special.noBubble && !jQuery.isWindow(elem)) {
+
+	                bubbleType = special.delegateType || type;
+	                if (!rfocusMorph.test(bubbleType + type)) {
+	                    cur = cur.parentNode;
+	                }
+	                for (; cur; cur = cur.parentNode) {
+	                    eventPath.push(cur);
+	                    tmp = cur;
+	                }
+
+	                // Only add window if we got to document (e.g., not plain obj or detached DOM)
+	                if (tmp === ( elem.ownerDocument || document )) {
+	                    eventPath.push(tmp.defaultView || tmp.parentWindow || window);
+	                }
+	            }
+
+	            // Fire handlers on the event path
+	            i = 0;
+	            while (( cur = eventPath[i++] ) && !event.isPropagationStopped()) {
+
+	                event.type = i > 1 ?
+	                    bubbleType :
+	                special.bindType || type;
+
+	                // jQuery handler
+	                handle = ( dataPriv.get(cur, "events") || {} )[event.type] &&
+	                dataPriv.get(cur, "handle");
+	                if (handle) {
+	                    handle.apply(cur, data);
+	                }
+
+	                // Native handler
+	                handle = ontype && cur[ontype];
+	                if (handle && handle.apply && acceptData(cur)) {
+	                    event.result = handle.apply(cur, data);
+	                    if (event.result === false) {
+	                        event.preventDefault();
+	                    }
+	                }
+	            }
+	            event.type = type;
+
+	            // If nobody prevented the default action, do it now
+	            if (!onlyHandlers && !event.isDefaultPrevented()) {
+
+	                if (( !special._default ||
+	                    special._default.apply(eventPath.pop(), data) === false ) &&
+	                    acceptData(elem)) {
+
+	                    // Call a native DOM method on the target with the same name as the event.
+	                    // Don't do default actions on window, that's where global variables be (#6170)
+	                    if (ontype && jQuery.isFunction(elem[type]) && !jQuery.isWindow(elem)) {
+
+	                        // Don't re-trigger an onFOO event when we call its FOO() method
+	                        tmp = elem[ontype];
+
+	                        if (tmp) {
+	                            elem[ontype] = null;
+	                        }
+
+	                        // Prevent re-triggering of the same event, since we already bubbled it above
+	                        jQuery.event.triggered = type;
+	                        elem[type]();
+	                        jQuery.event.triggered = undefined;
+
+	                        if (tmp) {
+	                            elem[ontype] = tmp;
+	                        }
+	                    }
+	                }
+	            }
+
+	            return event.result;
+	        },
+
+	        // Piggyback on a donor event to simulate a different one
+	        // Used only for `focus(in | out)` events
+	        simulate: function (type, elem, event) {
+	            var e = jQuery.extend(
+	                new jQuery.Event(),
+	                event,
+	                {
+	                    type: type,
+	                    isSimulated: true
+	                }
+	            );
+
+	            jQuery.event.trigger(e, null, elem);
+	        }
+
+	    });
+
+	    jQuery.fn.extend({
+
+	        trigger: function (type, data) {
+	            return this.each(function () {
+	                jQuery.event.trigger(type, data, this);
+	            });
+	        },
+	        triggerHandler: function (type, data) {
+	            var elem = this[0];
+	            if (elem) {
+	                return jQuery.event.trigger(type, data, elem, true);
+	            }
+	        }
+	    });
+
+
+	    jQuery.each(( "blur focus focusin focusout resize scroll click dblclick " +
+	        "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+	        "change select submit keydown keypress keyup contextmenu" ).split(" "),
+	        function (i, name) {
+
+	            // Handle event binding
+	            jQuery.fn[name] = function (data, fn) {
+	                return arguments.length > 0 ?
+	                    this.on(name, null, data, fn) :
+	                    this.trigger(name);
+	            };
+	        });
+
+	    jQuery.fn.extend({
+	        hover: function (fnOver, fnOut) {
+	            return this.mouseenter(fnOver).mouseleave(fnOut || fnOver);
+	        }
+	    });
+
+
+	    support.focusin = "onfocusin" in window;
+
+
+	// Support: Firefox <=44
+	// Firefox doesn't have focus(in | out) events
+	// Related ticket - https://bugzilla.mozilla.org/show_bug.cgi?id=687787
+	//
+	// Support: Chrome <=48 - 49, Safari <=9.0 - 9.1
+	// focus(in | out) events fire after focus & blur events,
+	// which is spec violation - http://www.w3.org/TR/DOM-Level-3-Events/#events-focusevent-event-order
+	// Related ticket - https://bugs.chromium.org/p/chromium/issues/detail?id=449857
+	    if (!support.focusin) {
+	        jQuery.each({focus: "focusin", blur: "focusout"}, function (orig, fix) {
+
+	            // Attach a single capturing handler on the document while someone wants focusin/focusout
+	            var handler = function (event) {
+	                jQuery.event.simulate(fix, event.target, jQuery.event.fix(event));
+	            };
+
+	            jQuery.event.special[fix] = {
+	                setup: function () {
+	                    var doc = this.ownerDocument || this,
+	                        attaches = dataPriv.access(doc, fix);
+
+	                    if (!attaches) {
+	                        doc.addEventListener(orig, handler, true);
+	                    }
+	                    dataPriv.access(doc, fix, ( attaches || 0 ) + 1);
+	                },
+	                teardown: function () {
+	                    var doc = this.ownerDocument || this,
+	                        attaches = dataPriv.access(doc, fix) - 1;
+
+	                    if (!attaches) {
+	                        doc.removeEventListener(orig, handler, true);
+	                        dataPriv.remove(doc, fix);
+
+	                    } else {
+	                        dataPriv.access(doc, fix, attaches);
+	                    }
+	                }
+	            };
+	        });
+	    }
+	    var location = window.location;
+
+	    var nonce = jQuery.now();
+
+	    var rquery = ( /\?/ );
+
+
+	// Cross-browser xml parsing
+	    jQuery.parseXML = function (data) {
+	        var xml;
+	        if (!data || typeof data !== "string") {
+	            return null;
+	        }
+
+	        // Support: IE 9 - 11 only
+	        // IE throws on parseFromString with invalid input.
+	        try {
+	            xml = ( new window.DOMParser() ).parseFromString(data, "text/xml");
+	        } catch (e) {
+	            xml = undefined;
+	        }
+
+	        if (!xml || xml.getElementsByTagName("parsererror").length) {
+	            jQuery.error("Invalid XML: " + data);
+	        }
+	        return xml;
+	    };
+
+
+	    var
+	        rbracket = /\[\]$/,
+	        rCRLF = /\r?\n/g,
+	        rsubmitterTypes = /^(?:submit|button|image|reset|file)$/i,
+	        rsubmittable = /^(?:input|select|textarea|keygen)/i;
+
+	    function buildParams(prefix, obj, traditional, add) {
+	        var name;
+
+	        if (jQuery.isArray(obj)) {
+
+	            // Serialize array item.
+	            jQuery.each(obj, function (i, v) {
+	                if (traditional || rbracket.test(prefix)) {
+
+	                    // Treat each array item as a scalar.
+	                    add(prefix, v);
+
+	                } else {
+
+	                    // Item is non-scalar (array or object), encode its numeric index.
+	                    buildParams(
+	                        prefix + "[" + ( typeof v === "object" && v != null ? i : "" ) + "]",
+	                        v,
+	                        traditional,
+	                        add
+	                    );
+	                }
+	            });
+
+	        } else if (!traditional && jQuery.type(obj) === "object") {
+
+	            // Serialize object item.
+	            for (name in obj) {
+	                buildParams(prefix + "[" + name + "]", obj[name], traditional, add);
+	            }
+
+	        } else {
+
+	            // Serialize scalar item.
+	            add(prefix, obj);
+	        }
+	    }
+
+	// Serialize an array of form elements or a set of
+	// key/values into a query string
+	    jQuery.param = function (a, traditional) {
+	        var prefix,
+	            s = [],
+	            add = function (key, valueOrFunction) {
+
+	                // If value is a function, invoke it and use its return value
+	                var value = jQuery.isFunction(valueOrFunction) ?
+	                    valueOrFunction() :
+	                    valueOrFunction;
+
+	                s[s.length] = encodeURIComponent(key) + "=" +
+	                encodeURIComponent(value == null ? "" : value);
+	            };
+
+	        // If an array was passed in, assume that it is an array of form elements.
+	        if (jQuery.isArray(a) || ( a.jquery && !jQuery.isPlainObject(a) )) {
+
+	            // Serialize the form elements
+	            jQuery.each(a, function () {
+	                add(this.name, this.value);
+	            });
+
+	        } else {
+
+	            // If traditional, encode the "old" way (the way 1.3.2 or older
+	            // did it), otherwise encode params recursively.
+	            for (prefix in a) {
+	                buildParams(prefix, a[prefix], traditional, add);
+	            }
+	        }
+
+	        // Return the resulting serialization
+	        return s.join("&");
+	    };
+
+	    jQuery.fn.extend({
+	        serialize: function () {
+	            return jQuery.param(this.serializeArray());
+	        },
+	        serializeArray: function () {
+	            return this.map(function () {
+
+	                // Can add propHook for "elements" to filter or add form elements
+	                var elements = jQuery.prop(this, "elements");
+	                return elements ? jQuery.makeArray(elements) : this;
+	            })
+	                .filter(function () {
+	                    var type = this.type;
+
+	                    // Use .is( ":disabled" ) so that fieldset[disabled] works
+	                    return this.name && !jQuery(this).is(":disabled") &&
+	                    rsubmittable.test(this.nodeName) && !rsubmitterTypes.test(type) &&
+	                    ( this.checked || !rcheckableType.test(type) );
+	                })
+	                .map(function (i, elem) {
+	                    var val = jQuery(this).val();
+
+	                    return val == null ?
+	                        null :
+	                        jQuery.isArray(val) ?
+	                            jQuery.map(val, function (val) {
+	                                return {name: elem.name, value: val.replace(rCRLF, "\r\n")};
+	                            }) :
+	                        {name: elem.name, value: val.replace(rCRLF, "\r\n")};
+	                }).get();
+	        }
+	    });
+
+
+	    var
+	        r20 = /%20/g,
+	        rhash = /#.*$/,
+	        rts = /([?&])_=[^&]*/,
+	        rheaders = /^(.*?):[ \t]*([^\r\n]*)$/mg,
+
+	    // #7653, #8125, #8152: local protocol detection
+	        rlocalProtocol = /^(?:about|app|app-storage|.+-extension|file|res|widget):$/,
+	        rnoContent = /^(?:GET|HEAD)$/,
+	        rprotocol = /^\/\//,
+
+	    /* Prefilters
+	     * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
+	     * 2) These are called:
+	     *    - BEFORE asking for a transport
+	     *    - AFTER param serialization (s.data is a string if s.processData is true)
+	     * 3) key is the dataType
+	     * 4) the catchall symbol "*" can be used
+	     * 5) execution will start with transport dataType and THEN continue down to "*" if needed
+	     */
+	        prefilters = {},
+
+	    /* Transports bindings
+	     * 1) key is the dataType
+	     * 2) the catchall symbol "*" can be used
+	     * 3) selection will start with transport dataType and THEN go to "*" if needed
+	     */
+	        transports = {},
+
+	    // Avoid comment-prolog char sequence (#10098); must appease lint and evade compression
+	        allTypes = "*/".concat("*"),
+
+	    // Anchor tag for parsing the document origin
+	        originAnchor = document.createElement("a");
+	    originAnchor.href = location.href;
+
+	// Base "constructor" for jQuery.ajaxPrefilter and jQuery.ajaxTransport
+	    function addToPrefiltersOrTransports(structure) {
+
+	        // dataTypeExpression is optional and defaults to "*"
+	        return function (dataTypeExpression, func) {
+
+	            if (typeof dataTypeExpression !== "string") {
+	                func = dataTypeExpression;
+	                dataTypeExpression = "*";
+	            }
+
+	            var dataType,
+	                i = 0,
+	                dataTypes = dataTypeExpression.toLowerCase().match(rnotwhite) || [];
+
+	            if (jQuery.isFunction(func)) {
+
+	                // For each dataType in the dataTypeExpression
+	                while (( dataType = dataTypes[i++] )) {
+
+	                    // Prepend if requested
+	                    if (dataType[0] === "+") {
+	                        dataType = dataType.slice(1) || "*";
+	                        ( structure[dataType] = structure[dataType] || [] ).unshift(func);
+
+	                        // Otherwise append
+	                    } else {
+	                        ( structure[dataType] = structure[dataType] || [] ).push(func);
+	                    }
+	                }
+	            }
+	        };
+	    }
+
+	// Base inspection function for prefilters and transports
+	    function inspectPrefiltersOrTransports(structure, options, originalOptions, jqXHR) {
+
+	        var inspected = {},
+	            seekingTransport = ( structure === transports );
+
+	        function inspect(dataType) {
+	            var selected;
+	            inspected[dataType] = true;
+	            jQuery.each(structure[dataType] || [], function (_, prefilterOrFactory) {
+	                var dataTypeOrTransport = prefilterOrFactory(options, originalOptions, jqXHR);
+	                if (typeof dataTypeOrTransport === "string" && !seekingTransport && !inspected[dataTypeOrTransport]) {
+
+	                    options.dataTypes.unshift(dataTypeOrTransport);
+	                    inspect(dataTypeOrTransport);
+	                    return false;
+	                } else if (seekingTransport) {
+	                    return !( selected = dataTypeOrTransport );
+	                }
+	            });
+	            return selected;
+	        }
+
+	        return inspect(options.dataTypes[0]) || !inspected["*"] && inspect("*");
+	    }
+
+	// A special extend for ajax options
+	// that takes "flat" options (not to be deep extended)
+	// Fixes #9887
+	    function ajaxExtend(target, src) {
+	        var key, deep,
+	            flatOptions = jQuery.ajaxSettings.flatOptions || {};
+
+	        for (key in src) {
+	            if (src[key] !== undefined) {
+	                ( flatOptions[key] ? target : ( deep || ( deep = {} ) ) )[key] = src[key];
+	            }
+	        }
+	        if (deep) {
+	            jQuery.extend(true, target, deep);
+	        }
+
+	        return target;
+	    }
+
+	    /* Handles responses to an ajax request:
+	     * - finds the right dataType (mediates between content-type and expected dataType)
+	     * - returns the corresponding response
+	     */
+	    function ajaxHandleResponses(s, jqXHR, responses) {
+
+	        var ct, type, finalDataType, firstDataType,
+	            contents = s.contents,
+	            dataTypes = s.dataTypes;
+
+	        // Remove auto dataType and get content-type in the process
+	        while (dataTypes[0] === "*") {
+	            dataTypes.shift();
+	            if (ct === undefined) {
+	                ct = s.mimeType || jqXHR.getResponseHeader("Content-Type");
+	            }
+	        }
+
+	        // Check if we're dealing with a known content-type
+	        if (ct) {
+	            for (type in contents) {
+	                if (contents[type] && contents[type].test(ct)) {
+	                    dataTypes.unshift(type);
+	                    break;
+	                }
+	            }
+	        }
+
+	        // Check to see if we have a response for the expected dataType
+	        if (dataTypes[0] in responses) {
+	            finalDataType = dataTypes[0];
+	        } else {
+
+	            // Try convertible dataTypes
+	            for (type in responses) {
+	                if (!dataTypes[0] || s.converters[type + " " + dataTypes[0]]) {
+	                    finalDataType = type;
+	                    break;
+	                }
+	                if (!firstDataType) {
+	                    firstDataType = type;
+	                }
+	            }
+
+	            // Or just use first one
+	            finalDataType = finalDataType || firstDataType;
+	        }
+
+	        // If we found a dataType
+	        // We add the dataType to the list if needed
+	        // and return the corresponding response
+	        if (finalDataType) {
+	            if (finalDataType !== dataTypes[0]) {
+	                dataTypes.unshift(finalDataType);
+	            }
+	            return responses[finalDataType];
+	        }
+	    }
+
+	    /* Chain conversions given the request and the original response
+	     * Also sets the responseXXX fields on the jqXHR instance
+	     */
+	    function ajaxConvert(s, response, jqXHR, isSuccess) {
+	        var conv2, current, conv, tmp, prev,
+	            converters = {},
+
+	        // Work with a copy of dataTypes in case we need to modify it for conversion
+	            dataTypes = s.dataTypes.slice();
+
+	        // Create converters map with lowercased keys
+	        if (dataTypes[1]) {
+	            for (conv in s.converters) {
+	                converters[conv.toLowerCase()] = s.converters[conv];
+	            }
+	        }
+
+	        current = dataTypes.shift();
+
+	        // Convert to each sequential dataType
+	        while (current) {
+
+	            if (s.responseFields[current]) {
+	                jqXHR[s.responseFields[current]] = response;
+	            }
+
+	            // Apply the dataFilter if provided
+	            if (!prev && isSuccess && s.dataFilter) {
+	                response = s.dataFilter(response, s.dataType);
+	            }
+
+	            prev = current;
+	            current = dataTypes.shift();
+
+	            if (current) {
+
+	                // There's only work to do if current dataType is non-auto
+	                if (current === "*") {
+
+	                    current = prev;
+
+	                    // Convert response if prev dataType is non-auto and differs from current
+	                } else if (prev !== "*" && prev !== current) {
+
+	                    // Seek a direct converter
+	                    conv = converters[prev + " " + current] || converters["* " + current];
+
+	                    // If none found, seek a pair
+	                    if (!conv) {
+	                        for (conv2 in converters) {
+
+	                            // If conv2 outputs current
+	                            tmp = conv2.split(" ");
+	                            if (tmp[1] === current) {
+
+	                                // If prev can be converted to accepted input
+	                                conv = converters[prev + " " + tmp[0]] ||
+	                                converters["* " + tmp[0]];
+	                                if (conv) {
+
+	                                    // Condense equivalence converters
+	                                    if (conv === true) {
+	                                        conv = converters[conv2];
+
+	                                        // Otherwise, insert the intermediate dataType
+	                                    } else if (converters[conv2] !== true) {
+	                                        current = tmp[0];
+	                                        dataTypes.unshift(tmp[1]);
+	                                    }
+	                                    break;
+	                                }
+	                            }
+	                        }
+	                    }
+
+	                    // Apply converter (if not an equivalence)
+	                    if (conv !== true) {
+
+	                        // Unless errors are allowed to bubble, catch and return them
+	                        if (conv && s.throws) {
+	                            response = conv(response);
+	                        } else {
+	                            try {
+	                                response = conv(response);
+	                            } catch (e) {
+	                                return {
+	                                    state: "parsererror",
+	                                    error: conv ? e : "No conversion from " + prev + " to " + current
+	                                };
+	                            }
+	                        }
+	                    }
+	                }
+	            }
+	        }
+
+	        return {state: "success", data: response};
+	    }
+
+	    jQuery.extend({
+
+	        // Counter for holding the number of active queries
+	        active: 0,
+
+	        // Last-Modified header cache for next request
+	        lastModified: {},
+	        etag: {},
+
+	        ajaxSettings: {
+	            url: location.href,
+	            type: "GET",
+	            isLocal: rlocalProtocol.test(location.protocol),
+	            global: true,
+	            processData: true,
+	            async: true,
+	            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+
+	            /*
+	             timeout: 0,
+	             data: null,
+	             dataType: null,
+	             username: null,
+	             password: null,
+	             cache: null,
+	             throws: false,
+	             traditional: false,
+	             headers: {},
+	             */
+
+	            accepts: {
+	                "*": allTypes,
+	                text: "text/plain",
+	                html: "text/html",
+	                xml: "application/xml, text/xml",
+	                json: "application/json, text/javascript"
+	            },
+
+	            contents: {
+	                xml: /\bxml\b/,
+	                html: /\bhtml/,
+	                json: /\bjson\b/
+	            },
+
+	            responseFields: {
+	                xml: "responseXML",
+	                text: "responseText",
+	                json: "responseJSON"
+	            },
+
+	            // Data converters
+	            // Keys separate source (or catchall "*") and destination types with a single space
+	            converters: {
+
+	                // Convert anything to text
+	                "* text": String,
+
+	                // Text to html (true = no transformation)
+	                "text html": true,
+
+	                // Evaluate text as a json expression
+	                "text json": JSON.parse,
+
+	                // Parse text as xml
+	                "text xml": jQuery.parseXML
+	            },
+
+	            // For options that shouldn't be deep extended:
+	            // you can add your own custom options here if
+	            // and when you create one that shouldn't be
+	            // deep extended (see ajaxExtend)
+	            flatOptions: {
+	                url: true,
+	                context: true
+	            }
+	        },
+
+	        // Creates a full fledged settings object into target
+	        // with both ajaxSettings and settings fields.
+	        // If target is omitted, writes into ajaxSettings.
+	        ajaxSetup: function (target, settings) {
+	            return settings ?
+
+	                // Building a settings object
+	                ajaxExtend(ajaxExtend(target, jQuery.ajaxSettings), settings) :
+
+	                // Extending ajaxSettings
+	                ajaxExtend(jQuery.ajaxSettings, target);
+	        },
+
+	        ajaxPrefilter: addToPrefiltersOrTransports(prefilters),
+	        ajaxTransport: addToPrefiltersOrTransports(transports),
+
+	        // Main method
+	        ajax: function (url, options) {
+
+	            // If url is an object, simulate pre-1.5 signature
+	            if (typeof url === "object") {
+	                options = url;
+	                url = undefined;
+	            }
+
+	            // Force options to be an object
+	            options = options || {};
+
+	            var transport,
+
+	            // URL without anti-cache param
+	                cacheURL,
+
+	            // Response headers
+	                responseHeadersString,
+	                responseHeaders,
+
+	            // timeout handle
+	                timeoutTimer,
+
+	            // Url cleanup var
+	                urlAnchor,
+
+	            // Request state (becomes false upon send and true upon completion)
+	                completed,
+
+	            // To know if global events are to be dispatched
+	                fireGlobals,
+
+	            // Loop variable
+	                i,
+
+	            // uncached part of the url
+	                uncached,
+
+	            // Create the final options object
+	                s = jQuery.ajaxSetup({}, options),
+
+	            // Callbacks context
+	                callbackContext = s.context || s,
+
+	            // Context for global events is callbackContext if it is a DOM node or jQuery collection
+	                globalEventContext = s.context &&
+	                ( callbackContext.nodeType || callbackContext.jquery ) ?
+	                    jQuery(callbackContext) :
+	                    jQuery.event,
+
+	            // Deferreds
+	                deferred = jQuery.Deferred(),
+	                completeDeferred = jQuery.Callbacks("once memory"),
+
+	            // Status-dependent callbacks
+	                statusCode = s.statusCode || {},
+
+	            // Headers (they are sent all at once)
+	                requestHeaders = {},
+	                requestHeadersNames = {},
+
+	            // Default abort message
+	                strAbort = "canceled",
+
+	            // Fake xhr
+	                jqXHR = {
+	                    readyState: 0,
+
+	                    // Builds headers hashtable if needed
+	                    getResponseHeader: function (key) {
+	                        var match;
+	                        if (completed) {
+	                            if (!responseHeaders) {
+	                                responseHeaders = {};
+	                                while (( match = rheaders.exec(responseHeadersString) )) {
+	                                    responseHeaders[match[1].toLowerCase()] = match[2];
+	                                }
+	                            }
+	                            match = responseHeaders[key.toLowerCase()];
+	                        }
+	                        return match == null ? null : match;
+	                    },
+
+	                    // Raw string
+	                    getAllResponseHeaders: function () {
+	                        return completed ? responseHeadersString : null;
+	                    },
+
+	                    // Caches the header
+	                    setRequestHeader: function (name, value) {
+	                        if (completed == null) {
+	                            name = requestHeadersNames[name.toLowerCase()] =
+	                                requestHeadersNames[name.toLowerCase()] || name;
+	                            requestHeaders[name] = value;
+	                        }
+	                        return this;
+	                    },
+
+	                    // Overrides response content-type header
+	                    overrideMimeType: function (type) {
+	                        if (completed == null) {
+	                            s.mimeType = type;
+	                        }
+	                        return this;
+	                    },
+
+	                    // Status-dependent callbacks
+	                    statusCode: function (map) {
+	                        var code;
+	                        if (map) {
+	                            if (completed) {
+
+	                                // Execute the appropriate callbacks
+	                                jqXHR.always(map[jqXHR.status]);
+	                            } else {
+
+	                                // Lazy-add the new callbacks in a way that preserves old ones
+	                                for (code in map) {
+	                                    statusCode[code] = [statusCode[code], map[code]];
+	                                }
+	                            }
+	                        }
+	                        return this;
+	                    },
+
+	                    // Cancel the request
+	                    abort: function (statusText) {
+	                        var finalText = statusText || strAbort;
+	                        if (transport) {
+	                            transport.abort(finalText);
+	                        }
+	                        done(0, finalText);
+	                        return this;
+	                    }
+	                };
+
+	            // Attach deferreds
+	            deferred.promise(jqXHR);
+
+	            // Add protocol if not provided (prefilters might expect it)
+	            // Handle falsy url in the settings object (#10093: consistency with old signature)
+	            // We also use the url parameter if available
+	            s.url = ( ( url || s.url || location.href ) + "" )
+	                .replace(rprotocol, location.protocol + "//");
+
+	            // Alias method option to type as per ticket #12004
+	            s.type = options.method || options.type || s.method || s.type;
+
+	            // Extract dataTypes list
+	            s.dataTypes = ( s.dataType || "*" ).toLowerCase().match(rnotwhite) || [""];
+
+	            // A cross-domain request is in order when the origin doesn't match the current origin.
+	            if (s.crossDomain == null) {
+	                urlAnchor = document.createElement("a");
+
+	                // Support: IE <=8 - 11, Edge 12 - 13
+	                // IE throws exception on accessing the href property if url is malformed,
+	                // e.g. http://example.com:80x/
+	                try {
+	                    urlAnchor.href = s.url;
+
+	                    // Support: IE <=8 - 11 only
+	                    // Anchor's host property isn't correctly set when s.url is relative
+	                    urlAnchor.href = urlAnchor.href;
+	                    s.crossDomain = originAnchor.protocol + "//" + originAnchor.host !==
+	                    urlAnchor.protocol + "//" + urlAnchor.host;
+	                } catch (e) {
+
+	                    // If there is an error parsing the URL, assume it is crossDomain,
+	                    // it can be rejected by the transport if it is invalid
+	                    s.crossDomain = true;
+	                }
+	            }
+
+	            // Convert data if not already a string
+	            if (s.data && s.processData && typeof s.data !== "string") {
+	                s.data = jQuery.param(s.data, s.traditional);
+	            }
+
+	            // Apply prefilters
+	            inspectPrefiltersOrTransports(prefilters, s, options, jqXHR);
+
+	            // If request was aborted inside a prefilter, stop there
+	            if (completed) {
+	                return jqXHR;
+	            }
+
+	            // We can fire global events as of now if asked to
+	            // Don't fire events if jQuery.event is undefined in an AMD-usage scenario (#15118)
+	            fireGlobals = jQuery.event && s.global;
+
+	            // Watch for a new set of requests
+	            if (fireGlobals && jQuery.active++ === 0) {
+	                jQuery.event.trigger("ajaxStart");
+	            }
+
+	            // Uppercase the type
+	            s.type = s.type.toUpperCase();
+
+	            // Determine if request has content
+	            s.hasContent = !rnoContent.test(s.type);
+
+	            // Save the URL in case we're toying with the If-Modified-Since
+	            // and/or If-None-Match header later on
+	            // Remove hash to simplify url manipulation
+	            cacheURL = s.url.replace(rhash, "");
+
+	            // More options handling for requests with no content
+	            if (!s.hasContent) {
+
+	                // Remember the hash so we can put it back
+	                uncached = s.url.slice(cacheURL.length);
+
+	                // If data is available, append data to url
+	                if (s.data) {
+	                    cacheURL += ( rquery.test(cacheURL) ? "&" : "?" ) + s.data;
+
+	                    // #9682: remove data so that it's not used in an eventual retry
+	                    delete s.data;
+	                }
+
+	                // Add anti-cache in uncached url if needed
+	                if (s.cache === false) {
+	                    cacheURL = cacheURL.replace(rts, "");
+	                    uncached = ( rquery.test(cacheURL) ? "&" : "?" ) + "_=" + ( nonce++ ) + uncached;
+	                }
+
+	                // Put hash and anti-cache on the URL that will be requested (gh-1732)
+	                s.url = cacheURL + uncached;
+
+	                // Change '%20' to '+' if this is encoded form body content (gh-2658)
+	            } else if (s.data && s.processData &&
+	                ( s.contentType || "" ).indexOf("application/x-www-form-urlencoded") === 0) {
+	                s.data = s.data.replace(r20, "+");
+	            }
+
+	            // Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+	            if (s.ifModified) {
+	                if (jQuery.lastModified[cacheURL]) {
+	                    jqXHR.setRequestHeader("If-Modified-Since", jQuery.lastModified[cacheURL]);
+	                }
+	                if (jQuery.etag[cacheURL]) {
+	                    jqXHR.setRequestHeader("If-None-Match", jQuery.etag[cacheURL]);
+	                }
+	            }
+
+	            // Set the correct header, if data is being sent
+	            if (s.data && s.hasContent && s.contentType !== false || options.contentType) {
+	                jqXHR.setRequestHeader("Content-Type", s.contentType);
+	            }
+
+	            // Set the Accepts header for the server, depending on the dataType
+	            jqXHR.setRequestHeader(
+	                "Accept",
+	                s.dataTypes[0] && s.accepts[s.dataTypes[0]] ?
+	                s.accepts[s.dataTypes[0]] +
+	                ( s.dataTypes[0] !== "*" ? ", " + allTypes + "; q=0.01" : "" ) :
+	                    s.accepts["*"]
+	            );
+
+	            // Check for headers option
+	            for (i in s.headers) {
+	                jqXHR.setRequestHeader(i, s.headers[i]);
+	            }
+
+	            // Allow custom headers/mimetypes and early abort
+	            if (s.beforeSend &&
+	                ( s.beforeSend.call(callbackContext, jqXHR, s) === false || completed )) {
+
+	                // Abort if not done already and return
+	                return jqXHR.abort();
+	            }
+
+	            // Aborting is no longer a cancellation
+	            strAbort = "abort";
+
+	            // Install callbacks on deferreds
+	            completeDeferred.add(s.complete);
+	            jqXHR.done(s.success);
+	            jqXHR.fail(s.error);
+
+	            // Get transport
+	            transport = inspectPrefiltersOrTransports(transports, s, options, jqXHR);
+
+	            // If no transport, we auto-abort
+	            if (!transport) {
+	                done(-1, "No Transport");
+	            } else {
+	                jqXHR.readyState = 1;
+
+	                // Send global event
+	                if (fireGlobals) {
+	                    globalEventContext.trigger("ajaxSend", [jqXHR, s]);
+	                }
+
+	                // If request was aborted inside ajaxSend, stop there
+	                if (completed) {
+	                    return jqXHR;
+	                }
+
+	                // Timeout
+	                if (s.async && s.timeout > 0) {
+	                    timeoutTimer = window.setTimeout(function () {
+	                        jqXHR.abort("timeout");
+	                    }, s.timeout);
+	                }
+
+	                try {
+	                    completed = false;
+	                    transport.send(requestHeaders, done);
+	                } catch (e) {
+
+	                    // Rethrow post-completion exceptions
+	                    if (completed) {
+	                        throw e;
+	                    }
+
+	                    // Propagate others as results
+	                    done(-1, e);
+	                }
+	            }
+
+	            // Callback for when everything is done
+	            function done(status, nativeStatusText, responses, headers) {
+	                var isSuccess, success, error, response, modified,
+	                    statusText = nativeStatusText;
+
+	                // Ignore repeat invocations
+	                if (completed) {
+	                    return;
+	                }
+
+	                completed = true;
+
+	                // Clear timeout if it exists
+	                if (timeoutTimer) {
+	                    window.clearTimeout(timeoutTimer);
+	                }
+
+	                // Dereference transport for early garbage collection
+	                // (no matter how long the jqXHR object will be used)
+	                transport = undefined;
+
+	                // Cache response headers
+	                responseHeadersString = headers || "";
+
+	                // Set readyState
+	                jqXHR.readyState = status > 0 ? 4 : 0;
+
+	                // Determine if successful
+	                isSuccess = status >= 200 && status < 300 || status === 304;
+
+	                // Get response data
+	                if (responses) {
+	                    response = ajaxHandleResponses(s, jqXHR, responses);
+	                }
+
+	                // Convert no matter what (that way responseXXX fields are always set)
+	                response = ajaxConvert(s, response, jqXHR, isSuccess);
+
+	                // If successful, handle type chaining
+	                if (isSuccess) {
+
+	                    // Set the If-Modified-Since and/or If-None-Match header, if in ifModified mode.
+	                    if (s.ifModified) {
+	                        modified = jqXHR.getResponseHeader("Last-Modified");
+	                        if (modified) {
+	                            jQuery.lastModified[cacheURL] = modified;
+	                        }
+	                        modified = jqXHR.getResponseHeader("etag");
+	                        if (modified) {
+	                            jQuery.etag[cacheURL] = modified;
+	                        }
+	                    }
+
+	                    // if no content
+	                    if (status === 204 || s.type === "HEAD") {
+	                        statusText = "nocontent";
+
+	                        // if not modified
+	                    } else if (status === 304) {
+	                        statusText = "notmodified";
+
+	                        // If we have data, let's convert it
+	                    } else {
+	                        statusText = response.state;
+	                        success = response.data;
+	                        error = response.error;
+	                        isSuccess = !error;
+	                    }
+	                } else {
+
+	                    // Extract error from statusText and normalize for non-aborts
+	                    error = statusText;
+	                    if (status || !statusText) {
+	                        statusText = "error";
+	                        if (status < 0) {
+	                            status = 0;
+	                        }
+	                    }
+	                }
+
+	                // Set data for the fake xhr object
+	                jqXHR.status = status;
+	                jqXHR.statusText = ( nativeStatusText || statusText ) + "";
+
+	                // Success/Error
+	                if (isSuccess) {
+	                    deferred.resolveWith(callbackContext, [success, statusText, jqXHR]);
+	                } else {
+	                    deferred.rejectWith(callbackContext, [jqXHR, statusText, error]);
+	                }
+
+	                // Status-dependent callbacks
+	                jqXHR.statusCode(statusCode);
+	                statusCode = undefined;
+
+	                if (fireGlobals) {
+	                    globalEventContext.trigger(isSuccess ? "ajaxSuccess" : "ajaxError",
+	                        [jqXHR, s, isSuccess ? success : error]);
+	                }
+
+	                // Complete
+	                completeDeferred.fireWith(callbackContext, [jqXHR, statusText]);
+
+	                if (fireGlobals) {
+	                    globalEventContext.trigger("ajaxComplete", [jqXHR, s]);
+
+	                    // Handle the global AJAX counter
+	                    if (!( --jQuery.active )) {
+	                        jQuery.event.trigger("ajaxStop");
+	                    }
+	                }
+	            }
+
+	            return jqXHR;
+	        },
+
+	        getJSON: function (url, data, callback) {
+	            return jQuery.get(url, data, callback, "json");
+	        },
+
+	        getScript: function (url, callback) {
+	            return jQuery.get(url, undefined, callback, "script");
+	        }
+	    });
+
+	    jQuery.each(["get", "post"], function (i, method) {
+	        jQuery[method] = function (url, data, callback, type) {
+
+	            // Shift arguments if data argument was omitted
+	            if (jQuery.isFunction(data)) {
+	                type = type || callback;
+	                callback = data;
+	                data = undefined;
+	            }
+
+	            // The url can be an options object (which then must have .url)
+	            return jQuery.ajax(jQuery.extend({
+	                url: url,
+	                type: method,
+	                dataType: type,
+	                data: data,
+	                success: callback
+	            }, jQuery.isPlainObject(url) && url));
+	        };
+	    });
+
+
+	    jQuery._evalUrl = function (url) {
+	        return jQuery.ajax({
+	            url: url,
+
+	            // Make this explicit, since user can override this through ajaxSetup (#11264)
+	            type: "GET",
+	            dataType: "script",
+	            cache: true,
+	            async: false,
+	            global: false,
+	            "throws": true
+	        });
+	    };
+
+
+	    jQuery.fn.extend({
+	        wrapAll: function (html) {
+	            var wrap;
+
+	            if (this[0]) {
+	                if (jQuery.isFunction(html)) {
+	                    html = html.call(this[0]);
+	                }
+
+	                // The elements to wrap the target around
+	                wrap = jQuery(html, this[0].ownerDocument).eq(0).clone(true);
+
+	                if (this[0].parentNode) {
+	                    wrap.insertBefore(this[0]);
+	                }
+
+	                wrap.map(function () {
+	                    var elem = this;
+
+	                    while (elem.firstElementChild) {
+	                        elem = elem.firstElementChild;
+	                    }
+
+	                    return elem;
+	                }).append(this);
+	            }
+
+	            return this;
+	        },
+
+	        wrapInner: function (html) {
+	            if (jQuery.isFunction(html)) {
+	                return this.each(function (i) {
+	                    jQuery(this).wrapInner(html.call(this, i));
+	                });
+	            }
+
+	            return this.each(function () {
+	                var self = jQuery(this),
+	                    contents = self.contents();
+
+	                if (contents.length) {
+	                    contents.wrapAll(html);
+
+	                } else {
+	                    self.append(html);
+	                }
+	            });
+	        },
+
+	        wrap: function (html) {
+	            var isFunction = jQuery.isFunction(html);
+
+	            return this.each(function (i) {
+	                jQuery(this).wrapAll(isFunction ? html.call(this, i) : html);
+	            });
+	        },
+
+	        unwrap: function (selector) {
+	            this.parent(selector).not("body").each(function () {
+	                jQuery(this).replaceWith(this.childNodes);
+	            });
+	            return this;
+	        }
+	    });
+
+
+	    jQuery.expr.pseudos.hidden = function (elem) {
+	        return !jQuery.expr.pseudos.visible(elem);
+	    };
+	    jQuery.expr.pseudos.visible = function (elem) {
+	        return !!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length );
+	    };
+
+
+	    jQuery.ajaxSettings.xhr = function () {
+	        try {
+	            return new window.XMLHttpRequest();
+	        } catch (e) {
+	        }
+	    };
+
+	    var xhrSuccessStatus = {
+
+	            // File protocol always yields status code 0, assume 200
+	            0: 200,
+
+	            // Support: IE <=9 only
+	            // #1450: sometimes IE returns 1223 when it should be 204
+	            1223: 204
+	        },
+	        xhrSupported = jQuery.ajaxSettings.xhr();
+
+	    support.cors = !!xhrSupported && ( "withCredentials" in xhrSupported );
+	    support.ajax = xhrSupported = !!xhrSupported;
+
+	    jQuery.ajaxTransport(function (options) {
+	        var callback, errorCallback;
+
+	        // Cross domain only allowed if supported through XMLHttpRequest
+	        if (support.cors || xhrSupported && !options.crossDomain) {
+	            return {
+	                send: function (headers, complete) {
+	                    var i,
+	                        xhr = options.xhr();
+
+	                    xhr.open(
+	                        options.type,
+	                        options.url,
+	                        options.async,
+	                        options.username,
+	                        options.password
+	                    );
+
+	                    // Apply custom fields if provided
+	                    if (options.xhrFields) {
+	                        for (i in options.xhrFields) {
+	                            xhr[i] = options.xhrFields[i];
+	                        }
+	                    }
+
+	                    // Override mime type if needed
+	                    if (options.mimeType && xhr.overrideMimeType) {
+	                        xhr.overrideMimeType(options.mimeType);
+	                    }
+
+	                    // X-Requested-With header
+	                    // For cross-domain requests, seeing as conditions for a preflight are
+	                    // akin to a jigsaw puzzle, we simply never set it to be sure.
+	                    // (it can always be set on a per-request basis or even using ajaxSetup)
+	                    // For same-domain requests, won't change header if already provided.
+	                    if (!options.crossDomain && !headers["X-Requested-With"]) {
+	                        headers["X-Requested-With"] = "XMLHttpRequest";
+	                    }
+
+	                    // Set headers
+	                    for (i in headers) {
+	                        xhr.setRequestHeader(i, headers[i]);
+	                    }
+
+	                    // Callback
+	                    callback = function (type) {
+	                        return function () {
+	                            if (callback) {
+	                                callback = errorCallback = xhr.onload =
+	                                    xhr.onerror = xhr.onabort = xhr.onreadystatechange = null;
+
+	                                if (type === "abort") {
+	                                    xhr.abort();
+	                                } else if (type === "error") {
+
+	                                    // Support: IE <=9 only
+	                                    // On a manual native abort, IE9 throws
+	                                    // errors on any property access that is not readyState
+	                                    if (typeof xhr.status !== "number") {
+	                                        complete(0, "error");
+	                                    } else {
+	                                        complete(
+	                                            // File: protocol always yields status 0; see #8605, #14207
+	                                            xhr.status,
+	                                            xhr.statusText
+	                                        );
+	                                    }
+	                                } else {
+	                                    complete(
+	                                        xhrSuccessStatus[xhr.status] || xhr.status,
+	                                        xhr.statusText,
+
+	                                        // Support: IE <=9 only
+	                                        // IE9 has no XHR2 but throws on binary (trac-11426)
+	                                        // For XHR2 non-text, let the caller handle it (gh-2498)
+	                                        ( xhr.responseType || "text" ) !== "text" ||
+	                                        typeof xhr.responseText !== "string" ?
+	                                        {binary: xhr.response} :
+	                                        {text: xhr.responseText},
+	                                        xhr.getAllResponseHeaders()
+	                                    );
+	                                }
+	                            }
+	                        };
+	                    };
+
+	                    // Listen to events
+	                    xhr.onload = callback();
+	                    errorCallback = xhr.onerror = callback("error");
+
+	                    // Support: IE 9 only
+	                    // Use onreadystatechange to replace onabort
+	                    // to handle uncaught aborts
+	                    if (xhr.onabort !== undefined) {
+	                        xhr.onabort = errorCallback;
+	                    } else {
+	                        xhr.onreadystatechange = function () {
+
+	                            // Check readyState before timeout as it changes
+	                            if (xhr.readyState === 4) {
+
+	                                // Allow onerror to be called first,
+	                                // but that will not handle a native abort
+	                                // Also, save errorCallback to a variable
+	                                // as xhr.onerror cannot be accessed
+	                                window.setTimeout(function () {
+	                                    if (callback) {
+	                                        errorCallback();
+	                                    }
+	                                });
+	                            }
+	                        };
+	                    }
+
+	                    // Create the abort callback
+	                    callback = callback("abort");
+
+	                    try {
+
+	                        // Do send the request (this may raise an exception)
+	                        xhr.send(options.hasContent && options.data || null);
+	                    } catch (e) {
+
+	                        // #14683: Only rethrow if this hasn't been notified as an error yet
+	                        if (callback) {
+	                            throw e;
+	                        }
+	                    }
+	                },
+
+	                abort: function () {
+	                    if (callback) {
+	                        callback();
+	                    }
+	                }
+	            };
+	        }
+	    });
+
+
+	// Prevent auto-execution of scripts when no explicit dataType was provided (See gh-2432)
+	    jQuery.ajaxPrefilter(function (s) {
+	        if (s.crossDomain) {
+	            s.contents.script = false;
+	        }
+	    });
+
+	// Install script dataType
+	    jQuery.ajaxSetup({
+	        accepts: {
+	            script: "text/javascript, application/javascript, " +
+	            "application/ecmascript, application/x-ecmascript"
+	        },
+	        contents: {
+	            script: /\b(?:java|ecma)script\b/
+	        },
+	        converters: {
+	            "text script": function (text) {
+	                jQuery.globalEval(text);
+	                return text;
+	            }
+	        }
+	    });
+
+	// Handle cache's special case and crossDomain
+	    jQuery.ajaxPrefilter("script", function (s) {
+	        if (s.cache === undefined) {
+	            s.cache = false;
+	        }
+	        if (s.crossDomain) {
+	            s.type = "GET";
+	        }
+	    });
+
+	// Bind script tag hack transport
+	    jQuery.ajaxTransport("script", function (s) {
+
+	        // This transport only deals with cross domain requests
+	        if (s.crossDomain) {
+	            var script, callback;
+	            return {
+	                send: function (_, complete) {
+	                    script = jQuery("<script>").prop({
+	                        charset: s.scriptCharset,
+	                        src: s.url
+	                    }).on(
+	                        "load error",
+	                        callback = function (evt) {
+	                            script.remove();
+	                            callback = null;
+	                            if (evt) {
+	                                complete(evt.type === "error" ? 404 : 200, evt.type);
+	                            }
+	                        }
+	                    );
+
+	                    // Use native DOM manipulation to avoid our domManip AJAX trickery
+	                    document.head.appendChild(script[0]);
+	                },
+	                abort: function () {
+	                    if (callback) {
+	                        callback();
+	                    }
+	                }
+	            };
+	        }
+	    });
+
+
+	    var oldCallbacks = [],
+	        rjsonp = /(=)\?(?=&|$)|\?\?/;
+
+	// Default jsonp settings
+	    jQuery.ajaxSetup({
+	        jsonp: "callback",
+	        jsonpCallback: function () {
+	            var callback = oldCallbacks.pop() || ( jQuery.expando + "_" + ( nonce++ ) );
+	            this[callback] = true;
+	            return callback;
+	        }
+	    });
+
+	// Detect, normalize options and install callbacks for jsonp requests
+	    jQuery.ajaxPrefilter("json jsonp", function (s, originalSettings, jqXHR) {
+
+	        var callbackName, overwritten, responseContainer,
+	            jsonProp = s.jsonp !== false && ( rjsonp.test(s.url) ?
+	                    "url" :
+	                typeof s.data === "string" &&
+	                ( s.contentType || "" )
+	                    .indexOf("application/x-www-form-urlencoded") === 0 &&
+	                rjsonp.test(s.data) && "data"
+	                );
+
+	        // Handle iff the expected data type is "jsonp" or we have a parameter to set
+	        if (jsonProp || s.dataTypes[0] === "jsonp") {
+
+	            // Get callback name, remembering preexisting value associated with it
+	            callbackName = s.jsonpCallback = jQuery.isFunction(s.jsonpCallback) ?
+	                s.jsonpCallback() :
+	                s.jsonpCallback;
+
+	            // Insert callback into url or form data
+	            if (jsonProp) {
+	                s[jsonProp] = s[jsonProp].replace(rjsonp, "$1" + callbackName);
+	            } else if (s.jsonp !== false) {
+	                s.url += ( rquery.test(s.url) ? "&" : "?" ) + s.jsonp + "=" + callbackName;
+	            }
+
+	            // Use data converter to retrieve json after script execution
+	            s.converters["script json"] = function () {
+	                if (!responseContainer) {
+	                    jQuery.error(callbackName + " was not called");
+	                }
+	                return responseContainer[0];
+	            };
+
+	            // Force json dataType
+	            s.dataTypes[0] = "json";
+
+	            // Install callback
+	            overwritten = window[callbackName];
+	            window[callbackName] = function () {
+	                responseContainer = arguments;
+	            };
+
+	            // Clean-up function (fires after converters)
+	            jqXHR.always(function () {
+
+	                // If previous value didn't exist - remove it
+	                if (overwritten === undefined) {
+	                    jQuery(window).removeProp(callbackName);
+
+	                    // Otherwise restore preexisting value
+	                } else {
+	                    window[callbackName] = overwritten;
+	                }
+
+	                // Save back as free
+	                if (s[callbackName]) {
+
+	                    // Make sure that re-using the options doesn't screw things around
+	                    s.jsonpCallback = originalSettings.jsonpCallback;
+
+	                    // Save the callback name for future use
+	                    oldCallbacks.push(callbackName);
+	                }
+
+	                // Call if it was a function and we have a response
+	                if (responseContainer && jQuery.isFunction(overwritten)) {
+	                    overwritten(responseContainer[0]);
+	                }
+
+	                responseContainer = overwritten = undefined;
+	            });
+
+	            // Delegate to script
+	            return "script";
+	        }
+	    });
+
+
+	// Support: Safari 8 only
+	// In Safari 8 documents created via document.implementation.createHTMLDocument
+	// collapse sibling forms: the second one becomes a child of the first one.
+	// Because of that, this security measure has to be disabled in Safari 8.
+	// https://bugs.webkit.org/show_bug.cgi?id=137337
+	    support.createHTMLDocument = (function () {
+	        var body = document.implementation.createHTMLDocument("").body;
+	        body.innerHTML = "<form></form><form></form>";
+	        return body.childNodes.length === 2;
+	    })();
+
+
+	// Argument "data" should be string of html
+	// context (optional): If specified, the fragment will be created in this context,
+	// defaults to document
+	// keepScripts (optional): If true, will include scripts passed in the html string
+	    jQuery.parseHTML = function (data, context, keepScripts) {
+	        if (typeof data !== "string") {
+	            return [];
+	        }
+	        if (typeof context === "boolean") {
+	            keepScripts = context;
+	            context = false;
+	        }
+
+	        var base, parsed, scripts;
+
+	        if (!context) {
+
+	            // Stop scripts or inline event handlers from being executed immediately
+	            // by using document.implementation
+	            if (support.createHTMLDocument) {
+	                context = document.implementation.createHTMLDocument("");
+
+	                // Set the base href for the created document
+	                // so any parsed elements with URLs
+	                // are based on the document's URL (gh-2965)
+	                base = context.createElement("base");
+	                base.href = document.location.href;
+	                context.head.appendChild(base);
+	            } else {
+	                context = document;
+	            }
+	        }
+
+	        parsed = rsingleTag.exec(data);
+	        scripts = !keepScripts && [];
+
+	        // Single tag
+	        if (parsed) {
+	            return [context.createElement(parsed[1])];
+	        }
+
+	        parsed = buildFragment([data], context, scripts);
+
+	        if (scripts && scripts.length) {
+	            jQuery(scripts).remove();
+	        }
+
+	        return jQuery.merge([], parsed.childNodes);
+	    };
+
+
+	    /**
+	     * Load a url into a page
+	     */
+	    jQuery.fn.load = function (url, params, callback) {
+	        var selector, type, response,
+	            self = this,
+	            off = url.indexOf(" ");
+
+	        if (off > -1) {
+	            selector = jQuery.trim(url.slice(off));
+	            url = url.slice(0, off);
+	        }
+
+	        // If it's a function
+	        if (jQuery.isFunction(params)) {
+
+	            // We assume that it's the callback
+	            callback = params;
+	            params = undefined;
+
+	            // Otherwise, build a param string
+	        } else if (params && typeof params === "object") {
+	            type = "POST";
+	        }
+
+	        // If we have elements to modify, make the request
+	        if (self.length > 0) {
+	            jQuery.ajax({
+	                url: url,
+
+	                // If "type" variable is undefined, then "GET" method will be used.
+	                // Make value of this field explicit since
+	                // user can override it through ajaxSetup method
+	                type: type || "GET",
+	                dataType: "html",
+	                data: params
+	            }).done(function (responseText) {
+
+	                // Save response for use in complete callback
+	                response = arguments;
+
+	                self.html(selector ?
+
+	                    // If a selector was specified, locate the right elements in a dummy div
+	                    // Exclude scripts to avoid IE 'Permission Denied' errors
+	                    jQuery("<div>").append(jQuery.parseHTML(responseText)).find(selector) :
+
+	                    // Otherwise use the full result
+	                    responseText);
+
+	                // If the request succeeds, this function gets "data", "status", "jqXHR"
+	                // but they are ignored because response was set above.
+	                // If it fails, this function gets "jqXHR", "status", "error"
+	            }).always(callback && function (jqXHR, status) {
+	                self.each(function () {
+	                    callback.apply(this, response || [jqXHR.responseText, status, jqXHR]);
+	                });
+	            });
+	        }
+
+	        return this;
+	    };
+
+
+	// Attach a bunch of functions for handling common AJAX events
+	    jQuery.each([
+	        "ajaxStart",
+	        "ajaxStop",
+	        "ajaxComplete",
+	        "ajaxError",
+	        "ajaxSuccess",
+	        "ajaxSend"
+	    ], function (i, type) {
+	        jQuery.fn[type] = function (fn) {
+	            return this.on(type, fn);
+	        };
+	    });
+
+
+	    jQuery.expr.pseudos.animated = function (elem) {
+	        return jQuery.grep(jQuery.timers, function (fn) {
+	            return elem === fn.elem;
+	        }).length;
+	    };
+
+
+	    /**
+	     * Gets a window from an element
+	     */
+	    function getWindow(elem) {
+	        return jQuery.isWindow(elem) ? elem : elem.nodeType === 9 && elem.defaultView;
+	    }
+
+	    jQuery.offset = {
+	        setOffset: function (elem, options, i) {
+	            var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+	                position = jQuery.css(elem, "position"),
+	                curElem = jQuery(elem),
+	                props = {};
+
+	            // Set position first, in-case top/left are set even on static elem
+	            if (position === "static") {
+	                elem.style.position = "relative";
+	            }
+
+	            curOffset = curElem.offset();
+	            curCSSTop = jQuery.css(elem, "top");
+	            curCSSLeft = jQuery.css(elem, "left");
+	            calculatePosition = ( position === "absolute" || position === "fixed" ) &&
+	            ( curCSSTop + curCSSLeft ).indexOf("auto") > -1;
+
+	            // Need to be able to calculate position if either
+	            // top or left is auto and position is either absolute or fixed
+	            if (calculatePosition) {
+	                curPosition = curElem.position();
+	                curTop = curPosition.top;
+	                curLeft = curPosition.left;
+
+	            } else {
+	                curTop = parseFloat(curCSSTop) || 0;
+	                curLeft = parseFloat(curCSSLeft) || 0;
+	            }
+
+	            if (jQuery.isFunction(options)) {
+
+	                // Use jQuery.extend here to allow modification of coordinates argument (gh-1848)
+	                options = options.call(elem, i, jQuery.extend({}, curOffset));
+	            }
+
+	            if (options.top != null) {
+	                props.top = ( options.top - curOffset.top ) + curTop;
+	            }
+	            if (options.left != null) {
+	                props.left = ( options.left - curOffset.left ) + curLeft;
+	            }
+
+	            if ("using" in options) {
+	                options.using.call(elem, props);
+
+	            } else {
+	                curElem.css(props);
+	            }
+	        }
+	    };
+
+	    jQuery.fn.extend({
+	        offset: function (options) {
+
+	            // Preserve chaining for setter
+	            if (arguments.length) {
+	                return options === undefined ?
+	                    this :
+	                    this.each(function (i) {
+	                        jQuery.offset.setOffset(this, options, i);
+	                    });
+	            }
+
+	            var docElem, win, rect, doc,
+	                elem = this[0];
+
+	            if (!elem) {
+	                return;
+	            }
+
+	            // Support: IE <=11 only
+	            // Running getBoundingClientRect on a
+	            // disconnected node in IE throws an error
+	            if (!elem.getClientRects().length) {
+	                return {top: 0, left: 0};
+	            }
+
+	            rect = elem.getBoundingClientRect();
+
+	            // Make sure element is not hidden (display: none)
+	            if (rect.width || rect.height) {
+	                doc = elem.ownerDocument;
+	                win = getWindow(doc);
+	                docElem = doc.documentElement;
+
+	                return {
+	                    top: rect.top + win.pageYOffset - docElem.clientTop,
+	                    left: rect.left + win.pageXOffset - docElem.clientLeft
+	                };
+	            }
+
+	            // Return zeros for disconnected and hidden elements (gh-2310)
+	            return rect;
+	        },
+
+	        position: function () {
+	            if (!this[0]) {
+	                return;
+	            }
+
+	            var offsetParent, offset,
+	                elem = this[0],
+	                parentOffset = {top: 0, left: 0};
+
+	            // Fixed elements are offset from window (parentOffset = {top:0, left: 0},
+	            // because it is its only offset parent
+	            if (jQuery.css(elem, "position") === "fixed") {
+
+	                // Assume getBoundingClientRect is there when computed position is fixed
+	                offset = elem.getBoundingClientRect();
+
+	            } else {
+
+	                // Get *real* offsetParent
+	                offsetParent = this.offsetParent();
+
+	                // Get correct offsets
+	                offset = this.offset();
+	                if (!jQuery.nodeName(offsetParent[0], "html")) {
+	                    parentOffset = offsetParent.offset();
+	                }
+
+	                // Add offsetParent borders
+	                parentOffset = {
+	                    top: parentOffset.top + jQuery.css(offsetParent[0], "borderTopWidth", true),
+	                    left: parentOffset.left + jQuery.css(offsetParent[0], "borderLeftWidth", true)
+	                };
+	            }
+
+	            // Subtract parent offsets and element margins
+	            return {
+	                top: offset.top - parentOffset.top - jQuery.css(elem, "marginTop", true),
+	                left: offset.left - parentOffset.left - jQuery.css(elem, "marginLeft", true)
+	            };
+	        },
+
+	        // This method will return documentElement in the following cases:
+	        // 1) For the element inside the iframe without offsetParent, this method will return
+	        //    documentElement of the parent window
+	        // 2) For the hidden or detached element
+	        // 3) For body or html element, i.e. in case of the html node - it will return itself
+	        //
+	        // but those exceptions were never presented as a real life use-cases
+	        // and might be considered as more preferable results.
+	        //
+	        // This logic, however, is not guaranteed and can change at any point in the future
+	        offsetParent: function () {
+	            return this.map(function () {
+	                var offsetParent = this.offsetParent;
+
+	                while (offsetParent && jQuery.css(offsetParent, "position") === "static") {
+	                    offsetParent = offsetParent.offsetParent;
+	                }
+
+	                return offsetParent || documentElement;
+	            });
+	        }
+	    });
+
+	// Create scrollLeft and scrollTop methods
+	    jQuery.each({scrollLeft: "pageXOffset", scrollTop: "pageYOffset"}, function (method, prop) {
+	        var top = "pageYOffset" === prop;
+
+	        jQuery.fn[method] = function (val) {
+	            return access(this, function (elem, method, val) {
+	                var win = getWindow(elem);
+
+	                if (val === undefined) {
+	                    return win ? win[prop] : elem[method];
+	                }
+
+	                if (win) {
+	                    win.scrollTo(
+	                        !top ? val : win.pageXOffset,
+	                        top ? val : win.pageYOffset
+	                    );
+
+	                } else {
+	                    elem[method] = val;
+	                }
+	            }, method, val, arguments.length);
+	        };
+	    });
+
+	// Support: Safari <=7 - 9.1, Chrome <=37 - 49
+	// Add the top/left cssHooks using jQuery.fn.position
+	// Webkit bug: https://bugs.webkit.org/show_bug.cgi?id=29084
+	// Blink bug: https://bugs.chromium.org/p/chromium/issues/detail?id=589347
+	// getComputedStyle returns percent when specified for top/left/bottom/right;
+	// rather than make the css module depend on the offset module, just check for it here
+	    jQuery.each(["top", "left"], function (i, prop) {
+	        jQuery.cssHooks[prop] = addGetHookIf(support.pixelPosition,
+	            function (elem, computed) {
+	                if (computed) {
+	                    computed = curCSS(elem, prop);
+
+	                    // If curCSS returns percentage, fallback to offset
+	                    return rnumnonpx.test(computed) ?
+	                    jQuery(elem).position()[prop] + "px" :
+	                        computed;
+	                }
+	            }
+	        );
+	    });
+
+
+	// Create innerHeight, innerWidth, height, width, outerHeight and outerWidth methods
+	    jQuery.each({Height: "height", Width: "width"}, function (name, type) {
+	        jQuery.each({padding: "inner" + name, content: type, "": "outer" + name},
+	            function (defaultExtra, funcName) {
+
+	                // Margin is only for outerHeight, outerWidth
+	                jQuery.fn[funcName] = function (margin, value) {
+	                    var chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
+	                        extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
+
+	                    return access(this, function (elem, type, value) {
+	                        var doc;
+
+	                        if (jQuery.isWindow(elem)) {
+
+	                            // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
+	                            return funcName.indexOf("outer") === 0 ?
+	                                elem["inner" + name] :
+	                                elem.document.documentElement["client" + name];
+	                        }
+
+	                        // Get document width or height
+	                        if (elem.nodeType === 9) {
+	                            doc = elem.documentElement;
+
+	                            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+	                            // whichever is greatest
+	                            return Math.max(
+	                                elem.body["scroll" + name], doc["scroll" + name],
+	                                elem.body["offset" + name], doc["offset" + name],
+	                                doc["client" + name]
+	                            );
+	                        }
+
+	                        return value === undefined ?
+
+	                            // Get width or height on the element, requesting but not forcing parseFloat
+	                            jQuery.css(elem, type, extra) :
+
+	                            // Set width or height on the element
+	                            jQuery.style(elem, type, value, extra);
+	                    }, type, chainable ? margin : undefined, chainable);
+	                };
+	            });
+	    });
+
+
+	    jQuery.fn.extend({
+
+	        bind: function (types, data, fn) {
+	            return this.on(types, null, data, fn);
+	        },
+	        unbind: function (types, fn) {
+	            return this.off(types, null, fn);
+	        },
+
+	        delegate: function (selector, types, data, fn) {
+	            return this.on(types, selector, data, fn);
+	        },
+	        undelegate: function (selector, types, fn) {
+
+	            // ( namespace ) or ( selector, types [, fn] )
+	            return arguments.length === 1 ?
+	                this.off(selector, "**") :
+	                this.off(types, selector || "**", fn);
+	        }
+	    });
+
+	    jQuery.parseJSON = JSON.parse;
+
+
+	// Register as a named AMD module, since jQuery can be concatenated with other
+	// files that may use define, but not via a proper concatenation script that
+	// understands anonymous AMD modules. A named AMD is safest and most robust
+	// way to register. Lowercase jquery is used because AMD module names are
+	// derived from file names, and jQuery is normally delivered in a lowercase
+	// file name. Do this after creating the global so that if an AMD module wants
+	// to call noConflict to hide this version of jQuery, it will work.
+
+	// Note that for maximum portability, libraries that are not jQuery should
+	// declare themselves as anonymous modules, and avoid setting a global if an
+	// AMD loader is present. jQuery is a special case. For more information, see
+	// https://github.com/jrburke/requirejs/wiki/Updating-existing-libraries#wiki-anon
+
+	    if (true) {
+	        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_RESULT__ = function () {
+	            return jQuery;
+	        }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+	    }
+
+
+	    var
+
+	    // Map over jQuery in case of overwrite
+	        _jQuery = window.jQuery,
+
+	    // Map over the $ in case of overwrite
+	        _$ = window.$;
+
+	    jQuery.noConflict = function (deep) {
+	        if (window.$ === jQuery) {
+	            window.$ = _$;
+	        }
+
+	        if (deep && window.jQuery === jQuery) {
+	            window.jQuery = _jQuery;
+	        }
+
+	        return jQuery;
+	    };
+
+	// Expose jQuery and $ identifiers, even in AMD
+	// (#7102#comment:10, https://github.com/jquery/jquery/pull/557)
+	// and CommonJS for browser emulators (#13566)
+	    if (!noGlobal) {
+	        window.jQuery = window.$ = jQuery;
+	    }
+
+
+	    return jQuery;
+	});
+
 
 /***/ }
 /******/ ]);

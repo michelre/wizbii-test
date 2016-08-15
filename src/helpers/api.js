@@ -2,7 +2,7 @@ import $ from 'jquery';
 
 export const authenticate = (username, password) => $.ajax({
   method: 'POST',
-  url: 'https://api.wizbii.com/v1/account/validate',
+  url: 'http://localhost:8080/authenticate',//'https://api.wizbii.com/v1/account/validate',
   headers: {
     'Content-Type': 'application/x-www-form-urlencoded',
   },
@@ -15,12 +15,12 @@ export const authenticate = (username, password) => $.ajax({
 });
 
 export const news = (token) => $.ajax({
-    method: 'POST',
-    url: 'https://api.wizbii.com/v2/dashboard/?direction=newest',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  method: 'POST',
+  url: 'http://localhost:8080/news',//'https://api.wizbii.com/v2/dashboard/?direction=newest', (405 issue)
+  headers: {
+    Authorization: `Bearer ${token}`,
+  },
+});
 
 export const addLike = () => new Promise((resolve) =>
     setTimeout(() => resolve(), 1500));

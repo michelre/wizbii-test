@@ -5,8 +5,8 @@ import R from 'ramda';
 import shortid from 'shortid';
 import moment from 'moment';
 
-//import { authenticate, news, addLike, addComment, share } from '../helpers/api';
-import { authenticate, news, addLike, addComment, share } from '../helpers/mock-api';
+import { authenticate, news, addLike, addComment, share } from '../helpers/api';
+//import { authenticate, news, addLike, addComment, share } from '../helpers/mock-api';
 import { buildFeedItems, copyPublication } from '../helpers/utils';
 import FeedItems from './FeedItems';
 import Profile from './Profile';
@@ -15,6 +15,9 @@ export default
 class App extends React.Component{
   constructor(props) {
     super(props);
+    this.state = {
+      isLoading: true,
+    }
   }
 
   componentDidMount() {
@@ -26,8 +29,7 @@ class App extends React.Component{
     bluebird.coroutine(function* (){
       const { 'access-token': token, profile } = yield authenticate(this.props.username, this.props.password);
       const { feed_items } = yield news(token);
-      this.setState({ feedItems: buildFeedItems(feed_items, baseProperties), profile });
-      console.log(this.state)
+      this.setState({ feedItems: buildFeedItems(feed_items, baseProperties), profile, isLoading: false });
     }).apply(this, []);
   }
 
@@ -61,8 +63,8 @@ class App extends React.Component{
       p = R.merge(p, {
         isAddingComment: false,
         comments: p.comments.concat([{
-          id: shortid.generate(),
-          comment: comment,
+          _id: shortid.generate(),
+          content: comment,
           date: moment().toISOString(),
           profile: {
             name: R.pathOr('', ['profile', 'name'], this.state),
@@ -75,7 +77,10 @@ class App extends React.Component{
   }
 
   render() {
-    if (!this.state) return null;
+    if (this.state.isLoading) return <div>
+      <i className='fa fa-spinner fa-pulse' aria-hidden="true"></i>&nbsp;
+      <span>Loading...</span>
+    </div>;
     return (<div>
       <Profile profile={this.state.profile}/>
       <FeedItems

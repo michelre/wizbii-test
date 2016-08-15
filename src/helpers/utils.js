@@ -14,5 +14,5 @@ export const buildFeedItems = ({ feed_items: items }, base = {}) => {
 
 export const copyPublication = (base, profile) => {
   const id = generate();
-  return R.merge(base, {_id: id, profile, date_created: moment().toISOString()});
+  return R.merge(base, {_id: id, profile, date_created: moment().toISOString(), poster_type: 'PROFILE'});
 };

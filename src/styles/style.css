@@ -109,6 +109,10 @@ body {
     margin-left: auto;
 }
 
+#app .comments p{
+    text-align: justify;
+}
+
 #app .comments small{
     margin-top: 3px;
     text-align: center;
