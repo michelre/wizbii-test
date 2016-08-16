@@ -7,7 +7,6 @@
     "eslint": "./node_modules/eslint/bin/eslint.js ./src",
     "build": "npm run eslint && ./node_modules/webpack/bin/webpack.js",
     "build:watch": "./node_modules/webpack/bin/webpack.js --watch",
-    "webserver": "./node_modules/webpack-dev-server/bin/webpack-dev-server.js",
     "test": "mocha --require ./test/setup.js --compilers js:babel-register test/**"
   },
   "author": "Rémi Michel",
@@ -34,12 +33,12 @@
     "sinon": "^1.17.5",
     "style-loader": "^0.13.1",
     "url-loader": "^0.5.7",
-    "webpack": "^1.13.1",
-    "webpack-dev-server": "^1.14.1"
+    "webpack": "^1.13.1"
   },
   "dependencies": {
     "bluebird": "^3.4.1",
     "express": "^4.14.0",
+    "font-awesome": "^4.6.3",
     "jquery": "^3.1.0",
     "ramda": "^0.22.1",
     "react": "^15.3.0",
