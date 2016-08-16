@@ -2,6 +2,7 @@ import 'should';
 import React from 'react';
 import { mount, shallow } from 'enzyme';
 import sinon from 'sinon';
+import R from 'ramda';
 
 import * as api from '../../src/helpers/api';
 
@@ -33,7 +34,7 @@ describe('App', () => {
           attachment_picture_source: 'http://foobar.com',
           attachment_link: 'http://foobaz.com',
           content: 'FOO BAR',
-          profile: {},
+          profile: { name: 'Foo Bar' },
           comments: [],
           status: 'visible',
           type: 'SHARE',
@@ -73,10 +74,14 @@ describe('App', () => {
     sinon.stub(api, 'share').returns(new Promise(resolve => resolve()));
     const wrapper = mount(<App username={'foo#mail.com'} password={'foobar'}/>);
     setTimeout(() => {
-      wrapper.state()['feedItems']['foo'].should.have.property('shares').which.have.lengthOf(0);
+      R.keys(wrapper.state()['feedItems']).should.eql(['foo']);
       wrapper.find('.share').simulate('click');
       setTimeout(() => {
-        wrapper.state()['feedItems']['foo'].should.have.property('shares').which.have.lengthOf(1);
+        const newKey = R.find(k => k !== 'foo', R.keys(wrapper.state()['feedItems']));
+        wrapper.state()['feedItems'][newKey].should.have.property('shares').which.eql([{
+          profile: { name: 'Foo Bar' },
+          original_date: '2016-08-01',
+        }]);
         done();
       }, 50);
     }, 50);

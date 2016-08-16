@@ -1,5 +1,7 @@
 import React, { PropTypes } from 'react';
 import { Row, Col } from 'react-bootstrap';
+import R from 'ramda';
+import moment from 'moment';
 
 const Content = ({ publication }) => <div className="content">
   <Row>

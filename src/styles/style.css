@@ -134,3 +134,9 @@ body {
     display: block;
     margin-top: -3px;
 }
+
+#app .share-text{
+    margin-top: 7px;
+    color: #999;
+    font-size: 12px;
+}

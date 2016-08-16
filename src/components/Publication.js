@@ -6,6 +6,7 @@ import Tags from './Tags';
 import HeaderProfile from './HeaderProfile';
 import HeaderCompany from './HeaderCompany';
 import Period from './Period';
+import ShareText from './ShareText';
 import Content from './Content';
 import Actions from './Actions';
 import Metrics from './Metrics';
@@ -22,6 +23,7 @@ const Publication = ({ publication, handleShareClick, handleThanksClick, handleA
         {(publication.poster_type === 'PROFILE') ? <HeaderProfile profile={publication.profile}/> : <HeaderCompany company={publication.company}/>}
       </Col>
     </Row>
+    <ShareText shares={publication.shares} />
     <Tags tags={publication.tags}/>
     <Content publication={publication} />
     <hr/>

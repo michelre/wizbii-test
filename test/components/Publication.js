@@ -7,6 +7,7 @@ import Period from '../../src/components/Period';
 import Tags from '../../src/components/Tags';
 import HeaderProfile from '../../src/components/HeaderProfile.js';
 import HeaderCompany from '../../src/components/HeaderCompany';
+import ShareText from '../../src/components/ShareText';
 import Content from '../../src/components/Content';
 import Actions from '../../src/components/Actions';
 import Metrics from '../../src/components/Metrics';
@@ -28,7 +29,8 @@ describe('Publication', () => {
         attachment_link: 'http://foobaz.com',
         content: 'FOO BAR',
         profile: {},
-        comments: []
+        comments: [],
+        shares: [],
       },
       handleThanksClick: () => {},
       handleShareClick: () => {},
@@ -40,6 +42,7 @@ describe('Publication', () => {
     wrapper.find(Period).should.have.length(1);
     wrapper.find(HeaderProfile).should.have.length(1);
     wrapper.find(HeaderCompany).should.have.length(0);
+    wrapper.find(ShareText).should.have.length(1);
     wrapper.find(Tags).should.have.length(1);
     wrapper.find(Content).should.have.length(1);
     wrapper.find(Actions).should.have.length(1);

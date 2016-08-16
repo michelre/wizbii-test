@@ -39,9 +39,12 @@ class App extends React.Component{
     share(id).then(() => {
       p = R.merge(p, { isLoadingShare: false });
       const newPub = copyPublication(p, this.state.profile);
+      const shareObject = R.mergeAll([R.pick(['profile', 'company'], p), { original_date: p.date_created }]);
       this.setState({ feedItems: R.merge(this.state.feedItems, {
-        [id]: R.merge(p, { shares: p.shares.concat([{ date: moment().toISOString() }]) }),
-        [newPub._id]: newPub })
+        [id]: p,
+        [newPub._id]: R.merge(newPub, {
+          shares: p.shares.concat([shareObject])
+        }) })
       });
     });
   }

@@ -16,3 +16,13 @@ export const copyPublication = (base, profile) => {
   const id = generate();
   return R.merge(base, {_id: id, profile, date_created: moment().toISOString(), poster_type: 'PROFILE'});
 };
+
+export const constructShareThread = (shares) => {
+  moment.locale('fr');
+  return R.reduce((acc, curr) => {
+    const name = (R.has('profile', curr)) ? curr.profile.name : curr.company.name;
+    if(acc === '') return `${name} (${moment(curr.original_date).format('DD MMM YYYY HH[h]mm')})`
+    return `${acc}, ${name} (${moment(curr.original_date).format('DD MMM YYYY HH[h]mm')})`
+  }, '', shares);
+
+}

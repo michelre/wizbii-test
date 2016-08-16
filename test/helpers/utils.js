@@ -1,5 +1,5 @@
 import 'should';
-import { buildFeedItems, copyPublication } from '../../src/helpers/utils';
+import { buildFeedItems, copyPublication, constructShareThread } from '../../src/helpers/utils';
 
 describe('Utils', () => {
   it('should construct an object with feed items when calling buildFeedItems', () => {
@@ -26,5 +26,12 @@ describe('Utils', () => {
     base.should.have.property('_id').which.equal('foo');
     base.should.have.property('date_created').which.equal('date');
     base.should.have.property('profile').which.eql({ name: 'bar' });
+  });
+  it('should construct the share thread', () => {
+    const shares = [
+      { original_date: '2016-08-16T12:47:42+0000', profile: { name: 'Foo Bar' } },
+      { original_date: '2016-08-16T13:47:42+0000', company: { name: 'Foo&Co' } },
+    ];
+    constructShareThread(shares).should.eql('Foo Bar (16 août 2016 14h47), Foo&Co (16 août 2016 15h47)');
   });
 });
