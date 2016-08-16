@@ -7,7 +7,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    publicPath: `http://localhost:${process.env.PORT}/dist/`,
+    publicPath: `https://wizbii-test-michelre.herokuapp.com:${process.env.PORT}/dist/`,
     filename: 'bundle.js',
   },
   module: {
