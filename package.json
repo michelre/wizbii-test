@@ -9,7 +9,7 @@
     "build:watch": "./node_modules/webpack/bin/webpack.js --watch",
     "postinstall": "webpack -p --config webpack.production.config.js",
     "test": "mocha --require ./test/setup.js --compilers js:babel-register test/**",
-    "start": "PORT=8080 node server.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": "6.3.1"
