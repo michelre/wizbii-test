@@ -1,5 +1,5 @@
 import 'babel-polyfill';
-import React from 'react';
+import React, { PropTypes } from 'react';
 import bluebird from 'bluebird';
 import R from 'ramda';
 import shortid from 'shortid';
@@ -11,13 +11,12 @@ import { buildFeedItems, copyPublication } from '../helpers/utils';
 import FeedItems from './FeedItems';
 import Profile from './Profile';
 
-export default
 class App extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
       isLoading: true,
-    }
+    };
   }
 
   componentDidMount() {
@@ -40,7 +39,10 @@ class App extends React.Component{
     share(id).then(() => {
       p = R.merge(p, { isLoadingShare: false });
       const newPub = copyPublication(p, this.state.profile);
-      this.setState({ feedItems: R.merge(this.state.feedItems, { [id]: p, [newPub._id]: newPub }) });
+      this.setState({ feedItems: R.merge(this.state.feedItems, {
+        [id]: R.merge(p, { shares: p.shares.concat([{ date: moment().toISOString() }]) }),
+        [newPub._id]: newPub })
+      });
     });
   }
 
@@ -51,7 +53,6 @@ class App extends React.Component{
     addLike(id).then(() => {
       p = R.merge(p, { isLoadingThanks: false, likes: p.likes.concat([{ date: moment().toISOString() }]) });
       this.setState({feedItems: R.merge(this.state.feedItems, { [id]: p }) });
-      console.log(this.state)
     });
   }
 
@@ -91,3 +92,10 @@ class App extends React.Component{
     </div>);
   }
 }
+
+App.propTypes = {
+  username: PropTypes.string.isRequired,
+  password: PropTypes.string.isRequired,
+};
+
+export default App;

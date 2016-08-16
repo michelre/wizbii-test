@@ -10,4 +10,3 @@ Metrics.propTypes = {
 };
 
 export default Metrics;
-

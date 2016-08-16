@@ -17,4 +17,3 @@ HeaderProfile.propTypes = {
 };
 
 export default HeaderProfile;
-

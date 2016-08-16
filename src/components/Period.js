@@ -10,4 +10,3 @@ Period.propTypes = {
 };
 
 export default Period;
-

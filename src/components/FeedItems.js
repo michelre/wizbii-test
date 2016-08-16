@@ -7,7 +7,7 @@ import Publication from './Publication';
 
 const FeedItems = (props) => {
   const { feedItems, ...other } = props;
-  const sortedPubs = R.sort((p1, p2) => moment(p2.date_created).milliseconds() - moment(p1.date_created).milliseconds(),
+  const sortedPubs = R.sort((p1, p2) => moment(p2.date_created).format('X') - moment(p1.date_created).format('X'),
     R.values(feedItems));
 
   return <div>
@@ -16,7 +16,7 @@ const FeedItems = (props) => {
         <Publication publication={publication} {...other} />
       </Col>, sortedPubs)}
     </Row>
-  </div>
+  </div>;
 };
 
 FeedItems.propTypes = {
@@ -24,4 +24,3 @@ FeedItems.propTypes = {
 };
 
 export default FeedItems;
-

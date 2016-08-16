@@ -11,11 +11,10 @@ const Content = ({ publication }) => <div className="content">
     </Col>
   </Row>
   <a href={publication.attachment_link} target="_blank">{publication.attachment_link}</a>
-</div>
+</div>;
 
 Content.propTypes = {
   publication: PropTypes.object.isRequired,
 };
 
 export default Content;
-

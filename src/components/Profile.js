@@ -18,4 +18,3 @@ Profile.propTypes = {
 };
 
 export default Profile;
-

@@ -28,4 +28,3 @@ Actions.propTypes = {
 };
 
 export default Actions;
-

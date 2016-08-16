@@ -17,4 +17,3 @@ HeaderCompany.propTypes = {
 };
 
 export default HeaderCompany;
-

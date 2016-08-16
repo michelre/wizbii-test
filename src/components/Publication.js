@@ -47,4 +47,3 @@ Publication.propTypes = {
 };
 
 export default Publication;
-

@@ -25,14 +25,14 @@ export default class Comments extends React.Component{
     const { comments, isAddingComment } = this.props;
     return <div className="comments">
       <ul>
-      {R.map(({ _id, content, date, profile }) => <li key={_id}>
+      {R.map(({ _id, content, date_created, profile }) => <li key={_id}>
         <Row>
           <Col md={4}>
             <img alt="profile-avatar-comment" className="profile-avatar-comment" src={profile.avatar} />
             <small>{profile.name}</small>
           </Col>
           <Col md={8}>
-            <i className="date">{moment(date).format('YYYY-MM-DD HH:mm')}</i>
+            <i className="date">{moment(date_created).format('YYYY-MM-DD HH:mm')}</i>
             <p>{content}</p>
           </Col>
         </Row>

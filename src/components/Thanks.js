@@ -14,4 +14,3 @@ Thanks.propTypes = {
 };
 
 export default Thanks;
-
