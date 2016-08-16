@@ -2,7 +2,7 @@
   "name": "wizbii-test",
   "version": "1.0.0",
   "description": "Wizbii technical test",
-  "main": "index.js",
+  "main": "",
   "scripts": {
     "eslint": "./node_modules/eslint/bin/eslint.js ./src",
     "build": "npm run eslint && ./node_modules/webpack/bin/webpack.js",
@@ -10,6 +10,9 @@
     "postinstall": "npm run build",
     "test": "mocha --require ./test/setup.js --compilers js:babel-register test/**",
     "start": "PORT=8080 node server.js"
+  },
+  "engines": {
+    "node": "6.3.1"
   },
   "author": "Rémi Michel",
   "license": "ISC",
