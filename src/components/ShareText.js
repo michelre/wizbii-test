@@ -3,7 +3,7 @@ import React, { PropTypes } from 'react';
 import { constructShareThread } from '../helpers/utils';
 
 const ShareText = ({ shares }) => {
-  return (shares.length === 0) ? null : <p className="share-text">Publié par: {constructShareThread(shares)}</p>
+  return (shares.length === 0) ? null : <p className="share-text">Publié par: {constructShareThread(shares)}</p>;
 };
 
 ShareText.propTypes = {
