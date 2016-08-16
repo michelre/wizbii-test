@@ -7,7 +7,7 @@
     "eslint": "./node_modules/eslint/bin/eslint.js ./src",
     "build": "./node_modules/webpack/bin/webpack.js",
     "build:watch": "./node_modules/webpack/bin/webpack.js --watch",
-    "postinstall": "npm run build",
+    "postinstall": "node deploy",
     "test": "mocha --require ./test/setup.js --compilers js:babel-register test/**",
     "start": "PORT=8080 node server.js"
   },
