@@ -9,7 +9,7 @@ import Comments from '../../src/components/Comments';
 
 const props = {
   id: 'foo',
-  comments: [{ id: 'comment_id', comment: 'COMMENT', date: '2015-01-01', profile: { name: 'profileName', avatar: 'http://foo.com' } }],
+  comments: [{ _id: 'comment_id', content: 'COMMENT', date: '2015-01-01', profile: { name: 'profileName', avatar: 'http://foo.com' } }],
   isAddingComment: false,
   handleAddComment: () => {},
 };
